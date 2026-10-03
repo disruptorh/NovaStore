@@ -3,12 +3,8 @@ name: Build
 on:
   push:
     branches: [main]
-    tags: ['v*']
   pull_request:
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 concurrency:
   group: build-${{ github.ref }}
@@ -59,13 +55,3 @@ jobs:
         with:
           name: NovaStore-v${{ steps.apk.outputs.version }}
           path: out/*
-
-      - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          name: Nova Store ${{ steps.apk.outputs.version }}
-          generate_release_notes: true
-          files: |
-            out/*.apk
-            out/SHA256SUMS.txt
