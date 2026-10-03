@@ -129,7 +129,8 @@ class VerifyArtifactUseCase @Inject constructor(
 
         // The base APK MUST carry a readable signing certificate; a missing
         // signature blocks installation instead of skipping verification.
-        val archiveDigest = signatureVerifier.archiveCertDigest(contents.baseApk)
+        // Read from the archive parse above, so it is not a second parse.
+        val archiveDigest = signatureVerifier.digestOf(parsed.signingInfo)
         if (archiveDigest == null) {
             contents.extractedDir.deleteRecursively()
             updatesRepository.transition(version.packageName, UpdateState.FAILED)

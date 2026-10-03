@@ -21,6 +21,7 @@ junit = "4.13.2"
 robolectric = "4.14.1"
 androidxTestCore = "1.6.1"
 androidxTestJunit = "1.2.1"
+androidxTestRunner = "1.6.2"
 appcompat = "1.7.0"
 gson = "2.11.0"
 
@@ -84,6 +85,7 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 androidx-test-core = { group = "androidx.test", name = "core-ktx", version.ref = "androidxTestCore" }
 androidx-test-junit = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestJunit" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
 
 # Misc
 javax-inject = { group = "javax.inject", name = "javax.inject", version = "1" }

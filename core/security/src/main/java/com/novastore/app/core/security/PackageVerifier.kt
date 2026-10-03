@@ -2,7 +2,6 @@ package com.novastore.app.core.security
 
 import android.content.Context
 import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
 import android.os.Build
 import com.novastore.app.core.common.DispatcherProvider
 import com.novastore.app.core.model.NovaError
@@ -13,7 +12,14 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.withContext
 
-/** Structural information parsed from a downloaded APK. */
+/**
+ * Structural information parsed from a downloaded APK.
+ *
+ * [signingInfo] is the same [PackageInfo] the archive parse produced, fetched
+ * with [SignatureVerifier.SIGNING_FLAGS]. Callers need it to read the signing
+ * certificate without asking PackageManager to parse the archive a second
+ * time.
+ */
 data class ParsedApk(
     val packageName: String?,
     val versionCode: Long,
@@ -21,12 +27,16 @@ data class ParsedApk(
     val minSdk: Int?,
     val targetSdk: Int?,
     val supportedAbis: List<String>,
+    val signingInfo: PackageInfo,
 )
 
 /**
  * Parses a downloaded APK with PackageManager.getPackageArchiveInfo and
  * reads the native library folders from the ZIP directory to determine
  * supported architectures.
+ *
+ * The archive is parsed exactly once, with the signing flags attached, so
+ * verification needs a single PackageManager round trip per artifact.
  */
 @Singleton
 class PackageVerifier @Inject constructor(
@@ -34,9 +44,8 @@ class PackageVerifier @Inject constructor(
     private val dispatcherProvider: DispatcherProvider,
 ) {
     suspend fun parse(apk: File): ParsedApk? = withContext(dispatcherProvider.io) {
-        @Suppress("DEPRECATION")
         val info: PackageInfo? = try {
-            context.packageManager.getPackageArchiveInfo(apk.absolutePath, 0)
+            context.packageManager.getPackageArchiveInfo(apk.absolutePath, SignatureVerifier.SIGNING_FLAGS)
         } catch (_: Exception) {
             null
         }
@@ -62,6 +71,7 @@ class PackageVerifier @Inject constructor(
             minSdk = minSdk,
             targetSdk = targetSdk,
             supportedAbis = readSupportedAbis(apk),
+            signingInfo = info,
         )
     }
 

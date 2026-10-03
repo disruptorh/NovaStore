@@ -1,0 +1,73 @@
+{
+  "repo": {"name": {"en-US": "Parity V2", "de": "Parität V2", "fr": "Parité V2"}},
+  "packages": {
+    "com.example.full": {
+      "metadata": {
+        "name": {"en-US": " Full App ", "de": "Vollständig"},
+        "summary": {"en-US": "A summary", "de": "Eine Zusammenfassung"},
+        "description": {"en-US": "Long description"},
+        "authorName": "Ada",
+        "icon": {"en-US": {"name": "full.png"}, "de": {"name": "voll.png"}},
+        "license": "Apache-2.0",
+        "categories": ["System", "Tools"],
+        "webSite": "https://example.org",
+        "sourceCode": "https://example.org/src",
+        "changelog": "https://example.org/changes",
+        "added": 1500000000,
+        "lastUpdated": 1700000000000
+      },
+      "versions": {
+        "200": {
+          "added": 1600000000,
+          "file": {"name": "full_200.apk", "sha256": "AABBCCDD", "size": 4096},
+          "manifest": {
+            "versionCode": 200,
+            "versionName": "2.0.0",
+            "usesSdk": {"minSdkVersion": 21, "targetSdkVersion": 34},
+            "signer": {"sha256": ["DEADBEEF", "SECOND"]},
+            "nativecode": ["x86_64", "arm64-v8a"]
+          }
+        },
+        "199": {
+          "file": {"name": "/absolute/full_199.apk"},
+          "manifest": {"versionCode": 199}
+        },
+        "no-code": {
+          "file": {"name": "full_nocode.apk"},
+          "manifest": {}
+        }
+      }
+    },
+    "com.example.relative": {
+      "metadata": {"name": {"en-US": "   "}, "added": "1600000000"},
+      "versions": {
+        "1": {
+          "file": {"name": "https://cdn.example.org/rel_1.apk", "size": "2048"},
+          "manifest": {"versionCode": "1.9", "usesSdk": {"minSdkVersion": "26"}}
+        },
+        "2": {
+          "file": {"name": "rel_2.apk"},
+          "manifest": {"versionCode": 2.7e3}
+        },
+        "3": {
+          "file": {"name": "rel_3.apk", "size": "not a number"},
+          "manifest": {"versionCode": -5}
+        }
+      }
+    },
+    "com.example.empty": {
+      "metadata": {"name": "Nothing here"},
+      "versions": {}
+    },
+    "com.example.noicon": {
+      "metadata": {"name": "Plain", "summary": null, "categories": "not a list"},
+      "versions": {
+        "7": {
+          "file": {"name": "plain_7.apk", "sha256": ""},
+          "manifest": {"versionCode": 7, "versionName": null, "nativecode": []}
+        }
+      }
+    }
+  },
+  "unknown": {"ignored": [1, 2, {"deep": true}]}
+}

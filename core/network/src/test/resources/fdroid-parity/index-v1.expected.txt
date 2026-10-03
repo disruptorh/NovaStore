@@ -1,0 +1,6 @@
+repo	-
+app	com.example.v1full	Deutscher Name	Zusammenfassung	Beschreibung	Grace	https://repo.example.org/repo/com.example.v1full/de/de.png	MIT	Games	https://example.org	-	-	1400000000	-
+app	com.example.v1icon	Nur Deutsch	-	-	-	https://repo.example.org/repo/icons-640/plain.png	-	-	-	-	-	-	-
+version	com.example.v1full	7	1.2.3	https://repo.example.org/repo/com.example.v1full_7.apk	abcdef	2048	23	-	-	998877	x86_64
+version	com.example.v1full	6	-	https://repo.example.org/repo/com.example.v1full_6.apk	-	-	-	-	1500000000	-	-
+version	com.example.v1icon	1	-	https://repo.example.org/repo/https://cdn.example.org/v1icon_1.apk	-	-	-	-	-	-	-

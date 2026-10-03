@@ -8,6 +8,14 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
+// Without this the Kotlin plugin defaults to the running JDK (21 on newer
+// machines) and the build fails with "Inconsistent JVM-target compatibility".
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}
+
 dependencies {
     implementation(libs.okhttp)
     implementation("com.google.protobuf:protobuf-java:3.25.5")

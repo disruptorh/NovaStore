@@ -1,0 +1,56 @@
+{
+  "repo": {"name": {"en-US": "Parity V1", "de": "Parität V1"}},
+  "apps": [
+    {
+      "packageName": "com.example.v1full",
+      "name": "Fallback name",
+      "authorName": "Grace",
+      "icon": "v1.png",
+      "categories": ["Games"],
+      "license": "MIT",
+      "webSite": "https://example.org",
+      "added": 1400000000,
+      "localized": {
+        "de": {
+          "name": "Deutscher Name",
+          "summary": "Zusammenfassung",
+          "description": "Beschreibung",
+          "icon": "de.png"
+        },
+        "en": {"name": "English name"}
+      }
+    },
+    {
+      "packageName": "com.example.v1icon",
+      "icon": "plain.png",
+      "localized": {"de": {"name": "Nur Deutsch"}}
+    },
+    {"name": "no package name"}
+  ],
+  "packages": {
+    "com.example.v1full": [
+      {
+        "versionCode": 7,
+        "versionName": "1.2.3",
+        "apkName": "com.example.v1full_7.apk",
+        "hash": "ABCDEF",
+        "hashType": "sha256",
+        "size": 2048,
+        "minSdkVersion": 23,
+        "nativecode": ["x86_64"],
+        "signer": "998877"
+      },
+      {
+        "versionCode": 6,
+        "apkName": "com.example.v1full_6.apk",
+        "hash": "DEADBEEF",
+        "hashType": "md5",
+        "added": 1500000000
+      },
+      {"apkName": "com.example.v1full_x.apk"}
+    ],
+    "com.example.v1icon": [
+      {"versionCode": 1, "apkName": "https://cdn.example.org/v1icon_1.apk"}
+    ]
+  }
+}

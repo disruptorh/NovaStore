@@ -93,12 +93,23 @@ class FdroidIndexClient(
             )
         }
 
-    /** Parses an index previously downloaded by [fetchIndex]. */
+    /**
+     * Parses an index previously downloaded by [fetchIndex].
+     *
+     * The native parser handles the index first; it declines anything it cannot
+     * vouch for, and the Gson parser then reads the same file.
+     */
     suspend fun parseIndex(
         file: File,
         fetched: FetchedIndex,
         preferredLocales: List<String>,
     ): AppResult<ParsedIndex> = withContext(dispatcherProvider.io) {
+        NativeFdroidIndex.parse(
+            file = file,
+            baseUrl = fetched.baseUrl,
+            v2Format = fetched.format == IndexFormat.V2,
+            preferredLocales = preferredLocales,
+        )?.let { return@withContext AppResult.success(it) }
         try {
             val parser = RepoIndexParser(fetched.baseUrl, preferredLocales)
             val parsed = file.inputStream().use { input ->

@@ -63,8 +63,10 @@ class DefaultArtifactVerifier @Inject constructor(
 
         // 5. The artifact MUST carry a readable signing certificate. A missing
         //    signature is never "nothing to compare" — installation is blocked
-        //    instead of silently skipping verification.
-        val archiveDigest = signatureVerifier.archiveCertDigest(file)
+        //    instead of silently skipping verification. The certificate comes
+        //    from the archive parse above, so PackageManager is not asked to
+        //    parse the same APK twice.
+        val archiveDigest = signatureVerifier.digestOf(parsed.signingInfo)
             ?: return@withContext VerificationResult.Invalid(NovaError.UnsignedPackage)
 
         // 6. Signing certificate compatibility with the installed version.

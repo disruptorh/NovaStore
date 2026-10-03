@@ -39,23 +39,6 @@ class SignatureVerifier @Inject constructor(
         }
     }
 
-    /** Digest of the certificate that signed a downloaded APK file. */
-    suspend fun archiveCertDigest(apkFile: java.io.File): String? = withContext(dispatcherProvider.io) {
-        try {
-            val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                PackageManager.GET_SIGNING_CERTIFICATES
-            } else {
-                @Suppress("DEPRECATION")
-                PackageManager.GET_SIGNATURES
-            }
-            @Suppress("DEPRECATION")
-            val info = context.packageManager.getPackageArchiveInfo(apkFile.absolutePath, flags) ?: return@withContext null
-            extractDigest(info)
-        } catch (_: Exception) {
-            null
-        }
-    }
-
     /**
      * Compares two hex digests. Null-safe: when the expected certificate
      * cannot be established, callers decide the fallback (never a silent
