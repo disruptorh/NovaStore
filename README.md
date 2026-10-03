@@ -114,10 +114,18 @@ Without a key, the build is signed with the local debug key.
 ### CI and releases
 [GitHub Actions](.github/workflows/build.yml) builds the release APK and runs the unit tests on every push.
 Each build's APK is available as a workflow artifact.
-Pushing a `v*` tag publishes a GitHub Release with the APK and `SHA256SUMS.txt`:
+Pushing a `v*` tag publishes a GitHub Release with the APK and `SHA256SUMS.txt`.
+
+Cut a release with the helper script — it bumps `versionCode` (+1) and the patch version in `app/build.gradle.kts`, updates the tag example in this README, commits, tags and pushes; CI then publishes the release:
 
 ```bash
-git tag v7.2.0 && git push origin v7.2.0
+./release.sh
+```
+
+It refuses to run with a dirty working tree or with no code changes since the last tag. You can also tag manually:
+
+```bash
+git tag v7.2.1 && git push origin v7.2.1
 ```
 
 To sign CI builds with your release key, add these repository secrets:

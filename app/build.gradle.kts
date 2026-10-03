@@ -17,8 +17,8 @@ android {
         applicationId = "com.novastore.fork"
         minSdk = 26
         targetSdk = 35
-        versionCode = 11
-        versionName = "7.2.0"
+        versionCode = 12
+        versionName = "7.2.1"
     }
 
     signingConfigs {
@@ -83,6 +83,16 @@ android {
 
     testOptions {
         unitTests.all { it.useJUnit() }
+    }
+
+    applicationVariants.configureEach {
+        if (name == "release") {
+            val version = defaultConfig.versionName
+            outputs.configureEach {
+                (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl)
+                    .outputFileName = "NovaStore-v$version.apk"
+            }
+        }
     }
 }
 
