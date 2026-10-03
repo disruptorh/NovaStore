@@ -1,77 +1,95 @@
 # Security Model
 
-## Верификация артефакта (обязательный пайплайн, §23 ТЗ)
+## Artifact verification (mandatory pipeline, spec §23)
 
-Перед ЛЮБОЙ установкой (`DefaultArtifactVerifier`, core:security):
+Before ANY install (`DefaultArtifactVerifier`, core:security):
 
 ```
 Download completed
-  → File exists                      (иначе InvalidPackage)
-  → File size check                  (иначе ChecksumMismatch/InvalidPackage)
-  → SHA-256 (streaming, окнами 64KB) (иначе ChecksumMismatch — установка запрещена)
-  → APK parsing (PackageVerifier)    (иначе InvalidPackage)
-  → packageName verification         (иначе InvalidPackage)
-  → versionCode verification         (иначе InvalidPackage)
-  → minSdk / architecture            (иначе IncompatibleDevice)
-  → certificate/signature comparison (иначе SignatureMismatch — автоматическое
-                                      обновление заблокировано, root это НЕ обходит)
+  → File exists                       (else InvalidPackage)
+  → File size check                   (else ChecksumMismatch/InvalidPackage)
+  → SHA-256 (streaming, 64 KB windows) (else ChecksumMismatch — install is blocked)
+  → APK parsing (PackageVerifier)     (else InvalidPackage)
+  → packageName verification          (else InvalidPackage)
+  → versionCode verification          (else InvalidPackage)
+  → minSdk / architecture             (else IncompatibleDevice)
+  → certificate/signature comparison  (else SignatureMismatch — automatic update
+                                       is blocked; root does NOT bypass this)
   → Installation
 ```
 
-## Сравнение подписи
+## Signature comparison
 
-- Сертификат нового APK извлекается на устройстве; подпись установленной версии —
-  через `PackageManager` (`GET_SIGNING_CERTIFICATES` на API 28+, `GET_SIGNATURES`
-  как legacy-путь).
-- Несовместимая подпись → «Different signing certificate. Automatic update blocked.»
-  Пользователь получает пояснение, обновление не подменяет приложение чужим APK.
-- Если expected certificate из metadata источника определить нельзя — используется
-  безопасный fallback: неподтверждённое privileged-обновление НЕ выполняется.
+- The new APK's certificate is extracted on device; the installed version's
+  signature is read through `PackageManager` (`GET_SIGNING_CERTIFICATES` on
+  API 28+, `GET_SIGNATURES` as the legacy path).
+- Incompatible signature → "Different signing certificate. Automatic update
+  blocked." The user gets an explanation, and the update never replaces the app
+  with someone else's APK.
+- If the expected certificate cannot be determined from the source metadata, a safe
+  fallback applies: an unconfirmed privileged update is NOT performed.
 
-## Сеть
+## Network
 
-- Только HTTPS, стандартная валидация сертификатов OkHttp (modern TLS).
-- Никаких кастомных trust managers, никаких отключений hostname verification.
+- HTTPS only, standard OkHttp certificate validation (modern TLS).
+- No custom trust managers, no disabling of hostname verification.
 
-## Root (см. docs/root-installation.md)
+## Sources and installation
 
-- Root — только бэкенд установки. Root НЕ отключает верификацию и не обходит
-  подписи (§107, §106 ТЗ).
-- Команды строятся из структурированных аргументов; URL/metadata из сети НИКОГДА
-  не попадают в shell; `sh -c "<untrusted>"` запрещён и отсутствует в коде.
+- Installs are allowed only from Google Play, F-Droid-compatible repositories
+  (the built-in ones, including IzzyOnDroid, and any the user adds) and
+  GitHub/GitLab release catalogs.
+- APKPure and APKCombo are metadata-only: the catalog stays available to browse
+  version history, but files from these mirrors are NOT downloaded and NOT
+  installed. This is enforced at the install boundary (`isInstallSourceAllowed`,
+  checked in `DownloadUpdateUseCase` and `InstallPackageUseCase`). If Google Play
+  can serve a mirror version, the download automatically switches to Play
+  (`DownloadUpdateUseCase.prepare`).
+- This is a deny-list, not an allow-list: any repository the user adds stays
+  installable.
+
+## Root (see [root-installation.md](root-installation.md))
+
+- Root is only an install backend. Root does NOT turn off verification and does not
+  bypass signatures (spec §107, §106).
+- Commands are built from structured arguments; URLs/metadata from the network NEVER
+  reach a shell; `sh -c "<untrusted>"` is forbidden and absent from the code.
 
 ## Permissions
 
-| Permission | Обоснование |
+| Permission | Reason |
 |---|---|
-| `INTERNET` | загрузка метаданных и APK |
-| `ACCESS_NETWORK_STATE` | Wi-Fi/metered constraints, offline-режим |
-| `REQUEST_INSTALL_PACKAGES` | стандартный PackageInstaller flow (API 26+) |
-| `POST_NOTIFICATIONS` | уведомления об обновлениях/загрузках (runtime, с 33+) |
-| `RECEIVE_BOOT_COMPLETED` | восстановление очереди после ребута (§69) |
-| `QUERY_ALL_PACKAGES` | сканирование установленных приложений — основная функция менеджера обновлений (официальное исключение для app stores/update managers) |
+| `INTERNET` | download metadata and APKs |
+| `ACCESS_NETWORK_STATE` | Wi-Fi/metered constraints, offline mode |
+| `REQUEST_INSTALL_PACKAGES` | standard PackageInstaller flow (API 26+) |
+| `POST_NOTIFICATIONS` | update/download notifications (runtime, from 33+) |
+| `RECEIVE_BOOT_COMPLETED` | restore the queue after a reboot (spec §69) |
+| `QUERY_ALL_PACKAGES` | scan installed apps — the core function of an update manager (official exception for app stores/update managers) |
 
-Список установленных приложений не покидает устройство: он используется только
-локально для сравнения версий. Ни один источник не получает inventory устройства.
+The list of installed apps never leaves the device: it is used only locally to
+compare versions. No source receives the device inventory.
 
-## Приватность
+## Privacy
 
-- Списки установленных приложений не отправляются на серверы (нет своего backend).
-- Пароли/Google credentials не собираются (Google OAuth не реализован — честно
-  «unavailable» вместо подделки).
-- Токенов/секретов в Git нет; release-подпись — через локальное окружение.
-- Аналитики нет; телеметрии нет.
+- Installed-app lists are not uploaded to any server (there is no backend of our own).
+- Passwords are not stored: Google sign-in goes through Google's own page (WebView
+  `EmbeddedSetup`) or the system `AccountManager`; only the issued session token is
+  kept on device, and it is encrypted with an Android Keystore key (`SessionCipher`,
+  AES-256-GCM). App backup and device-to-device transfer are disabled
+  (`allowBackup=false` + `data_extraction_rules`).
+- No tokens or secrets in Git; release signing goes through the local environment.
+- No analytics; no telemetry.
 
-## Что приложение НЕ делает
+## What the app does NOT do
 
-- Не обходит DRM, Play Integrity, лицензии, подписи, системные промпты.
-- Не удаляет/не модифицирует системные компоненты, SELinux, Play Protect.
-- Не выполняет произвольные команды с сервера.
-- Не собирает чужие приватные данные.
+- It does not bypass DRM, Play Integrity, licenses, signatures or system prompts.
+- It does not delete or modify system components, SELinux or Play Protect.
+- It does not run arbitrary commands from a server.
+- It does not collect other people's private data.
 
-## Edge cases (§68)
+## Edge cases (spec §68)
 
-Обработаны: нехватка места (`InsufficientStorage`), package conflict, signature
-mismatch, downgrade (запрещён по умолчанию), invalid/broken APK, отмена установки
-пользователем, root denied, исчезновение пакета, потеря сети, ребут во время очереди
-(восстановление без повторной установки завершённых задач).
+Handled: out of space (`InsufficientStorage`), package conflict, signature
+mismatch, downgrade (blocked by default), invalid/broken APK, install cancelled by
+the user, root denied, package disappearing, network loss, reboot during the queue
+(recovers without reinstalling completed tasks).

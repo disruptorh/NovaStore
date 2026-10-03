@@ -7,15 +7,35 @@
 **One store for every source — Google Play, F-Droid, IzzyOnDroid and more.**<br/>
 Install and update all your apps from one place, with or without a Google account, with or without Google services.
 
-[![Build](https://github.com/Vincentdiligent/NovaStore/actions/workflows/build.yml/badge.svg)](https://github.com/Vincentdiligent/NovaStore/actions/workflows/build.yml)
-[![Release](https://img.shields.io/github/v/release/Vincentdiligent/NovaStore?color=6965F1&label=release)](https://github.com/Vincentdiligent/NovaStore/releases/latest)
+[![Build](https://github.com/disruptorh/NovaStore/actions/workflows/build.yml/badge.svg)](https://github.com/disruptorh/NovaStore/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/disruptorh/NovaStore?color=6965F1&label=release)](https://github.com/disruptorh/NovaStore/releases/latest)
 [![License: GPL v3](https://img.shields.io/badge/license-GPLv3-A556F7.svg)](LICENSE)
 ![Android 8.0+](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-Compose-7F52FF?logo=kotlin&logoColor=white)
 
-[**⬇ Download the latest APK**](https://github.com/Vincentdiligent/NovaStore/releases/latest) &nbsp;·&nbsp; [**❤ Sponsor**](https://github.com/sponsors/Vincentdiligent)
+[**⬇ Download the latest APK**](https://github.com/disruptorh/NovaStore/releases/latest) &nbsp;·&nbsp; [**❤ Sponsor the original author**](https://github.com/sponsors/Vincentdiligent)
 
 </div>
+
+---
+
+> **This is a personal fork of [Nova Store](https://github.com/Vincentdiligent/NovaStore).**
+> The original project and all credit belong to its author, [@Vincentdiligent](https://github.com/Vincentdiligent).
+> This fork is maintained at [disruptorh/NovaStore](https://github.com/disruptorh/NovaStore), ships
+> under its own application id (`com.novastore.fork`) and signing key, and can be installed next to
+> the original app.
+
+## What this fork changes
+
+- **Encrypted sessions.** Play and anonymous session tokens are encrypted at rest with the Android
+  Keystore (AES-GCM), and cloud backup and device-to-device transfer are disabled.
+- **Mandatory signature verification.** Every APK must pass signature verification before install;
+  unsigned or unverifiable packages are rejected.
+- **Metadata-only mirrors.** APKPure and APKCombo are shown for reference only. Apps are installed
+  and updated from Google Play, F-Droid repositories (including IzzyOnDroid) and any repository you
+  add yourself.
+- **Independent identity.** Ships as `com.novastore.fork`, signed with its own key, so this fork and
+  the upstream app can be installed side by side.
 
 <p align="center">
   <img src="docs/screenshots/home.png" width="200" alt="Home"/>
@@ -58,12 +78,12 @@ If one source is slow or down, the others keep working.
 - Languages: English, Русский, Español, Français.
 
 ### 🔒 Safe installs
-Every APK is verified before install: size, SHA-256, package name, version, ABI and signature against the installed app.
+Every APK must pass signature verification before install — unsigned or unverifiable packages are rejected. Size, SHA-256, package name, version and ABI are also checked against the installed app.
 Installs use the standard Android installer by default. Root and Device Owner backends are optional.
 
 ## Install
 
-1. Download `NovaStore-vX.Y.Z.apk` from [Releases](https://github.com/Vincentdiligent/NovaStore/releases/latest).
+1. Download `NovaStore-vX.Y.Z.apk` from [Releases](https://github.com/disruptorh/NovaStore/releases/latest).
 2. Open it and allow "Install unknown apps" for your browser or file manager.
 3. Launch Nova Store. Google Play works immediately with no account needed.
 
@@ -72,7 +92,7 @@ Installs use the standard Android installer by default. Root and Device Owner ba
 ## Build from source
 
 ```bash
-git clone https://github.com/Vincentdiligent/NovaStore.git
+git clone https://github.com/disruptorh/NovaStore.git
 cd NovaStore
 ./gradlew assembleRelease
 # → app/build/outputs/apk/release/app-release.apk
@@ -80,7 +100,7 @@ cd NovaStore
 
 You need JDK 17 and the Android SDK (API 35).
 
-To sign with your own key, add these to `local.properties`:
+To sign with your own key, add these to `keystore.properties` (or `local.properties`):
 
 ```properties
 storeFile=/path/to/keystore.jks
@@ -127,10 +147,10 @@ Further documentation:
 - [docs/root-installation.md](docs/root-installation.md)
 - [CHANGELOG.md](CHANGELOG.md)
 
-## Support the project
+## Support the original project
 
 Nova Store is free, has no ads and no tracking, and is built in spare time.
-If it saves you time, you can support its development:
+If it saves you time, please support the original author, [@Vincentdiligent](https://github.com/Vincentdiligent):
 
 [![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-GitHub-EA4AAA?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/Vincentdiligent)
 
@@ -142,6 +162,13 @@ Nova Store is an independent project and is not affiliated with Google or F-Droi
 Google Play is a trademark of Google LLC.
 Apps are downloaded from their original sources, and their licenses and terms apply.
 
+## Credits
+
+Nova Store was created by [@Vincentdiligent](https://github.com/Vincentdiligent) and its contributors:
+https://github.com/Vincentdiligent/NovaStore. This fork is maintained by
+[@disruptorh](https://github.com/disruptorh).
+
 ## License
 
 Nova Store is free software, licensed under the [GNU General Public License v3.0](LICENSE).
+This fork keeps the same license as the original project.
