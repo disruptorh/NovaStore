@@ -14,6 +14,7 @@ import com.novastore.playapi.helpers.SearchHelper
 import com.novastore.playapi.helpers.TopChartsHelper
 import com.novastore.app.core.common.DispatcherProvider
 import com.novastore.app.core.datastore.SettingsDataStore
+import com.novastore.app.core.security.SessionCipher
 import com.novastore.app.core.model.AppVersion
 import com.novastore.app.core.model.ArtifactType
 import com.novastore.app.core.model.AuthMethod
@@ -62,8 +63,10 @@ fun interface PlaySessionListener {
  *     built-in public dispenser. Genuine Play
  *     protocol and original Play files with no account on the device and no
  *     Google services required; kept in memory only and re-minted
- *     automatically when Play rejects it;
- *  3. for downloads only: the community mirror chain (APKPure → APKCombo).
+ *     automatically when Play rejects it.
+ *
+ * The community mirrors (APKPure/APKCombo) are queried for CATALOGUE data
+ * only ([mirrorVersionsFor]); they never deliver a file.
  */
 @Singleton
 class PlayStoreRepositoryImpl @Inject constructor(
@@ -72,13 +75,10 @@ class PlayStoreRepositoryImpl @Inject constructor(
     private val apkComboClient: ApkComboClient,
     private val dispatcherProvider: DispatcherProvider,
     private val deviceProperties: PlayDeviceProperties,
+    private val sessionCipher: SessionCipher,
 ) : PlayStoreRepository {
 
     private val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.io)
-
-    /** Out-of-band resolved mirror links (WebView mirror browser), TTL-bounded. */
-    private val mirrorOverrides = ConcurrentHashMap<String, Pair<Long, PlayDownloadFile>>()
-    private val mirrorOverrideCodes = ConcurrentHashMap<String, Long>()
 
     /** Lazily minted anonymous Play session (in-memory only, never persisted). */
     @Volatile
@@ -165,8 +165,13 @@ class PlayStoreRepositoryImpl @Inject constructor(
      * persisted session) when no session exists or it is no longer valid.
      */
     suspend fun restoreSession(): AuthData? = withContext(dispatcherProvider.io) {
-        val json = settingsDataStore.playAuthSessionSnapshot() ?: return@withContext null
-        val session = PlayAuthSession.fromJson(json)
+        val stored = settingsDataStore.playAuthSessionSnapshot() ?: return@withContext null
+        val decoded = sessionCipher.decrypt(stored)
+        if (decoded == null) {
+            settingsDataStore.clearPlayAuthSession()
+            return@withContext null
+        }
+        val session = PlayAuthSession.fromJson(decoded)
         if (session == null) {
             settingsDataStore.clearPlayAuthSession()
             return@withContext null
@@ -326,10 +331,10 @@ class PlayStoreRepositoryImpl @Inject constructor(
 
     override suspend fun purchaseDownloadFiles(packageName: String, versionCode: Long): List<PlayDownloadFile> =
         withContext(dispatcherProvider.io) {
-            // Genuine Play delivery through whatever session is available
-            // (account -> anonymous session). Anything Play refuses (paid app,
-            // region lock, no session, token trouble) falls through to the
-            // community mirrors instead of becoming the user's error.
+            // Delivery must come from Google Play itself (account or anonymous
+            // session). It never falls through to the community mirrors: those
+            // are metadata-only, so a Play refusal is reported instead of being
+            // masked by a mirror artifact.
             val playFailure: Throwable = try {
                 val files = withAuth { auth ->
                     PurchaseHelper.with(auth).purchase(packageName, versionCode.toInt(), OFFER_TYPE)
@@ -341,22 +346,19 @@ class PlayStoreRepositoryImpl @Inject constructor(
                 t
             }
 
-            val mirror = runCatching { resolveMirrorChain(packageName, versionCode, null) }.getOrNull()
-            if (mirror != null) return@withContext mirror
-
             throw when (playFailure) {
                 is ApiException.AppNotPurchased -> PlayStoreException(
                     NovaError.Metadata(
-                        userMessage = "This app is paid on Google Play and no free mirror carries it.",
+                        userMessage = "This app is paid on Google Play and cannot be delivered.",
                         packageName = packageName,
                     ),
                 )
                 is ApiException.AppNotSupported -> PlayStoreException(NovaError.IncompatibleDevice)
                 is PlayStoreException -> if (playFailure.error is NovaError.Account) {
                     PlayStoreException(
-                        NovaError.Network(
-                            userMessage = "Google Play could not be reached anonymously and no mirror " +
-                                "carries this app. Check the connection and try again.",
+                        NovaError.Account(
+                            userMessage = "No Google Play session is available for this app. " +
+                                "Sign in, or enable anonymous Play access in Settings → Sources.",
                             cause = playFailure,
                         ),
                     )
@@ -371,7 +373,7 @@ class PlayStoreRepositoryImpl @Inject constructor(
                 )
                 else -> PlayStoreException(
                     NovaError.Metadata(
-                        userMessage = "Google Play and the mirrors could not deliver this app right now " +
+                        userMessage = "Google Play could not deliver this app right now " +
                             "(${playFailure.message ?: playFailure.javaClass.simpleName}). Try again in a minute.",
                         packageName = packageName,
                     ),
@@ -499,13 +501,16 @@ class PlayStoreRepositoryImpl @Inject constructor(
             .put("profile", profile)
             .put("fallback", fallback)
             .put("mintedAt", mintedAt)
-        runCatching { settingsDataStore.setAnonPlaySession(json.toString()) }
+        sessionCipher.encrypt(json.toString())?.let { encrypted ->
+            runCatching { settingsDataStore.setAnonPlaySession(encrypted) }
+        }
     }
 
     private suspend fun restorePersistedAnonymous(): AuthData? {
         val raw = runCatching { settingsDataStore.anonPlaySessionSnapshot() }.getOrNull() ?: return null
+        val decoded = sessionCipher.decrypt(raw) ?: return null
         return runCatching {
-            val json = org.json.JSONObject(raw)
+            val json = org.json.JSONObject(decoded)
             val mintedAt = json.getLong("mintedAt")
             val profile = json.getString("profile")
             if (System.currentTimeMillis() - mintedAt >= ANONYMOUS_SESSION_MAX_AGE_MS) return null
@@ -531,17 +536,19 @@ class PlayStoreRepositoryImpl @Inject constructor(
     }
 
     // ------------------------------------------------------------------
-    // Nova anonymous tier (community mirror)
+    // Nova anonymous tier (community mirror catalogue — metadata only)
     // ------------------------------------------------------------------
 
-    override suspend fun isMirrorEnabled(): Boolean =
-        settingsDataStore.apkPureMirrorEnabledSnapshot()
-
+    /**
+     * Latest versions from the community mirror, bulk, for the catalogue and
+     * update scan. Metadata only: mirror artifacts are never downloaded or
+     * installed (isInstallSourceAllowed).
+     */
     override suspend fun mirrorVersionsFor(packageNames: Collection<String>): Map<String, List<AppVersion>> {
         // Each mirror is switched on/off on its own: disabling APKPure no
         // longer silently disables APKCombo as well.
-        val pureOn = isMirrorEnabled()
-        val comboOn = isComboMirrorEnabled()
+        val pureOn = settingsDataStore.apkPureMirrorEnabledSnapshot()
+        val comboOn = settingsDataStore.apkComboMirrorEnabledSnapshot()
         if (!pureOn && !comboOn) return emptyMap()
         // Source racing: both mirrors are queried concurrently; APKPure wins
         // where it answers, APKCombo fills the gaps. A Cloudflare-gated or
@@ -566,153 +573,6 @@ class PlayStoreRepositoryImpl @Inject constructor(
             val secondary = if (missing.isEmpty()) emptyMap() else comboDeferred.await()
             primary + secondary
         }
-    }
-
-    override suspend fun resolveMirrorDownload(
-        packageName: String,
-        versionCode: Long,
-    ): List<PlayDownloadFile>? {
-        consumeMirrorOverride(packageName)?.let { return listOf(it) }
-        if (!isMirrorEnabled()) return null
-        val spec = runCatching { apkPureClient.resolveDownload(packageName, versionCode) }.getOrNull()
-            ?: return null
-        // XAPK bundles are downloaded as-is and unpacked into a multi-APK
-        // install session by the verification pipeline (Nova Resolver v8).
-        return listOf(
-            PlayDownloadFile(
-                name = spec.fileName,
-                url = spec.url,
-                sizeBytes = spec.sizeBytes ?: 0L,
-                isSplit = false,
-            ),
-        )
-    }
-
-    override suspend fun isComboMirrorEnabled(): Boolean =
-        settingsDataStore.apkComboMirrorEnabledSnapshot()
-
-    override suspend fun registerMirrorOverride(
-        packageName: String,
-        url: String,
-        fileName: String,
-        sizeBytes: Long?,
-        versionCode: Long?,
-    ) = withContext(dispatcherProvider.io) {
-        if (url.isBlank()) return@withContext
-        mirrorOverrides[packageName] = System.currentTimeMillis() to PlayDownloadFile(
-            name = fileName,
-            url = url,
-            sizeBytes = sizeBytes ?: 0L,
-            isSplit = false,
-        )
-        if (versionCode != null) mirrorOverrideCodes[packageName] = versionCode
-    }
-
-    /** Returns the WebView-resolved link when still fresh (does not clear it). */
-    private fun consumeMirrorOverride(packageName: String): PlayDownloadFile? {
-        val entry = mirrorOverrides[packageName] ?: return null
-        if (System.currentTimeMillis() - entry.first > OVERRIDE_TTL) {
-            mirrorOverrides.remove(packageName)
-            return null
-        }
-        return entry.second
-    }
-
-    override suspend fun resolveComboDownload(
-        packageName: String,
-        versionName: String?,
-    ): List<PlayDownloadFile>? {
-        consumeMirrorOverride(packageName)?.let { return listOf(it) }
-        if (!isComboMirrorEnabled()) return null
-        if (versionName.isNullOrBlank()) return null
-        val spec = runCatching { apkComboClient.resolveDownload(packageName, versionName) }.getOrNull()
-            ?: return null
-        if (spec.isBundle) return null
-        if (spec.url.isBlank()) return null
-        return listOf(
-            PlayDownloadFile(
-                name = spec.fileName,
-                url = spec.url,
-                sizeBytes = spec.sizeBytes ?: 0L,
-                isSplit = false,
-            ),
-        )
-    }
-
-    /**
-     * The unified anonymous delivery chain — APKPure by code → APKPure by
-     * version NAME → APKCombo by name. Stage 2 exists because a row created
-     * from APKCombo metadata carries APKCombo's synthetic version code, which
-     * APKPure's own download page does not understand; matching the NAME in
-     * APKPure's version list recovers a direct APKPure download for exactly
-     * the release the user asked for. No single mirror's blind spot can end
-     * the chain.
-     */
-    override suspend fun resolveMirrorChain(
-        packageName: String,
-        versionCode: Long,
-        versionName: String?,
-    ): List<PlayDownloadFile>? {
-        consumeMirrorOverride(packageName)?.let { return listOf(it) }
-
-        // Stage 1: APKPure by version code (APKPure-sourced and Play rows).
-        resolveMirrorDownload(packageName, versionCode)?.let { return it }
-
-        // Stage 2: APKPure by version name (APKCombo-sourced rows, code drift).
-        if (isMirrorEnabled() && !versionName.isNullOrBlank()) {
-            val matched = runCatching {
-                apkPureClient.versions(packageName)
-                    .firstOrNull { it.versionName?.trim()?.equals(versionName.trim(), ignoreCase = true) == true }
-            }.getOrNull()
-            if (matched != null) {
-                val spec = runCatching {
-                    apkPureClient.resolveDownload(packageName, matched.versionCode)
-                }.getOrNull()
-                if (spec != null && spec.url.isNotBlank()) {
-                    return listOf(
-                        PlayDownloadFile(
-                            name = spec.fileName,
-                            url = spec.url,
-                            sizeBytes = spec.sizeBytes ?: 0L,
-                            isSplit = false,
-                        ),
-                    )
-                }
-            }
-        }
-
-        // Stage 3: APKCombo by version name.
-        return resolveComboDownload(packageName, versionName)
-    }
-
-    /**
-     * Mirror resolution with an honest, actionable error when it cannot
-     * serve the file (disabled, blocked, or bundle-only variant).
-     */
-    private suspend fun mirrorDownloadOrThrow(
-        packageName: String,
-        versionCode: Long,
-        versionName: String? = null,
-    ): List<PlayDownloadFile> {
-        val mirror = resolveMirrorChain(packageName, versionCode, versionName)
-        if (mirror != null) return mirror
-        if (!isMirrorEnabled()) {
-            throw PlayStoreException(
-                NovaError.Account(
-                    userMessage = "No Google Play session and the community mirror is disabled. " +
-                        "Sign in, or enable the mirror in Settings → Sources.",
-                ),
-            )
-        }
-        throw PlayStoreException(
-            NovaError.Metadata(
-                userMessage = "Neither mirror (APKPure, APKCombo) could deliver this release — " +
-                    "it may be bundle-only, paid or region-blocked, or the mirrors are " +
-                    "temporarily serving protected pages. Signing in with a Google account " +
-                    "delivers the original Play files.",
-                packageName = packageName,
-            ),
-        )
     }
 
     // ------------------------------------------------------------------
@@ -852,7 +712,6 @@ class PlayStoreRepositoryImpl @Inject constructor(
         const val SEARCH_EXTRA_PAGES = 2
         const val BULK_CHUNK = 50
         const val OFFER_TYPE = 1
-        const val OVERRIDE_TTL = 10 * 60 * 1000L
 
         /** A failed anonymous-session bootstrap is not retried within this window. */
         const val ANONYMOUS_BOOTSTRAP_TTL_MS = 60 * 1000L

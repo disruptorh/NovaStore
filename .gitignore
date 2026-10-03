@@ -27,3 +27,6 @@ releases/
 # OS
 .DS_Store
 Thumbs.db
+
+# CodeGraph index (local tooling, never commit)
+.codegraph/

@@ -11,6 +11,7 @@ import com.novastore.app.core.datastore.SettingsDataStore
 import com.novastore.app.core.model.AuthMethod
 import com.novastore.app.core.model.NovaError
 import com.novastore.app.core.model.PlayStoreException
+import com.novastore.app.core.security.SessionCipher
 import com.novastore.app.data.playauth.PlayAuthSession
 import com.novastore.app.domain.repository.AccountRepository
 import com.novastore.app.domain.repository.AccountState
@@ -47,6 +48,7 @@ class AccountRepositoryImpl @Inject constructor(
     private val playStoreRepository: PlayStoreRepositoryImpl,
     private val dispatcherProvider: DispatcherProvider,
     private val deviceProperties: com.novastore.app.data.playauth.PlayDeviceProperties,
+    private val sessionCipher: SessionCipher,
 ) : AccountRepository {
 
     private val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.io)
@@ -235,7 +237,11 @@ class AccountRepositoryImpl @Inject constructor(
         method: AuthMethod,
         profile: String,
     ) {
-        settingsDataStore.setPlayAuthSession(PlayAuthSession.from(auth, method, profile).toJson())
+        // Credentials are encrypted at rest with an Android Keystore key
+        // (SessionCipher). If the Keystore is unavailable the session is simply
+        // not persisted (fail closed) rather than written in the clear.
+        val json = PlayAuthSession.from(auth, method, profile).toJson()
+        sessionCipher.encrypt(json)?.let { settingsDataStore.setPlayAuthSession(it) }
         playStoreRepository.setAuthData(auth, method)
         settingsDataStore.update { it.copy(anonymousMode = false) }
     }

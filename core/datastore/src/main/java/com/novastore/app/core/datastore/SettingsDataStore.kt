@@ -33,7 +33,8 @@ private val Context.settingsDataStore: DataStore<Preferences> by preferencesData
 
 /**
  * Persistence for user settings via Preferences DataStore.
- * No secrets are ever stored here — only UI/engine preferences.
+ * Holds UI/engine preferences and encrypted credential blobs (see
+ * `core:security` `SessionCipher`) — never plaintext secrets.
  */
 @Singleton
 class SettingsDataStore @Inject constructor(

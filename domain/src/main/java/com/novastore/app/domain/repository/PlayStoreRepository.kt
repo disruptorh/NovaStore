@@ -33,13 +33,11 @@ interface PlayStoreRepository {
 
     /**
      * Resolves the download files (base + splits) for one package/version via
-     * the Play purchase/delivery endpoints. The URLs are single-use.
+     * the Play purchase/delivery endpoints (account or anonymous session). The
+     * URLs are single-use. The community mirror is never used as a fallback.
      *
-     * When no Play session is signed in, the community mirror resolves the
-     * files instead (anonymous mode) — no account and no server required.
-     *
-     * @throws com.novastore.app.core.model.PlayStoreException when not signed in,
-     * the app is paid/unavailable, or Play refuses the delivery.
+     * @throws com.novastore.app.core.model.PlayStoreException when no session is
+     * available, the app is paid/unavailable, or Play refuses the delivery.
      */
     suspend fun purchaseDownloadFiles(packageName: String, versionCode: Long): List<PlayDownloadFile>
 
@@ -72,53 +70,4 @@ interface PlayStoreRepository {
      * without any account or server.
      */
     suspend fun mirrorVersionsFor(packageNames: Collection<String>): Map<String, List<AppVersion>>
-
-    /**
-     * Nova anonymous tier: concrete download files of one version from the
-     * community mirror, or null when the mirror cannot serve it.
-     */
-    suspend fun resolveMirrorDownload(packageName: String, versionCode: Long): List<PlayDownloadFile>?
-
-    /**
-     * Nova anonymous tier, stage two: concrete download files from the
-     * APKCombo mirror, matched by version name, or null when it cannot
-     * serve the file (its final links are JavaScript-gated).
-     */
-    suspend fun resolveComboDownload(packageName: String, versionName: String?): List<PlayDownloadFile>?
-
-    /**
-     * The unified anonymous delivery chain, tried in order:
-     *  1. APKPure resolved by version code (works for APKPure/Play rows);
-     *  2. APKPure resolved by version NAME (works when the row came from
-     *     APKCombo or when mirror codes disagree with APKPure's);
-     *  3. APKCombo resolved by version name.
-     *
-     * Returns the first mirror that can serve the file, or null when none
-     * can. Every anonymous download path funnels through this chain so no
-     * single mirror's blind spot becomes the user's error.
-     */
-    suspend fun resolveMirrorChain(
-        packageName: String,
-        versionCode: Long,
-        versionName: String?,
-    ): List<PlayDownloadFile>?
-
-    /**
-     * Records a mirror download link resolved out-of-band by the built-in
-     * mirror browser (the WebView sniffed the final file URL). The next
-     * download of [packageName] uses it instead of re-resolving.
-     */
-    suspend fun registerMirrorOverride(
-        packageName: String,
-        url: String,
-        fileName: String,
-        sizeBytes: Long?,
-        versionCode: Long?,
-    )
-
-    /** True while the community mirror tier is enabled in settings. */
-    suspend fun isMirrorEnabled(): Boolean
-
-    /** True while the APKCombo mirror stage is enabled in settings. */
-    suspend fun isComboMirrorEnabled(): Boolean
 }

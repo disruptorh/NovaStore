@@ -1,7 +1,6 @@
 package com.novastore.app.feature.details
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,7 +36,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.IosShare
-import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Close
@@ -86,9 +84,6 @@ import com.novastore.app.core.model.AppVersion
 import com.novastore.app.core.model.DownloadState
 import com.novastore.app.core.model.RatingHistogram
 import com.novastore.app.core.model.RemoteAppDetails
-import com.novastore.app.core.model.SOURCE_APKCOMBO
-import com.novastore.app.core.model.SOURCE_APKPURE
-import com.novastore.app.core.model.SOURCE_PLAY
 import com.novastore.app.core.ui.R as UiR
 import com.novastore.app.core.ui.components.AppIcon
 import com.novastore.app.core.ui.components.ErrorState
@@ -382,38 +377,6 @@ private fun DetailsContent(
                     ) {
                         Text(stringResource(UiR.string.details_open_play))
                     }
-                } else if (state.action == DetailsAction.UNAVAILABLE) {
-                    val browserContext = LocalContext.current
-                    OutlinedButton(
-                        onClick = {
-                            // Honest last resort: the system browser opens the
-                            // mirror search — Nova never fakes an in-app
-                            // download flow it cannot deliver.
-                            runCatching {
-                                browserContext.startActivity(
-                                    android.content.Intent(
-                                        android.content.Intent.ACTION_VIEW,
-                                        android.net.Uri.parse(
-                                            "https://apkpure.com/search?q=" +
-                                                java.net.URLEncoder.encode(details.app.packageName),
-                                        ),
-                                    ),
-                                )
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        shape = RoundedCornerShape(20.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Language,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(UiR.string.details_mirror_browser))
-                    }
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -583,40 +546,8 @@ private fun DetailsContent(
 
         // --- Versions ---
         if (details.versions.isNotEmpty()) {
-            val mirrorLinkVisible = details.app.source == SOURCE_PLAY ||
-                details.versions.any { it.source == SOURCE_APKPURE || it.source == SOURCE_APKCOMBO }
             SectionCard(
                 title = stringResource(UiR.string.details_versions),
-                trailing = if (mirrorLinkVisible) {
-                    {
-                        val browserContext = LocalContext.current
-                        TextButton(
-                            onClick = {
-                                runCatching {
-                                    browserContext.startActivity(
-                                        android.content.Intent(
-                                            android.content.Intent.ACTION_VIEW,
-                                            android.net.Uri.parse(
-                                                "https://apkpure.com/search?q=" +
-                                                    java.net.URLEncoder.encode(details.app.packageName),
-                                            ),
-                                        ),
-                                    )
-                                }
-                            },
-                            contentPadding = PaddingValues(horizontal = 8.dp),
-                        ) {
-                            Text(
-                                text = stringResource(UiR.string.details_mirror_browser),
-                                style = MaterialTheme.typography.labelLarge,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
-                } else {
-                    null
-                },
             ) {
                 val best = state.bestVersion
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

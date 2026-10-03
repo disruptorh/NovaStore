@@ -13,6 +13,7 @@ import com.novastore.app.core.model.SOURCE_PLAY_WEB
 import com.novastore.app.core.model.VersionComparator
 import com.novastore.app.core.model.UpdateCandidate
 import com.novastore.app.core.model.UpdateState
+import com.novastore.app.core.model.isInstallSourceAllowed
 import com.novastore.app.domain.repository.PlayStoreRepository
 import com.novastore.app.domain.repository.UpdatesRepository
 import java.io.File
@@ -82,6 +83,12 @@ class DownloadUpdateUseCase @Inject constructor(
 
     private suspend fun download(candidate: UpdateCandidate): AppResult<File> {
         val version = candidate.available
+        // Metadata-only mirrors must never deliver an artifact. A mirror
+        // candidate normally reaches here only after prepare() failed to
+        // upgrade it to a Google Play delivery; refuse it now.
+        if (!isInstallSourceAllowed(version.source)) {
+            return AppResult.failure(NovaError.MirrorMetadataOnly(packageName = version.packageName))
+        }
         updatesRepository.transition(version.packageName, UpdateState.QUEUED)
 
         var url = version.downloadUrl
@@ -111,42 +118,6 @@ class DownloadUpdateUseCase @Inject constructor(
                         return AppResult.success(completed.first())
                     }
                 }
-            }
-        } else if (version.source == SOURCE_APKPURE || version.source == SOURCE_APKCOMBO || version.source == SOURCE_PLAY_WEB) {
-            // Nova anonymous tier, unified mirror chain: APKPure by code →
-            // APKPure by version name → APKCombo by name. No single mirror's
-            // blind spot (Cloudflare page, JS-gated link, synthetic code)
-            // ends the delivery here anymore.
-            val mirror = runCatching {
-                playStoreRepository.resolveMirrorChain(
-                    version.packageName,
-                    version.versionCode,
-                    version.versionName,
-                )
-            }.getOrNull()
-            if (mirror == null || mirror.isEmpty() || mirror.first().url.isBlank()) {
-                // Last resort: Google Play's CURRENT build for this device
-                // (anonymous session works too). Only when that is also
-                // impossible does the user see an error — never a dead end
-                // because one mirror hides its link behind page scripts.
-                val play = runCatching { playStoreRepository.resolvePlayLatest(version.packageName) }.getOrNull()
-                if (play != null && play.versionCode > candidate.installed.versionCode) {
-                    return download(candidate.copy(available = play, source = SOURCE_PLAY))
-                }
-                return AppResult.failure(
-                    NovaError.Metadata(
-                        userMessage = "Neither Google Play nor the mirrors could deliver this version right now " +
-                            "(it may be paid, bundle-only or region-blocked). Try again later or pick another version.",
-                        packageName = version.packageName,
-                    ),
-                )
-            }
-            val base = mirror.first()
-            url = base.url
-            fileName = base.name.ifBlank { fileName }
-
-            downloadRequester.getCompletedFile(version.packageName, version.versionCode)?.let { file ->
-                return AppResult.success(file)
             }
         } else {
             // A completed download of this exact version is reused; it is verified again before install.

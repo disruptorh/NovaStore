@@ -138,12 +138,6 @@
     <string name="details_less">Меньше</string>
     <string name="details_updated_on">Обновлено %1$s</string>
     <string name="details_released_on">Выпущено %1$s</string>
-    <string name="details_mirror_browser">Скачать с веб-зеркала</string>
-    <string name="details_mirror_browser_title">Веб-зеркало Nova</string>
-    <string name="details_mirror_hint">Найдите приложение и нажмите Download — Nova Store автоматически подхватит файл.</string>
-    <string name="details_mirror_bundle">Зеркало отдаёт бандл (XAPK), который пока нельзя установить анонимно. Попробуйте другую версию на странице зеркала.</string>
-    <string name="details_mirror_took_over">Загрузка перехвачена — завершаем в Nova Store</string>
-    <string name="details_mirror_browser_opened">Открыт встроенный браузер зеркала — он сам передаст файл Nova Store.</string>
 
     <!-- Updates -->
     <string name="updates_title">Обновления</string>
@@ -276,9 +270,9 @@
     <string name="sources_web_catalog">Веб-каталог Nova</string>
     <string name="sources_web_catalog_desc">Анонимные публичные страницы Google Play — поиск, описания и скриншоты любого приложения, без аккаунта.</string>
     <string name="sources_mirror">Зеркало сообщества (APKPure)</string>
-    <string name="sources_mirror_desc">Анонимные версии и резервные загрузки; может быть заблокирован в отдельных сетях — можно отключить.</string>
+    <string name="sources_mirror_desc">Только метаданные: просмотр истории версий анонимно. Файлы из зеркал никогда не устанавливаются.</string>
     <string name="sources_mirror_combo">Второе зеркало (APKCombo)</string>
-    <string name="sources_mirror_combo_desc">Истории версий, если первое зеркало заблокировано</string>
+    <string name="sources_mirror_combo_desc">Дополнительная история версий в анонимном режиме (только метаданные).</string>
     <string name="sources_github">Релизы GitHub</string>
     <string name="sources_github_desc">Open-source приложения, публикуемые APK-релизами</string>
     <string name="sources_gitlab">Релизы GitLab</string>

@@ -33,6 +33,19 @@ Download completed
 - Только HTTPS, стандартная валидация сертификатов OkHttp (modern TLS).
 - Никаких кастомных trust managers, никаких отключений hostname verification.
 
+## Источники и установка
+
+- Установка разрешена только из Google Play, F-Droid-совместимых репозиториев
+  (встроенных, включая IzzyOnDroid, и добавленных пользователем) и
+  release-каталогов GitHub/GitLab.
+- APKPure и APKCombo — только метаданные: каталог остаётся доступен для
+  просмотра истории версий, но файлы из этих зеркал НЕ скачиваются и НЕ
+  устанавливаются (`isInstallSourceAllowed`; границы `DownloadUpdateUseCase` и
+  `InstallPackageUseCase`). Если зеркальную версию умеет отдать Google Play,
+  загрузка автоматически переключается на Play (`DownloadUpdateUseCase.prepare`).
+- Это deny-list, а не allow-list: любой добавленный пользователем репозиторий
+  остаётся устанавливаемым.
+
 ## Root (см. docs/root-installation.md)
 
 - Root — только бэкенд установки. Root НЕ отключает верификацию и не обходит
@@ -57,8 +70,11 @@ Download completed
 ## Приватность
 
 - Списки установленных приложений не отправляются на серверы (нет своего backend).
-- Пароли/Google credentials не собираются (Google OAuth не реализован — честно
-  «unavailable» вместо подделки).
+- Пароли не сохраняются: вход в Google идёт через собственную страницу Google
+  (WebView `EmbeddedSetup`) либо системный `AccountManager`; на устройстве
+  сохраняется только выданный сессионный токен, и он шифруется ключом Android
+  Keystore (`SessionCipher`, AES-256-GCM). Резервное копирование приложения и
+  device-to-device передача отключены (`allowBackup=false` + `data_extraction_rules`).
 - Токенов/секретов в Git нет; release-подпись — через локальное окружение.
 - Аналитики нет; телеметрии нет.
 

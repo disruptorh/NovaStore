@@ -61,20 +61,24 @@ class DefaultArtifactVerifier @Inject constructor(
             )
         }
 
-        // 5. Signing certificate compatibility with the installed version
+        // 5. The artifact MUST carry a readable signing certificate. A missing
+        //    signature is never "nothing to compare" — installation is blocked
+        //    instead of silently skipping verification.
         val archiveDigest = signatureVerifier.archiveCertDigest(file)
-        if (installedCertDigest != null && archiveDigest != null) {
-            val match = signatureVerifier.matches(installedCertDigest, archiveDigest)
-            if (match == false) {
-                return@withContext VerificationResult.Invalid(NovaError.SignatureMismatch)
-            }
+            ?: return@withContext VerificationResult.Invalid(NovaError.UnsignedPackage)
+
+        // 6. Signing certificate compatibility with the installed version.
+        if (installedCertDigest != null &&
+            signatureVerifier.matches(installedCertDigest, archiveDigest) == false
+        ) {
+            return@withContext VerificationResult.Invalid(NovaError.SignatureMismatch)
         }
 
         VerificationResult.Valid(
             packageName = parsed.packageName ?: packageName,
             versionCode = parsed.versionCode,
             sha256 = expectedSha256 ?: hashVerifier.sha256(file),
-            certificate = archiveDigest?.let { CertificateInfo(it) },
+            certificate = CertificateInfo(archiveDigest),
         )
     }
 

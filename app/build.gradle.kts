@@ -14,7 +14,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.novastore.app"
+        applicationId = "com.novastore.fork"
         minSdk = 26
         targetSdk = 35
         versionCode = 11
@@ -23,9 +23,11 @@ android {
 
     signingConfigs {
         val props = Properties().apply {
-            rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+            listOf("keystore.properties", "local.properties").forEach { name ->
+                rootProject.file(name).takeIf { it.exists() }?.inputStream()?.use { load(it) }
+            }
         }
-        // local.properties locally, NOVA_* environment variables on CI.
+        // keystore.properties / local.properties locally, NOVA_* environment variables on CI.
         fun prop(key: String, env: String): String? =
             props.getProperty(key)?.takeIf { it.isNotBlank() } ?: System.getenv(env)?.takeIf { it.isNotBlank() }
         val store = prop("storeFile", "NOVA_STORE_FILE")

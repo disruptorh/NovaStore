@@ -138,12 +138,6 @@
     <string name="details_less">Moins</string>
     <string name="details_updated_on">Mis à jour le %1$s</string>
     <string name="details_released_on">Publié le %1$s</string>
-    <string name="details_mirror_browser">Obtenir via le miroir web</string>
-    <string name="details_mirror_browser_title">Miroir web Nova</string>
-    <string name="details_mirror_hint">Trouvez l\'application et appuyez sur Télécharger — Nova Store récupère le fichier automatiquement.</string>
-    <string name="details_mirror_bundle">Ce miroir sert un bundle (XAPK) encore non installable anonymement. Essayez une autre version sur la page du miroir.</string>
-    <string name="details_mirror_took_over">Téléchargement capturé — finalisation dans Nova Store</string>
-    <string name="details_mirror_browser_opened">Le navigateur miroir intégré s\'est ouvert — il transmettra le fichier à Nova Store.</string>
 
     <!-- Updates -->
     <string name="updates_title">Mises à jour</string>
@@ -276,9 +270,9 @@
     <string name="sources_web_catalog">Catalogue web Nova</string>
     <string name="sources_web_catalog_desc">Pages publiques de Google Play en anonyme — recherche, fiches et captures d\'écran pour chaque application, sans compte.</string>
     <string name="sources_mirror">Miroir communautaire (APKPure)</string>
-    <string name="sources_mirror_desc">Versions et téléchargements de secours en anonyme ; peut être bloqué sur certains réseaux — désactivable.</string>
+    <string name="sources_mirror_desc">Métadonnées uniquement : consulte l\'historique des versions en anonyme. Les fichiers ne sont jamais installés depuis les miroirs.</string>
     <string name="sources_mirror_combo">Second miroir (APKCombo)</string>
-    <string name="sources_mirror_combo_desc">Historiques de versions si le premier miroir est bloqué</string>
+    <string name="sources_mirror_combo_desc">Historique de versions anonyme supplémentaire (métadonnées uniquement).</string>
     <string name="sources_github">Versions GitHub</string>
     <string name="sources_github_desc">Applications open source publiées en APK</string>
     <string name="sources_gitlab">Versions GitLab</string>

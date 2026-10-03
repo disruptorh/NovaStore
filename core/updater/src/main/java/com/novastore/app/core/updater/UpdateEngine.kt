@@ -106,6 +106,9 @@ class UpdateEngine @Inject constructor(
     ): UpdateCandidate? {
         val bySource = LinkedHashMap<String, UpdateCandidate>()
         for ((source, sourceVersions) in versions.groupBy { it.source }) {
+            // Metadata-only mirrors (APKPure/APKCombo) are browsable in the
+            // catalogue but never install, so they are not update offers.
+            if (!com.novastore.app.core.model.isInstallSourceAllowed(source)) continue
             val best = sourceVersions
                 .asSequence()
                 .filter { signerMatches(app, it) }

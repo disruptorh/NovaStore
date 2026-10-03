@@ -138,12 +138,6 @@
     <string name="details_less">Less</string>
     <string name="details_updated_on">Updated on %1$s</string>
     <string name="details_released_on">Released on %1$s</string>
-    <string name="details_mirror_browser">Get from web mirror</string>
-    <string name="details_mirror_browser_title">Nova web mirror</string>
-    <string name="details_mirror_hint">Find the app and tap Download — Nova Store will take over the file automatically.</string>
-    <string name="details_mirror_bundle">This mirror serves a bundle (XAPK) which cannot be installed anonymously yet. Try a different version on the mirror page.</string>
-    <string name="details_mirror_took_over">Download captured — finishing in Nova Store</string>
-    <string name="details_mirror_browser_opened">The built-in mirror browser opened — it will hand the file to Nova Store automatically.</string>
 
     <!-- Updates -->
     <string name="updates_title">Updates</string>
@@ -276,9 +270,9 @@
     <string name="sources_web_catalog">Nova Web Catalog</string>
     <string name="sources_web_catalog_desc">Anonymous public Google Play pages — search, details and screenshots for every app, no account needed.</string>
     <string name="sources_mirror">Community mirror (APKPure)</string>
-    <string name="sources_mirror_desc">Anonymous versions and downloads fallback; may be blocked on some networks — can be turned off.</string>
+    <string name="sources_mirror_desc">Metadata only: browses anonymous version history. Files are never installed from mirrors.</string>
     <string name="sources_mirror_combo">Second mirror (APKCombo)</string>
-    <string name="sources_mirror_combo_desc">Version histories when the first mirror is blocked</string>
+    <string name="sources_mirror_combo_desc">Additional anonymous version history (metadata only).</string>
     <string name="sources_github">GitHub releases</string>
     <string name="sources_github_desc">Open-source apps published as APK releases</string>
     <string name="sources_gitlab">GitLab releases</string>

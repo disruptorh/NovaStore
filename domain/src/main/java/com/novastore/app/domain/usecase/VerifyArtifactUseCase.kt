@@ -127,14 +127,22 @@ class VerifyArtifactUseCase @Inject constructor(
             )
         }
 
-        // Signing certificate compatibility with the installed version.
+        // The base APK MUST carry a readable signing certificate; a missing
+        // signature blocks installation instead of skipping verification.
         val archiveDigest = signatureVerifier.archiveCertDigest(contents.baseApk)
-        if (candidate.installed.signingCertDigest != null && archiveDigest != null) {
-            if (signatureVerifier.matches(candidate.installed.signingCertDigest, archiveDigest) == false) {
-                contents.extractedDir.deleteRecursively()
-                updatesRepository.transition(version.packageName, UpdateState.FAILED)
-                return AppResult.failure(NovaError.SignatureMismatch)
-            }
+        if (archiveDigest == null) {
+            contents.extractedDir.deleteRecursively()
+            updatesRepository.transition(version.packageName, UpdateState.FAILED)
+            return AppResult.failure(NovaError.UnsignedPackage)
+        }
+
+        // Signing certificate compatibility with the installed version.
+        if (candidate.installed.signingCertDigest != null &&
+            signatureVerifier.matches(candidate.installed.signingCertDigest, archiveDigest) == false
+        ) {
+            contents.extractedDir.deleteRecursively()
+            updatesRepository.transition(version.packageName, UpdateState.FAILED)
+            return AppResult.failure(NovaError.SignatureMismatch)
         }
 
         updatesRepository.transition(version.packageName, UpdateState.VERIFIED)

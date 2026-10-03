@@ -44,3 +44,15 @@ const val SOURCE_GITHUB = "github"
  * installed straight from GitLab Releases.
  */
 const val SOURCE_GITLAB = "gitlab"
+
+/**
+ * Whether an artifact from [source] may be installed. The community mirrors
+ * (APKPure, APKCombo) are metadata-only: their catalogs stay browsable for
+ * version history, but their files are never downloaded or installed.
+ *
+ * This is a deny-list, not an allow-list, so every built-in F-Droid-style
+ * repository (including IzzyOnDroid) and any repository the user adds remain
+ * installable.
+ */
+fun isInstallSourceAllowed(source: String): Boolean =
+    source != SOURCE_APKPURE && source != SOURCE_APKCOMBO

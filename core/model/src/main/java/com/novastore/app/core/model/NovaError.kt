@@ -34,6 +34,22 @@ sealed class NovaError(
         "The downloaded file is not a valid Android package.",
     )
 
+    data object UnsignedPackage : NovaError(
+        "The downloaded file has no verifiable signature. Installation was blocked.",
+    )
+
+    /**
+     * The version comes from a metadata-only community mirror. Mirrors are
+     * browsable for their version history, but installation is restricted to
+     * Google Play and F-Droid-style repositories.
+     */
+    data class MirrorMetadataOnly(
+        override val userMessage: String =
+            "This version comes from a metadata-only mirror and cannot be installed. " +
+                "Install it from Google Play or an F-Droid repository.",
+        val packageName: String? = null,
+    ) : NovaError(userMessage)
+
     data object IncompatibleDevice : NovaError(
         "This application is not compatible with your device.",
     )
