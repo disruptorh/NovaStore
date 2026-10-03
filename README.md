@@ -125,7 +125,7 @@ Cut a release with the helper script — it bumps `versionCode` (+1) and the pat
 It refuses to run with a dirty working tree or with no code changes since the last tag. You can also tag manually:
 
 ```bash
-git tag v7.2.2 && git push origin v7.2.2
+git tag v7.2.3 && git push origin v7.2.3
 ```
 
 To sign CI builds with your release key, add these repository secrets:
