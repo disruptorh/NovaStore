@@ -19,6 +19,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - P03-T05 (búsqueda local paginada a 40 con load-more; `search` DAO con OFFSET + test; merge de fuentes intacto)
 - P03-T06 (infinite scroll de categorías ya presente: `CategoryViewModel` página con `listByCategory(offset, PAGE=90)` + `CategoryScreen` nearEnd→loadMore)
 - P03-T07 (keys+contentType en todas las Lazy lists de features: Search, Home, Updates, Installed, Downloads, Ignored, Category, Details)
+- P03-T08 (iconos instalados ya no se persisten: scan/upsert escriben `icon = null`; UI lee de PackageManager vía `InstalledAppIcon` con LruCache off-main)
 
 ## Bloqueado
 
@@ -58,7 +59,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - [x] P03-T05 Paging Search
 - [x] P03-T06 Infinite scroll categorías (`listByCategory` ya tiene OFFSET)
 - [x] P03-T07 Keys estables + contentType en Lazy lists
-- [ ] P03-T08 Iconos instalados: dejar de meter PNG grandes en Room o comprimir
+- [x] P03-T08 Iconos instalados: dejar de meter PNG grandes en Room o comprimir
 - [ ] P03-T09 Dispatcher IO en refresh/parse de índices (auditoría de hilos)
 - [ ] P03-T10 Baseline Profile keep (ya hay `.dm` en APK; verificar `baseline-prof.txt`)
 
