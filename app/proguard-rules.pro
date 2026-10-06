@@ -1,6 +1,4 @@
-# Nova Store release proguard rules.
-# Minification is disabled by default in this repository; these rules are kept
-# for teams that enable R8 minification with their own signing setup.
+# Nova Store release proguard rules (R8).
 
 # kotlinx.serialization
 -keepattributes *Annotation*, InnerClasses
@@ -11,10 +9,22 @@
 -keepclassmembers class com.novastore.app.** { *** Companion; }
 -keepclasseswithmembers class com.novastore.app.** { kotlinx.serialization.KSerializer serializer(...); }
 
-# Retrofit
--keepattributes Signature, Exceptions
--keepclassmembers,allowshrinking,allowobfuscation interface * { @retrofit2.http.* <methods>; }
+# JNI native parser (core/network). R8 keeps native method names, but the
+# class + private external method must survive so the C++ side can resolve it.
+-keepclasseswithmembernames class * { native <methods>; }
+-keep class com.novastore.app.core.network.fdroid.NativeFdroidIndex { *; }
+
+# Google Play API (Reflection-free gson/proto reader built on field names and
+# TypeToken that must not be renamed).
+-keep class com.novastore.playapi.** { *; }
+
+# WorkManager: workers are instantiated by class name by the library.
+-keep public class * extends androidx.work.Worker { <init>(android.content.Context, androidx.work.WorkerParameters); }
+-keep public class * extends androidx.work.CoroutineWorker { <init>(android.content.Context, androidx.work.WorkerParameters); }
+
+# Room / Hilt ship their own consumer rules; silence the noisy platform warnings.
 -dontwarn okhttp3.internal.platform.**
 -dontwarn org.conscrypt.**
 -dontwarn org.bouncycastle.**
 -dontwarn org.openjsse.**
+-dontwarn androidx.room.paging.**
