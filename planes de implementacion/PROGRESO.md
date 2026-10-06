@@ -14,6 +14,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - P02-T01…P02-T11 (R8+shrink on, splits ABI, WebP launcher; smoke en device real: home/settings/details F-Droid OK)
 - P03-T01 (core:updater → data/updater; módulo eliminado)
 - P03-T02 (índices Room + migración 4→5; schema JSON exportado; test MigrationTestHelper; upgrade device OK)
+- P03-T03 (OkHttp cache 50 MiB en NetworkModule; test MockWebServer; smoke device)
 
 ## Bloqueado
 
@@ -48,7 +49,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 
 - [x] P03-T01 Romper inversión `core:updater` → `domain`
 - [x] P03-T02 Índices Room catálogo/versiones + migración 4→5
-- [ ] P03-T03 OkHttp `Cache` en `NetworkModule`
+- [x] P03-T03 OkHttp `Cache` en `NetworkModule`
 - [ ] P03-T04 Paging Home (no cargar catálogo entero)
 - [ ] P03-T05 Paging Search
 - [ ] P03-T06 Infinite scroll categorías (`listByCategory` ya tiene OFFSET)

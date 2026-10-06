@@ -11,9 +11,11 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import java.io.File
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
+import okhttp3.Cache
 import okhttp3.OkHttpClient
 
 @Module
@@ -30,22 +32,29 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
-        .writeTimeout(60, TimeUnit.SECONDS)
-        .followRedirects(true)
-        .followSslRedirects(true)
-        .retryOnConnectionFailure(true)
-        .addInterceptor { chain ->
-            // Some repository hosts and CDNs reject requests without a User-Agent.
-            chain.proceed(
-                chain.request().newBuilder()
-                    .header("User-Agent", "NovaStore/1.0 (Android; F-Droid compatible client)")
-                    .build(),
-            )
-        }
-        .build()
+    fun provideOkHttpClient(@ApplicationContext context: Context): OkHttpClient {
+        val cache = Cache(File(context.cacheDir, HTTP_CACHE_DIR), HTTP_CACHE_MAX_BYTES)
+        return OkHttpClient.Builder()
+            .cache(cache)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .followRedirects(true)
+            .followSslRedirects(true)
+            .retryOnConnectionFailure(true)
+            .addInterceptor { chain ->
+                // Some repository hosts and CDNs reject requests without a User-Agent.
+                chain.proceed(
+                    chain.request().newBuilder()
+                        .header("User-Agent", "NovaStore/1.0 (Android; F-Droid compatible client)")
+                        .build(),
+                )
+            }
+            .build()
+    }
+
+    private const val HTTP_CACHE_DIR = "http_cache"
+    private const val HTTP_CACHE_MAX_BYTES = 50L * 1024 * 1024
 
     @Provides
     @Singleton
