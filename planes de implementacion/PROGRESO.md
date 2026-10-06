@@ -17,6 +17,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - P03-T03 (OkHttp cache 50 MiB en NetworkModule; test MockWebServer; smoke device)
 - P03-T04 (límites de sección ≤20; filas lazy con key; feed paginado ya existente)
 - P03-T05 (búsqueda local paginada a 40 con load-more; `search` DAO con OFFSET + test; merge de fuentes intacto)
+- P03-T06 (infinite scroll de categorías ya presente: `CategoryViewModel` página con `listByCategory(offset, PAGE=90)` + `CategoryScreen` nearEnd→loadMore)
 
 ## Bloqueado
 
@@ -54,7 +55,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - [x] P03-T03 OkHttp `Cache` en `NetworkModule`
 - [x] P03-T04 Paging Home (no cargar catálogo entero)
 - [x] P03-T05 Paging Search
-- [ ] P03-T06 Infinite scroll categorías (`listByCategory` ya tiene OFFSET)
+- [x] P03-T06 Infinite scroll categorías (`listByCategory` ya tiene OFFSET)
 - [ ] P03-T07 Keys estables + contentType en Lazy lists
 - [ ] P03-T08 Iconos instalados: dejar de meter PNG grandes en Room o comprimir
 - [ ] P03-T09 Dispatcher IO en refresh/parse de índices (auditoría de hilos)
