@@ -10,7 +10,8 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 
 ## Hecho
 
-- P01-T01, P01-T02, P01-T03, P01-T04, P01-T05, P01-T06 (ver `01_LINEA_BASE_Y_METRICAS.md` y `METRICAS_BASE.md`)
+- P01-T01…P01-T06 (ver `01_LINEA_BASE_Y_METRICAS.md` y `METRICAS_BASE.md`)
+- P02-T01…P02-T11 (R8+shrink on, splits ABI, WebP launcher; smoke en device real: home/settings/details F-Droid OK)
 
 ## Bloqueado
 
@@ -29,17 +30,17 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 
 ## P02 Limpieza y peso
 
-- [ ] P02-T01 Eliminar `UninstallAppUseCase`
-- [ ] P02-T02 Eliminar `RefreshRepositoriesUseCase`
-- [ ] P02-T03 Eliminar `try_community_dispensers`
-- [ ] P02-T04 Quitar Retrofit si sigue sin usos Kotlin
-- [ ] P02-T05 Quitar `okhttp-logging` si el interceptor no se usa
-- [ ] P02-T06 Deduplicar docs raíz vs `docs/`
-- [ ] P02-T07 Corregir `run-tests.sh`
-- [ ] P02-T08 Activar R8 + `shrinkResources` en release
-- [ ] P02-T09 Splits ABI o `abiFilters`
-- [ ] P02-T10 WebP/compresión de PNGs de branding/launcher sin pérdida visual
-- [ ] P02-T11 ProGuard keep rules para Hilt/Work/kotlinx.serialization/Room
+- [x] P02-T01 Eliminar `UninstallAppUseCase`
+- [x] P02-T02 Eliminar `RefreshRepositoriesUseCase`
+- [x] P02-T03 Eliminar `try_community_dispensers`
+- [x] P02-T04 Quitar Retrofit si sigue sin usos Kotlin
+- [x] P02-T05 Quitar `okhttp-logging` si el interceptor no se usa
+- [x] P02-T06 Deduplicar docs raíz vs `docs/`
+- [x] P02-T07 Corregir `run-tests.sh`
+- [x] P02-T08 Activar R8 + `shrinkResources` en release
+- [x] P02-T09 Splits ABI o `abiFilters`
+- [x] P02-T10 WebP/compresión de PNGs de branding/launcher sin pérdida visual
+- [x] P02-T11 ProGuard keep rules para Hilt/Work/kotlinx.serialization/Room
 
 ## P03 Arquitectura y rendimiento
 
