@@ -21,6 +21,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - P03-T07 (keys+contentType en todas las Lazy lists de features: Search, Home, Updates, Installed, Downloads, Ignored, Category, Details)
 - P03-T08 (iconos instalados ya no se persisten: scan/upsert escriben `icon = null`; UI lee de PackageManager vía `InstalledAppIcon` con LruCache off-main)
 - P03-T09 (auditoría de hilos OK: 0 `runBlocking` en features, `fetchIndex`/`parseIndex` en IO, `replaceSource`/`ensureBuiltIns` Room suspend, bloqueo de features en `Dispatchers.IO`)
+- P03-T10 (baseline profile con path de cold start: `app/src/main/baseline-prof.txt` con MainActivity/NovaStoreApp/NovaStoreRoot; APK sigue empaquetando `assets/dexopt/baseline.prof`+`.profm`)
 
 ## Bloqueado
 
@@ -62,7 +63,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - [x] P03-T07 Keys estables + contentType en Lazy lists
 - [x] P03-T08 Iconos instalados: dejar de meter PNG grandes en Room o comprimir
 - [x] P03-T09 Dispatcher IO en refresh/parse de índices (auditoría de hilos)
-- [ ] P03-T10 Baseline Profile keep (ya hay `.dm` en APK; verificar `baseline-prof.txt`)
+- [x] P03-T10 Baseline Profile keep (ya hay `.dm` en APK; verificar `baseline-prof.txt`)
 
 ## P04 Capa de fuentes
 

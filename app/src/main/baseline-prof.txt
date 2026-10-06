@@ -1,0 +1,15 @@
+# Baseline profile: cold-start path (Application → MainActivity → NovaStoreRoot).
+# Hand-maintained source; AGP/R8 merge it into the release profile during
+# release builds (app/build/intermediates/*_art_profile/release/...).
+Lcom/novastore/app/NovaStoreApp;
+HSPLcom/novastore/app/NovaStoreApp;-><init>()V
+HSPLcom/novastore/app/NovaStoreApp;->onCreate()V
+HSPLcom/novastore/app/NovaStoreApp;->createWorkManagerConfiguration()Landroidx/work/Configuration;
+Lcom/novastore/app/MainActivity;
+HSPLcom/novastore/app/MainActivity;-><init>()V
+HSPLcom/novastore/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLcom/novastore/app/MainActivity;->onNewIntent(Landroid/content/Intent;)V
+HSPLcom/novastore/app/MainActivity;->onResume()V
+Lcom/novastore/app/ui/NovaStoreRoot;
+Lcom/novastore/app/ui/StoragePermissionGate;
+Lcom/novastore/app/ui/InstallPermissionBanner;
