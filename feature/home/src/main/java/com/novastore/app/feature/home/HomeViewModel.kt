@@ -404,7 +404,7 @@ class HomeViewModel @Inject constructor(
         const val MIN_SHELF_SIZE = 4
         const val SHELF_HOME = "home"
         const val HERO_SOURCES = 2
-        const val ROW_SIZE = 24
+        const val ROW_SIZE = 20
         const val ROW_PLAY_HOME = "play:home"
         const val PAGE_SIZE = 60
         const val MIN_PAGE_ITEMS = 24
