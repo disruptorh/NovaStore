@@ -14,7 +14,19 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
-    testOptions { unitTests.all { it.useJUnit() } }
+    sourceSets {
+        getByName("test").assets.srcDirs("$projectDir/schemas")
+    }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all { it.useJUnit() }
+        }
+    }
+}
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 dependencies {

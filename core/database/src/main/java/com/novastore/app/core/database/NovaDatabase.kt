@@ -32,7 +32,7 @@ import com.novastore.app.core.database.entity.UpdateHistoryEntity
         PlayFreshnessEntity::class,
         PackageTrustEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class NovaDatabase : RoomDatabase() {

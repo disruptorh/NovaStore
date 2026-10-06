@@ -39,4 +39,20 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
     }
 }
 
-val ALL_MIGRATIONS = arrayOf<Migration>(MIGRATION_1_2, MIGRATION_3_4)
+/**
+ * Migration 4 → 5: catalog/version query indexes. All ADDs — no data moves,
+ * so migration failure cannot destroy existing rows.
+ */
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_remote_apps_source ON remote_apps(source)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_remote_apps_packageName ON remote_apps(packageName)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_remote_apps_lastUpdatedAt ON remote_apps(lastUpdatedAt)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_app_versions_packageName ON app_versions(packageName)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_app_versions_source ON app_versions(source)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_updates_state ON updates(state)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_repositories_enabled_priority ON repositories(enabled, priority)")
+    }
+}
+
+val ALL_MIGRATIONS = arrayOf<Migration>(MIGRATION_1_2, MIGRATION_3_4, MIGRATION_4_5)

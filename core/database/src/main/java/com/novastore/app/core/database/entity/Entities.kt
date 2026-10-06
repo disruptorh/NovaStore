@@ -1,6 +1,7 @@
 package com.novastore.app.core.database.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "installed_apps")
@@ -19,7 +20,15 @@ data class InstalledAppEntity(
     val scannedAt: Long,
 )
 
-@Entity(tableName = "remote_apps", primaryKeys = ["packageName", "source"])
+@Entity(
+    tableName = "remote_apps",
+    primaryKeys = ["packageName", "source"],
+    indices = [
+        Index("source"),
+        Index("packageName"),
+        Index(value = ["lastUpdatedAt"], name = "index_remote_apps_lastUpdatedAt"),
+    ],
+)
 data class RemoteAppEntity(
     val packageName: String,
     val name: String,
@@ -37,7 +46,11 @@ data class RemoteAppEntity(
     val lastUpdatedAt: Long?,
 )
 
-@Entity(tableName = "app_versions", primaryKeys = ["packageName", "versionCode", "source"])
+@Entity(
+    tableName = "app_versions",
+    primaryKeys = ["packageName", "versionCode", "source"],
+    indices = [Index("packageName"), Index("source")],
+)
 data class AppVersionEntity(
     val packageName: String,
     val versionCode: Long,
@@ -55,7 +68,7 @@ data class AppVersionEntity(
     val nativeCode: String,
 )
 
-@Entity(tableName = "updates")
+@Entity(tableName = "updates", indices = [Index("state")])
 data class UpdateEntity(
     @PrimaryKey val packageName: String,
     val installedVersionCode: Long,
@@ -139,7 +152,10 @@ data class PackageTrustEntity(
     val installs: Long = 0,
 )
 
-@Entity(tableName = "repositories")
+@Entity(
+    tableName = "repositories",
+    indices = [Index(value = ["enabled", "priority"], name = "index_repositories_enabled_priority")],
+)
 data class RepositoryEntity(
     @PrimaryKey val repositoryId: String,
     val name: String,
