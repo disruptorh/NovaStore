@@ -61,6 +61,8 @@ class SettingsDataStore @Inject constructor(
         // --- Google Play integration (Task 4) ---
         val PLAY_DEVICE_PROFILE = stringPreferencesKey("play_device_profile")
         val TOKEN_DISPENSER_URL = stringPreferencesKey("token_dispenser_url")
+        /** Whether anonymous login may use the built-in community token dispensers. */
+        val ANONYMOUS_PLAY_ENABLED = booleanPreferencesKey("anonymous_play_enabled")
         /** Serialized Play auth session (see data/playauth/PlayAuthSession). Private. */
         val PLAY_AUTH_SESSION = stringPreferencesKey("play_auth_session")
         /** Anonymous Play session (JSON, short-lived pooled token) reused across launches. */
@@ -90,9 +92,6 @@ class SettingsDataStore @Inject constructor(
 
         /** Favorite apps: "pkg<SOH>name<SOH>iconUrl" entries (SOH = U+0001). */
         val FAVORITES = stringSetPreferencesKey("favorites")
-
-        /** Try the built-in community dispensers when no custom URL is set. */
-        val TRY_COMMUNITY_DISPENSERS = booleanPreferencesKey("try_community_dispensers")
 
         // --- Nova anonymous access tiers (own engine, no servers) ---
         /** Nova Web Catalog: public play.google.com pages — search/details/screenshots without an account. */
@@ -534,28 +533,19 @@ class SettingsDataStore @Inject constructor(
     }
 
     // ------------------------------------------------------------------
-    // Community dispensers
+    // Anonymous Google Play (native protocol without an account)
     // ------------------------------------------------------------------
 
-    /** Whether anonymous login may also try the built-in community dispensers. */
-    val tryCommunityDispensers: Flow<Boolean> = context.settingsDataStore.data.map { prefs ->
-        prefs[Keys.TRY_COMMUNITY_DISPENSERS] ?: true
+    /** Whether anonymous login may use the built-in community token dispensers. */
+    val anonymousPlayEnabled: Flow<Boolean> = context.settingsDataStore.data.map { prefs ->
+        prefs[Keys.ANONYMOUS_PLAY_ENABLED] ?: true
     }
 
-    suspend fun setTryCommunityDispensers(enabled: Boolean) {
-        context.settingsDataStore.edit { it[Keys.TRY_COMMUNITY_DISPENSERS] = enabled }
+    suspend fun setAnonymousPlayEnabled(enabled: Boolean) {
+        context.settingsDataStore.edit { it[Keys.ANONYMOUS_PLAY_ENABLED] = enabled }
     }
-
-    /**
-     * Anonymous Google Play: the native Play protocol (search, details, exact
-     * versions, original APK delivery) without any account, through the
-     * built-in anonymous session. On by default.
-     */
-    val anonymousPlayEnabled: Flow<Boolean> get() = tryCommunityDispensers
-
-    suspend fun setAnonymousPlayEnabled(enabled: Boolean) = setTryCommunityDispensers(enabled)
 
     suspend fun anonymousPlayEnabledSnapshot(): Boolean = withContext(dispatcherProvider.io) {
-        tryCommunityDispensers.first()
+        context.settingsDataStore.data.first()[Keys.ANONYMOUS_PLAY_ENABLED] ?: true
     }
 }
