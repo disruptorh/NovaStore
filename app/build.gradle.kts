@@ -118,7 +118,6 @@ dependencies {
     implementation(project(":core:security"))
     implementation(project(":core:downloader"))
     implementation(project(":core:installer"))
-    implementation(project(":core:updater"))
     implementation(project(":feature:home"))
     implementation(project(":feature:search"))
     implementation(project(":feature:details"))

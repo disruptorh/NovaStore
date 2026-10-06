@@ -2,7 +2,7 @@ package com.novastore.app.core.model
 
 /**
  * Single source of truth for the lifecycle of an update.
- * Transitions are validated by [com.novastore.app.core.updater.UpdateStateMachine].
+ * Transitions are validated by [com.novastore.app.data.updater.UpdateStateMachine].
  */
 enum class UpdateState {
     DISCOVERED,

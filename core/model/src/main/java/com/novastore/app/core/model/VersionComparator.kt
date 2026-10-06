@@ -8,8 +8,8 @@ package com.novastore.app.core.model
  *  - downgrades are rejected by default;
  *  - missing metadata is never silently treated as "newer".
  *
- * Lives in core:model so both core:updater (the F-Droid scan) and domain
- * (the Play/mirror passes) share ONE comparison semantic — core:updater
+ * Lives in core:model so both the repository scan and domain
+ * (the Play/mirror passes) share ONE comparison semantic
  * depends on domain, so the shared code has to sit below both.
  */
 object VersionComparator {

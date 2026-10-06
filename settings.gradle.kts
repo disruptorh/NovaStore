@@ -33,7 +33,6 @@ include(":core:datastore")
 include(":core:security")
 include(":core:downloader")
 include(":core:installer")
-include(":core:updater")
 include(":core:playapi")
 
 include(":domain")

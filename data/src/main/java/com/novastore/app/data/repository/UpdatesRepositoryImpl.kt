@@ -14,7 +14,7 @@ import com.novastore.app.core.model.UpdateConfidence
 import com.novastore.app.core.model.UpdateHistoryRecord
 import com.novastore.app.core.model.UpdateState
 import com.novastore.app.core.model.VersionComparator
-import com.novastore.app.core.updater.UpdateStateMachine
+import com.novastore.app.data.updater.UpdateStateMachine
 import com.novastore.app.data.mapper.toCandidate
 import com.novastore.app.data.mapper.toEntity
 import com.novastore.app.data.mapper.toModel

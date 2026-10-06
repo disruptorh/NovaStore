@@ -1,4 +1,4 @@
-package com.novastore.app.core.updater
+package com.novastore.app.data.updater
 
 import com.novastore.app.core.model.CompatibilityVerdict
 import com.novastore.app.core.model.IncompatibilityReason

@@ -14,7 +14,7 @@ data class UpdateScanReport(
 
 /**
  * Discovery + resolution side of the update engine, implemented in
- * core:updater. It compares installed apps against all enabled sources.
+ * data. It compares installed apps against all enabled sources.
  */
 interface UpdateCheckService {
     suspend fun checkForUpdates(): AppResult<UpdateScanReport>

@@ -1,6 +1,6 @@
-package com.novastore.app.core.updater.di
+package com.novastore.app.data.updater.di
 
-import com.novastore.app.core.updater.UpdateEngine
+import com.novastore.app.data.updater.UpdateEngine
 import com.novastore.app.domain.repository.UpdateCheckService
 import dagger.Binds
 import dagger.Module
