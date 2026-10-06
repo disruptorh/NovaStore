@@ -52,10 +52,10 @@ interface CatalogDao {
             CASE WHEN a.name LIKE :query || '%' THEN 0 ELSE 1 END,
             a.name COLLATE NOCASE,
             COALESCE(r.priority, 1000)
-        LIMIT :limit
+        LIMIT :limit OFFSET :offset
         """,
     )
-    suspend fun search(query: String, limit: Int = 200): List<RemoteAppEntity>
+    suspend fun search(query: String, limit: Int = 200, offset: Int = 0): List<RemoteAppEntity>
 
     /** The listing from the highest-priority repository that carries the package. */
     @Query(

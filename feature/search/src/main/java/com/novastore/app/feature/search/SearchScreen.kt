@@ -142,6 +142,22 @@ fun SearchScreen(
             listState.scrollToItem(0)
         }
     }
+    // Local search pages by 40: reaching the bottom of the results appends
+    // the next page while `canLoadMore` is set (network sources silent).
+    val nearListEnd by remember {
+        androidx.compose.runtime.derivedStateOf {
+            val gridTotal = gridState.layoutInfo.totalItemsCount
+            val gridLast = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val listTotal = listState.layoutInfo.totalItemsCount
+            val listLast = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val total = if (state.grid) gridTotal else listTotal
+            val last = if (state.grid) gridLast else listLast
+            total > 0 && last >= total - 6
+        }
+    }
+    LaunchedEffect(nearListEnd, state.canLoadMore) {
+        if (nearListEnd && state.canLoadMore) viewModel.loadMore()
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,

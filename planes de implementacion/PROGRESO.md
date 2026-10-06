@@ -16,6 +16,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - P03-T02 (índices Room + migración 4→5; schema JSON exportado; test MigrationTestHelper; upgrade device OK)
 - P03-T03 (OkHttp cache 50 MiB en NetworkModule; test MockWebServer; smoke device)
 - P03-T04 (límites de sección ≤20; filas lazy con key; feed paginado ya existente)
+- P03-T05 (búsqueda local paginada a 40 con load-more; `search` DAO con OFFSET + test; merge de fuentes intacto)
 
 ## Bloqueado
 
@@ -52,7 +53,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - [x] P03-T02 Índices Room catálogo/versiones + migración 4→5
 - [x] P03-T03 OkHttp `Cache` en `NetworkModule`
 - [x] P03-T04 Paging Home (no cargar catálogo entero)
-- [ ] P03-T05 Paging Search
+- [x] P03-T05 Paging Search
 - [ ] P03-T06 Infinite scroll categorías (`listByCategory` ya tiene OFFSET)
 - [ ] P03-T07 Keys estables + contentType en Lazy lists
 - [ ] P03-T08 Iconos instalados: dejar de meter PNG grandes en Room o comprimir

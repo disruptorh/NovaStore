@@ -14,7 +14,7 @@ interface CatalogRepository {
     suspend fun search(query: String): AppResult<List<RemoteApp>>
 
     /** Instant search over the locally cached repository catalog only (no network). */
-    suspend fun searchLocal(query: String): List<RemoteApp>
+    suspend fun searchLocal(query: String, offset: Int, limit: Int): List<RemoteApp>
 
     /**
      * Public Google Play storefront shelf (no account): the apps home page

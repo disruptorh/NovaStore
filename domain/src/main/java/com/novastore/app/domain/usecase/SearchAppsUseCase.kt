@@ -18,9 +18,17 @@ class SearchAppsUseCase @Inject constructor(
     }
 
     /** Local-catalog results only — shown instantly while the network sources run. */
-    suspend fun local(query: String): List<RemoteApp> {
+    suspend fun local(
+        query: String,
+        offset: Int = 0,
+        limit: Int = SEARCH_LOCAL_PAGE,
+    ): List<RemoteApp> {
         val trimmed = query.trim()
         if (trimmed.isEmpty()) return emptyList()
-        return runCatching { catalogRepository.searchLocal(trimmed) }.getOrDefault(emptyList())
+        return runCatching { catalogRepository.searchLocal(trimmed, offset, limit) }.getOrDefault(emptyList())
+    }
+
+    companion object {
+        const val SEARCH_LOCAL_PAGE = 40
     }
 }

@@ -157,14 +157,14 @@ class CatalogRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun searchLocal(query: String): List<RemoteApp> = withContext(dispatcherProvider.io) {
-        remember(
-            catalogDao.search(query)
-                .distinctBy { it.packageName }
-                .map { it.toModel() }
-                .take(SEARCH_LIMIT),
-        )
-    }
+    override suspend fun searchLocal(query: String, offset: Int, limit: Int): List<RemoteApp> =
+        withContext(dispatcherProvider.io) {
+            remember(
+                catalogDao.search(query, limit, offset)
+                    .distinctBy { it.packageName }
+                    .map { it.toModel() },
+            )
+        }
 
     private suspend fun mergedSearch(query: String): List<RemoteApp> = withContext(dispatcherProvider.io) {
         // Every source runs CONCURRENTLY — a slow or timing-out source (Play

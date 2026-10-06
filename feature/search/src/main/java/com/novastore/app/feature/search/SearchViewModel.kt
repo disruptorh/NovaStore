@@ -12,6 +12,8 @@ import com.novastore.app.domain.usecase.SearchAppsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -41,6 +43,8 @@ internal const val SEARCH_SORT_NAME = "name"
 data class SearchUiState(
     val results: List<RemoteApp> = emptyList(),
     val searching: Boolean = false,
+    /** True when more local rows can be appended (network sources silent). */
+    val canLoadMore: Boolean = false,
     val offline: Boolean = false,
     val error: String? = null,
     // --- Presentation preferences (persisted via SettingsDataStore) ---
@@ -76,6 +80,8 @@ private data class SearchResult(
     val error: String? = null,
     /** True while network sources are still being merged in. */
     val partial: Boolean = false,
+    /** True when more local rows can still be fetched for this query. */
+    val moreLocal: Boolean = false,
 )
 
 /** Presentation prefs bundled so the uiState combine stays within 5 flows. */
@@ -99,6 +105,8 @@ class SearchViewModel @Inject constructor(
     private val query = MutableStateFlow("")
     private val offline = MutableStateFlow(false)
     private val sourceFilter = MutableStateFlow<String?>(null)
+    /** One buffered slot: a rapid scroll can not queue unbounded page loads. */
+    private val loadMoreClicks = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     init {
         viewModelScope.launch {
@@ -146,24 +154,7 @@ class SearchViewModel @Inject constructor(
         query
             .debounce(300)
             .distinctUntilChanged()
-            .flatMapLatest { debounced ->
-                flow {
-                    if (debounced.isBlank()) {
-                        emit(SearchResult(""))
-                        return@flow
-                    }
-                    // 1) Local repositories: instant.
-                    val local = searchApps.local(debounced)
-                    emit(SearchResult(debounced, local, partial = true))
-                    // 2) Everything (Play, web catalog, GitHub, GitLab) merged.
-                    when (val result = searchApps(debounced.trim())) {
-                        is AppResult.Success -> emit(SearchResult(debounced, result.value.ifEmpty { local }))
-                        is AppResult.Failure -> emit(
-                            SearchResult(debounced, local, error = result.error.userMessage.takeIf { local.isEmpty() }),
-                        )
-                    }
-                }
-            },
+            .flatMapLatest { debounced -> searchStream(debounced) },
         query,
         offline,
         prefs,
@@ -174,6 +165,7 @@ class SearchViewModel @Inject constructor(
             // flash); they are replaced as soon as the new query answers.
             results = if (current.isBlank()) emptyList() else searched.apps.presented(prefs.sort, filter),
             searching = searched.query != current || searched.partial,
+            canLoadMore = searched.moreLocal,
             offline = isOffline,
             error = if (searched.query == current) searched.error else null,
             layout = prefs.layout,
@@ -205,6 +197,54 @@ class SearchViewModel @Inject constructor(
 
     fun clearQuery() {
         query.value = ""
+    }
+
+    /** One more page of local rows while the results are still local-only. */
+    fun loadMore() {
+        loadMoreClicks.tryEmit(Unit)
+    }
+
+    /**
+     * One query run. Page 1 of the local catalog renders instantly; the
+     * all-sources merge replaces it as soon as the network answers. When the
+     * network sources stay silent (offline / disabled) the local list keeps
+     * growing through [loadMore] — 40 rows at a time, never the whole tail.
+     */
+    private fun searchStream(debounced: String): Flow<SearchResult> = flow {
+        if (debounced.isBlank()) {
+            emit(SearchResult(""))
+            return@flow
+        }
+        var localShown = searchApps.local(debounced)
+        var offset = localShown.size
+        var moreLocal = localShown.size >= SearchAppsUseCase.SEARCH_LOCAL_PAGE
+        emit(SearchResult(debounced, localShown, partial = true, moreLocal = moreLocal))
+        when (val result = searchApps(debounced.trim())) {
+            is AppResult.Success ->
+                if (result.value.isEmpty()) {
+                    emit(SearchResult(debounced, localShown, moreLocal = moreLocal))
+                } else {
+                    // The merged union replaces the instant thumbnail list; the
+                    // local rows below page 1 are already among those results.
+                    emit(SearchResult(debounced, result.value, moreLocal = false))
+                }
+            is AppResult.Failure -> emit(
+                SearchResult(
+                    debounced,
+                    localShown,
+                    moreLocal = moreLocal,
+                    error = result.error.userMessage.takeIf { localShown.isEmpty() },
+                ),
+            )
+        }
+        loadMoreClicks.collect {
+            if (!moreLocal) return@collect
+            val next = searchApps.local(debounced.trim(), offset)
+            offset += next.size
+            moreLocal = next.size >= SearchAppsUseCase.SEARCH_LOCAL_PAGE
+            localShown = (localShown + next).distinctBy { it.packageName }
+            emit(SearchResult(debounced, localShown, moreLocal = moreLocal))
+        }
     }
 
     // ------------------------------------------------------------------
