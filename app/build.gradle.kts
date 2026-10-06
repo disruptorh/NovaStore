@@ -46,11 +46,10 @@ android {
             isMinifyEnabled = false
         }
         release {
-            // Fast, non-debuggable build (Compose runs several times faster
-            // than in a debuggable APK). Signed with the keystore from
-            // local.properties when configured, otherwise with the local
-            // debug key — so it installs OVER an existing debug install.
-            isMinifyEnabled = false
+            // R8 + resource shrinking keep the release APK small. Workers,
+            // serializers, JNI and the Play API are kept in proguard-rules.pro.
+            isMinifyEnabled = true
+            isShrinkResources = true
             isDebuggable = false
             signingConfig = signingConfigs.findByName("nova") ?: signingConfigs.getByName("debug")
             proguardFiles(
