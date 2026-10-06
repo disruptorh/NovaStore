@@ -55,9 +55,10 @@ Release build не содержит debug-логирования, fake-данн�
 
 ## Скрипты
 
-- `scripts/build-debug.sh` — assembleDebug + копирование APK в releases/
-- `scripts/run-tests.sh` — все unit-тесты
-- `scripts/verify-apk.sh` — проверка существования/размера/package ID APK
+- `./build-debug.sh` — assembleDebug + копирование APK в releases/
+- `./run-tests.sh` — все unit-тесты
+- `./verify-apk.sh` — проверка существования/размера/package ID APK
+- `./scripts/measure-apk.sh` — метрики размера release APK
 
 ## Варианты и memory
 
