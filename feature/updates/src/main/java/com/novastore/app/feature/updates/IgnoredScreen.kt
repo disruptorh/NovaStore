@@ -123,7 +123,7 @@ fun IgnoredScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            items(entries, key = { it.packageName }) { entry ->
+            items(entries, key = { it.packageName }, contentType = { "ignored-app" }) { entry ->
                 Surface(
                     onClick = { onOpenAppDetails(entry.packageName) },
                     shape = RoundedCornerShape(18.dp),

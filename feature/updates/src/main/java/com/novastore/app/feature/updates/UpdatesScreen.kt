@@ -221,14 +221,14 @@ fun UpdatesScreen(
                             androidx.compose.foundation.lazy.LazyRow(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
-                                item {
+                                item(key = "all-source-chip") {
                                     androidx.compose.material3.FilterChip(
                                         selected = state.sourceFilter == null,
                                         onClick = { viewModel.setSourceFilter(null) },
                                         label = { Text(stringResource(UiR.string.updates_source_all, state.totalUpdates)) },
                                     )
                                 }
-                                items(state.sourceCounts, key = { it.first }) { (source, count) ->
+                                items(state.sourceCounts, key = { it.first }, contentType = { "source-chip" }) { (source, count) ->
                                     androidx.compose.material3.FilterChip(
                                         selected = state.sourceFilter == source,
                                         onClick = { viewModel.setSourceFilter(source) },
@@ -249,7 +249,7 @@ fun UpdatesScreen(
                             )
                         }
                     }
-                    items(state.updates, key = { it.installed.packageName }) { candidate ->
+                    items(state.updates, key = { it.installed.packageName }, contentType = { "update" }) { candidate ->
                         val openDetails = { onOpenAppDetails(candidate.installed.packageName) }
                         UpdateRow(
                             sourceName = sourceLabel(candidate.source, state.sourceNames),

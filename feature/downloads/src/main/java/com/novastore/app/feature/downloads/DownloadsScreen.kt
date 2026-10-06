@@ -109,13 +109,13 @@ fun DownloadsScreen(
                 }
                 if (state.active.isNotEmpty()) {
                     item(key = "active-header") { SectionHeader(stringResource(UiR.string.downloads_section_active)) }
-                    items(state.active, key = { it.taskId }) { task ->
+                    items(state.active, key = { it.taskId }, contentType = { "download" }) { task ->
                         DownloadRow(task = task, active = true, viewModel = viewModel)
                     }
                 }
                 if (state.queued.isNotEmpty()) {
                     item(key = "queued-header") { SectionHeader(stringResource(UiR.string.downloads_section_queued)) }
-                    items(state.queued, key = { it.taskId }) { task ->
+                    items(state.queued, key = { it.taskId }, contentType = { "download" }) { task ->
                         DownloadRow(task = task, active = false, viewModel = viewModel)
                     }
                 }
@@ -134,7 +134,7 @@ fun DownloadsScreen(
                             },
                         )
                     }
-                    items(state.completed, key = { it.taskId }) { task ->
+                    items(state.completed, key = { it.taskId }, contentType = { "download" }) { task ->
                         DownloadRow(task = task, active = false, viewModel = viewModel)
                     }
                 }
@@ -153,7 +153,7 @@ fun DownloadsScreen(
                             },
                         )
                     }
-                    items(state.failed, key = { it.taskId }) { task ->
+                    items(state.failed, key = { it.taskId }, contentType = { "download" }) { task ->
                         DownloadRow(task = task, active = false, viewModel = viewModel)
                     }
                 }

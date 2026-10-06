@@ -212,7 +212,7 @@ fun InstalledScreen(
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    items(state.apps, key = { it.packageName }) { app ->
+                    items(state.apps, key = { it.packageName }, contentType = { "installed-app" }) { app ->
                         InstalledAppRow(
                             app = app,
                             hasUpdate = app.packageName in state.updatingPackages,

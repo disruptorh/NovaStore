@@ -480,7 +480,7 @@ private fun DetailsContent(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                items(details.screenshots) { url ->
+                items(details.screenshots, key = { it }, contentType = { "screenshot" }) { url ->
                     AsyncImage(
                         model = url,
                         contentDescription = stringResource(UiR.string.cd_screenshot),
