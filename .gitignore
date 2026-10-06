@@ -30,3 +30,6 @@ Thumbs.db
 
 # CodeGraph index (local tooling, never commit)
 .codegraph/
+
+# Scratch audit artifacts from the planning phase (not source)
+auditoria incompleta/

@@ -147,8 +147,6 @@ dependencies {
 
     // Network
     implementation(libs.okhttp)
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.kotlinx.serialization)
     implementation(libs.kotlinx.serialization.json)
 
     // Coroutines

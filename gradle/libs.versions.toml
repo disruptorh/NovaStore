@@ -13,7 +13,6 @@ navigationCompose = "2.8.5"
 coroutines = "1.9.0"
 serializationJson = "1.7.3"
 okhttp = "4.12.0"
-retrofit = "2.11.0"
 datastore = "1.1.1"
 workManager = "2.10.0"
 coil = "2.7.0"
@@ -59,10 +58,7 @@ room-testing = { group = "androidx.room", name = "room-testing", version.ref = "
 
 # Network
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
-okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
-retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
-retrofit-kotlinx-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofit" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serializationJson" }
 
 # Coroutines
