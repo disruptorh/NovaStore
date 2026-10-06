@@ -84,12 +84,22 @@ android {
         unitTests.all { it.useJUnit() }
     }
 
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("armeabi-v7a", "arm64-v8a", "x86_64")
+            isUniversalApk = true
+        }
+    }
+
     applicationVariants.configureEach {
         if (name == "release") {
             val version = defaultConfig.versionName
             outputs.configureEach {
-                (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl)
-                    .outputFileName = "NovaStore-v$version.apk"
+                val out = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+                val abi = out.filters.firstOrNull { it.filterType == com.android.build.OutputFile.ABI }?.identifier
+                out.outputFileName = if (abi != null) "NovaStore-$abi-v$version.apk" else "NovaStore-v$version.apk"
             }
         }
     }
