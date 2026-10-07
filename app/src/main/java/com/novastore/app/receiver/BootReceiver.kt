@@ -6,6 +6,7 @@ import android.content.Intent
 import com.novastore.app.core.database.dao.DownloadDao
 import com.novastore.app.core.downloader.DownloadEngine
 import com.novastore.app.core.downloader.DownloadWorker
+import com.novastore.app.work.WorkScheduler
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
@@ -21,9 +22,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 
 /**
- * Restores the pending download queue after a device reboot (prompt #69).
- * Tasks that already completed successfully are never re-downloaded: the
- * engine picks up only QUEUED/DOWNLOADING/PAUSED tasks from persistence.
+ * Restores the pending download queue after a device reboot (prompt #69) and
+ * re-arms the periodic update scan. Tasks that already completed successfully
+ * are never re-downloaded: the engine picks up only QUEUED/DOWNLOADING/PAUSED
+ * tasks from persistence.
  */
 @AndroidEntryPoint
 class BootReceiver : BroadcastReceiver() {
@@ -34,6 +36,9 @@ class BootReceiver : BroadcastReceiver() {
     @Inject
     lateinit var downloadEngine: DownloadEngine
 
+    @Inject
+    lateinit var workScheduler: WorkScheduler
+
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
 
@@ -41,6 +46,10 @@ class BootReceiver : BroadcastReceiver() {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         scope.launch {
             try {
+                // A reboot forgets WorkManager's jobs until the AIAR window
+                // re-fires, so re-register the periodic scan right away.
+                workScheduler.schedulePeriodicScan()
+
                 val pendingTasks = downloadDao.activeTasks()
                 if (pendingTasks.isNotEmpty()) {
                     // Re-queue interrupted downloads and restart processing.

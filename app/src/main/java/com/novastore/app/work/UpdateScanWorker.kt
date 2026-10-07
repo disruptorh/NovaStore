@@ -92,10 +92,15 @@ class WorkScheduler @Inject constructor(
                 },
             )
             .setRequiresCharging(settings.chargingOnly)
+            // battery_threshold > 0 means "don't wake up for a scan unless the
+            // battery is healthy"; a 0 threshold lifts the constraint.
+            .setRequiresBatteryNotLow(settings.batteryThreshold > 0)
             .build()
 
         val repeatInterval = when (settings.schedule) {
-            UpdateSchedule.IMMEDIATELY -> 1L to TimeUnit.HOURS
+            // IMMEDIATELY is "as aggressive as WorkManager allows": the 15
+            // minutes minimum periodic window, still network-gated above.
+            UpdateSchedule.IMMEDIATELY -> 15L to TimeUnit.MINUTES
             UpdateSchedule.DAILY -> 1L to TimeUnit.DAYS
             UpdateSchedule.WEEKLY -> 7L to TimeUnit.DAYS
         }

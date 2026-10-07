@@ -28,6 +28,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - P04 completo (T08 validate+preview en los 4 providers con errores tipeados TLS/404/JSON inválido/regex 0 matches; T09 `docs/source-providers.md` citando solo clases reales; T10 `SourceUrls` de normalización/rechazo + tests registry/URL ≥8 green). Detalle en `04_CAPA_DE_FUENTES.md`.
 - P05-T06 (`CatalogDao.getVersionsFor` filtra por `source IN (repositories enabled)` — un repo disabled nunca genera candidato ni marca la app como gestionada; el pase Play lo respeta vía el mismo DAO; `getVersions(packageName)` de detalle/install queda intacto. Nota: las `getVersions(pkg)` de GitHub/Gitea/HTML siguen en stub (vuelven vivas en P06/P07 al materializar providers); el loop del pseudocódigo no consulta providers con `enabled=false`.)
 - P05-T07 (`SourceResolutionPolicy.select` reordenada a prioridad-first: preferida (caller) → menor priority → mayor versionCode → source id; 5 tests ≥4 casos y `docs/update-engine.md` documenta prioridad-first; comentario `RepositoryEntity` "lower wins" alineado)
+- P05-T09 (`WorkScheduler`: `setRequiresBatteryNotLow(threshold > 0)` y `IMMEDIATELY` → 15 min (mínimo WorkManager) con red; `BootReceiver` re-registra `nova_update_scan` tras reboot además de reencolar downloads; nombres únicos se revisitan en P10-T04)
 
 ## Bloqueado
 
@@ -94,7 +95,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - [x] P05-T06 Scan solo contra providers enabled + Play si toggle Play activo
 - [x] P05-T07 Unificar política de dedup (preferida → prioridad → versionCode)
 - [x] P05-T08 Separar `SOURCE_PLAY_WEB` de `SOURCE_PLAY`
-- [ ] P05-T09 WorkManager: constraints, intervalo, `BootReceiver` re-arma scan
+- [x] P05-T09 WorkManager: constraints, intervalo, `BootReceiver` re-arma scan
 - [ ] P05-T10 Notificaciones INSTALLATION y ERRORS
 - [ ] P05-T11 Tests `UpdateEngine` / `SourceResolutionPolicy` / scan sin mirrors
 
