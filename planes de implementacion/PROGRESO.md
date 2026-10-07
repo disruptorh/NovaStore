@@ -73,7 +73,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - [x] P04-T04 Provider F-Droid/index (envolver cliente actual)
 - [x] P04-T05 Provider GitHub Releases
 - [x] P04-T06 Provider GitLab / Gitea / Codeberg
-- [ ] P04-T07 Provider URL directa / HTML + regex
+- [x] P04-T07 Provider URL directa / HTML + regex
 - [ ] P04-T08 Validación URL + preview de fetch
 - [ ] P04-T09 Documentar alta de provider nuevo (reescribir `docs/source-providers.md` a la realidad)
 - [ ] P04-T10 Tests unitarios de registry y URL
