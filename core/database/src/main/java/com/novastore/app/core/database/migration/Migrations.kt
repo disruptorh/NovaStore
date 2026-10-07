@@ -55,4 +55,14 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
     }
 }
 
-val ALL_MIGRATIONS = arrayOf<Migration>(MIGRATION_1_2, MIGRATION_3_4, MIGRATION_4_5)
+/**
+ * Migration 5 → 6: add providerType and extraJson to repositories.
+ */
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE repositories ADD COLUMN providerType TEXT NOT NULL DEFAULT 'FDROID_INDEX'")
+        db.execSQL("ALTER TABLE repositories ADD COLUMN extraJson TEXT")
+    }
+}
+
+val ALL_MIGRATIONS = arrayOf<Migration>(MIGRATION_1_2, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)

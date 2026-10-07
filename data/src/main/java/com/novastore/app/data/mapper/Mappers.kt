@@ -9,6 +9,7 @@ import com.novastore.app.core.database.entity.UpdateHistoryEntity
 import com.novastore.app.core.model.AppVersion
 import com.novastore.app.core.model.ArtifactType
 import com.novastore.app.core.model.InstalledApp
+import com.novastore.app.core.model.ProviderType
 import com.novastore.app.core.model.RemoteApp
 import com.novastore.app.core.model.RemoteAppDetails
 import com.novastore.app.core.model.RepositoryConfig
@@ -131,8 +132,11 @@ fun RepositoryEntity.toModel(): RepositoryConfig =
         trust = runCatching { SourceTrust.valueOf(trust) }.getOrDefault(SourceTrust.UNKNOWN),
         enabled = enabled,
         isBuiltIn = isBuiltIn,
-        lastRefreshAt = lastRefreshAt,
+lastRefreshAt = lastRefreshAt,
         lastRefreshError = lastRefreshError,
+        priority = priority,
+        providerType = runCatching { ProviderType.valueOf(providerType) }.getOrDefault(ProviderType.FDROID_INDEX),
+        extraJson = extraJson,
     )
 
 fun RepositoryConfig.toEntity(lastRefreshAt: Long?, lastRefreshError: String?, priority: Int): RepositoryEntity =
@@ -147,6 +151,8 @@ fun RepositoryConfig.toEntity(lastRefreshAt: Long?, lastRefreshError: String?, p
         lastRefreshAt = lastRefreshAt,
         lastRefreshError = lastRefreshError,
         priority = priority,
+        providerType = providerType.name,
+        extraJson = extraJson,
     )
 
 fun UpdateHistoryEntity.toModel(): UpdateHistoryRecord =

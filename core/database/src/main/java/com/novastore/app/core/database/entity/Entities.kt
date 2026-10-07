@@ -168,6 +168,8 @@ data class RepositoryEntity(
     val lastRefreshError: String?,
     /** Lower wins when several repositories offer the same package. */
     val priority: Int,
+    val providerType: String = "FDROID_INDEX",
+    val extraJson: String? = null,
     /** Last-Modified / ETag of the last downloaded index, for conditional requests. */
     val httpLastModified: String? = null,
     val httpEtag: String? = null,
