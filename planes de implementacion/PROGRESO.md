@@ -71,7 +71,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - [x] P04-T02 Modelo `RepositoryConfig` + tipo de proveedor + priority
 - [x] P04-T03 `SourceRegistry` (solo fuentes enabled)
 - [x] P04-T04 Provider F-Droid/index (envolver cliente actual)
-- [ ] P04-T05 Provider GitHub Releases
+- [x] P04-T05 Provider GitHub Releases
 - [ ] P04-T06 Provider GitLab / Gitea / Codeberg
 - [ ] P04-T07 Provider URL directa / HTML + regex
 - [ ] P04-T08 Validación URL + preview de fetch
