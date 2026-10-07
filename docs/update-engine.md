@@ -60,9 +60,17 @@ result, error).
 
 ## Multi-source (§73–74)
 
-`SourceResolutionPolicy`: trusted source → signature compatibility → versionCode →
-user preference/priority. Разная подпись с установленной версией → блок
-автообновления с показанным объяснением. Root НЕ обходит это правило.
+Cuando varias fuentes ofrecen una actualización para el mismo paquete,
+`SourceResolutionPolicy` decide de forma determinista, en este orden:
+1) la fuente **preferida por el usuario** para la app (si ofrece update, gana
+   directamente, antes de la política) — `UpdateEngine.resolveOne`;
+2) **prioridad del repositorio** (menor primero) — un repo random nunca
+   arrebata el catálogo a una fuente mejor colocada;
+3) **mayor versionCode** (desempate entre fuentes de igual prioridad);
+4) source id.
+Los candidatos incompatibles (firma distinta de la instalada, ABI, minSdk...)
+jamás entran en la selección. Firma distinta a la instalada → bloqueo de
+auto-update con explicación visible; Root no se salta esta regla.
 
 ## Update All (§36)
 

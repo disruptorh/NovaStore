@@ -27,6 +27,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - P05-T08 (`SOURCE_PLAY_WEB = "play-web"` distinto de `SOURCE_PLAY`; `DownloadUpdateUseCase.prepare()` sube candidates `play-web` → Play; download() guarda `NovaError.Metadata` para `play-web`)
 - P04 completo (T08 validate+preview en los 4 providers con errores tipeados TLS/404/JSON inválido/regex 0 matches; T09 `docs/source-providers.md` citando solo clases reales; T10 `SourceUrls` de normalización/rechazo + tests registry/URL ≥8 green). Detalle en `04_CAPA_DE_FUENTES.md`.
 - P05-T06 (`CatalogDao.getVersionsFor` filtra por `source IN (repositories enabled)` — un repo disabled nunca genera candidato ni marca la app como gestionada; el pase Play lo respeta vía el mismo DAO; `getVersions(packageName)` de detalle/install queda intacto. Nota: las `getVersions(pkg)` de GitHub/Gitea/HTML siguen en stub (vuelven vivas en P06/P07 al materializar providers); el loop del pseudocódigo no consulta providers con `enabled=false`.)
+- P05-T07 (`SourceResolutionPolicy.select` reordenada a prioridad-first: preferida (caller) → menor priority → mayor versionCode → source id; 5 tests ≥4 casos y `docs/update-engine.md` documenta prioridad-first; comentario `RepositoryEntity` "lower wins" alineado)
 
 ## Bloqueado
 
@@ -91,7 +92,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - [x] P05-T04 Quitar keys/toggles APKPure/APKCombo + migración DataStore
 - [x] P05-T05 Quitar constantes/UI/tests de fuentes mirror (salvo parseo de links externos si se mantiene)
 - [x] P05-T06 Scan solo contra providers enabled + Play si toggle Play activo
-- [ ] P05-T07 Unificar política de dedup (preferida → prioridad → versionCode)
+- [x] P05-T07 Unificar política de dedup (preferida → prioridad → versionCode)
 - [x] P05-T08 Separar `SOURCE_PLAY_WEB` de `SOURCE_PLAY`
 - [ ] P05-T09 WorkManager: constraints, intervalo, `BootReceiver` re-arma scan
 - [ ] P05-T10 Notificaciones INSTALLATION y ERRORS
