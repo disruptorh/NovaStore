@@ -67,7 +67,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 
 ## P04 Capa de fuentes
 
-- [ ] P04-T01 Interfaz `AppSourceProvider` en domain
+- [x] P04-T01 Interfaz `AppSourceProvider` en domain
 - [ ] P04-T02 Modelo `RepositoryConfig` + tipo de proveedor + priority
 - [ ] P04-T03 `SourceRegistry` (solo fuentes enabled)
 - [ ] P04-T04 Provider F-Droid/index (envolver cliente actual)
