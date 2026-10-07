@@ -12,8 +12,6 @@ import com.novastore.app.core.model.RemoteApp
 import com.novastore.app.core.model.RemoteAppDetails
 import com.novastore.app.data.mapper.remoteDetails
 import com.novastore.app.data.mapper.toModel
-import com.novastore.app.data.websource.ApkComboClient
-import com.novastore.app.data.websource.ApkPureClient
 import com.novastore.app.data.websource.GitHubClient
 import com.novastore.app.data.websource.GitLabClient
 import com.novastore.app.data.websource.PlayReviewsClient
@@ -51,8 +49,6 @@ class CatalogRepositoryImpl @Inject constructor(
     private val repositoryDao: RepositoryDao,
     private val playStoreRepository: PlayStoreRepository,
     private val playWebClient: PlayWebClient,
-    private val apkPureClient: ApkPureClient,
-    private val apkComboClient: ApkComboClient,
     private val gitHubClient: GitHubClient,
     private val gitLabClient: GitLabClient,
     private val playReviewsClient: PlayReviewsClient,
@@ -332,19 +328,7 @@ class CatalogRepositoryImpl @Inject constructor(
     private suspend fun mergeMirrorVersions(
         details: RemoteAppDetails?,
         packageName: String,
-    ): RemoteAppDetails? {
-        if (details == null) return null
-        if (details.versions.isNotEmpty()) return details
-        if (settingsDataStore.apkPureMirrorEnabledSnapshot()) {
-            val mirrorVersions = runCatching { apkPureClient.versions(packageName) }.getOrDefault(emptyList())
-            if (mirrorVersions.isNotEmpty()) return details.copy(versions = mirrorVersions)
-        }
-        if (settingsDataStore.apkComboMirrorEnabledSnapshot()) {
-            val comboVersions = runCatching { apkComboClient.versions(packageName) }.getOrDefault(emptyList())
-            if (comboVersions.isNotEmpty()) return details.copy(versions = comboVersions)
-        }
-        return details
-    }
+    ): RemoteAppDetails? = details
 
     /**
      * Merge rules:

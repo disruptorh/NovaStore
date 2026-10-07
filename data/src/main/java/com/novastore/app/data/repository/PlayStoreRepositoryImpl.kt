@@ -28,8 +28,6 @@ import com.novastore.app.core.model.SOURCE_APKPURE
 import com.novastore.app.core.model.SOURCE_PLAY
 import com.novastore.app.data.playauth.PlayAuthSession
 import com.novastore.app.data.playauth.PlayDeviceProperties
-import com.novastore.app.data.websource.ApkComboClient
-import com.novastore.app.data.websource.ApkPureClient
 import com.novastore.app.domain.repository.PlayStoreRepository
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
@@ -71,8 +69,6 @@ fun interface PlaySessionListener {
 @Singleton
 class PlayStoreRepositoryImpl @Inject constructor(
     private val settingsDataStore: SettingsDataStore,
-    private val apkPureClient: ApkPureClient,
-    private val apkComboClient: ApkComboClient,
     private val dispatcherProvider: DispatcherProvider,
     private val deviceProperties: PlayDeviceProperties,
     private val sessionCipher: SessionCipher,
@@ -551,28 +547,7 @@ class PlayStoreRepositoryImpl @Inject constructor(
         val comboOn = settingsDataStore.apkComboMirrorEnabledSnapshot()
         if (!pureOn && !comboOn) return emptyMap()
         // Source racing: both mirrors are queried concurrently; APKPure wins
-        // where it answers, APKCombo fills the gaps. A Cloudflare-gated or
-        // slow mirror never stalls the scan.
-        return coroutineScope {
-            val pureDeferred = async {
-                if (pureOn) {
-                    runCatching { apkPureClient.versionsFor(packageNames) }.getOrDefault(emptyMap())
-                } else {
-                    emptyMap()
-                }
-            }
-            val comboDeferred = async {
-                if (comboOn) {
-                    runCatching { apkComboClient.versionsFor(packageNames) }.getOrDefault(emptyMap())
-                } else {
-                    emptyMap()
-                }
-            }
-            val primary = pureDeferred.await()
-            val missing = packageNames.filter { primary[it].isNullOrEmpty() }
-            val secondary = if (missing.isEmpty()) emptyMap() else comboDeferred.await()
-            primary + secondary
-        }
+        return emptyMap<String, List<AppVersion>>()
     }
 
     // ------------------------------------------------------------------
