@@ -68,19 +68,20 @@ class UpdatesRepositoryImpl @Inject constructor(
     }
 
     /**
-     * Rows queued or mid-download survive the scan cleanup so an active
-     * download is never deleted under the user — but only while they are
-     * actually fresh. A row "in flight" whose clock stopped over a day ago
-     * is a zombie from a killed process or a lost task, not a download.
+     * Drops rows for packages that no longer have an update — except rows
+     * still actively downloading/installing (see [shouldDeleteUpdateRow]).
      */
     override suspend fun retainOnly(packageNames: Set<String>) {
         val now = System.currentTimeMillis()
         updateDao.all()
             .filter { entity ->
-                val staleInFlight = entity.state in IN_FLIGHT_STATES &&
-                    now - entity.updatedAt > IN_FLIGHT_STALENESS_MS
-                entity.packageName !in packageNames &&
-                    (entity.state !in IN_FLIGHT_STATES || staleInFlight)
+                shouldDeleteUpdateRow(
+                    rowPackage = entity.packageName,
+                    keptPackages = packageNames,
+                    state = entity.state,
+                    updatedAt = entity.updatedAt,
+                    now = now,
+                )
             }
             .forEach { updateDao.delete(it.packageName) }
     }
@@ -176,16 +177,4 @@ class UpdatesRepositoryImpl @Inject constructor(
 
     private fun parseState(name: String): UpdateState =
         runCatching { UpdateState.valueOf(name) }.getOrDefault(UpdateState.DISCOVERED)
-
-    private companion object {
-        val IN_FLIGHT_STATES = setOf(
-            UpdateState.QUEUED.name,
-            UpdateState.DOWNLOADING.name,
-            UpdateState.VERIFYING.name,
-            UpdateState.INSTALLING.name,
-        )
-
-        /** Any in-flight row untouched for this long is a zombie, not a download. */
-        const val IN_FLIGHT_STALENESS_MS = 24L * 60 * 60 * 1000
-    }
 }

@@ -30,6 +30,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - P05-T07 (`SourceResolutionPolicy.select` reordenada a prioridad-first: preferida (caller) → menor priority → mayor versionCode → source id; 5 tests ≥4 casos y `docs/update-engine.md` documenta prioridad-first; comentario `RepositoryEntity` "lower wins" alineado)
 - P05-T09 (`WorkScheduler`: `setRequiresBatteryNotLow(threshold > 0)` y `IMMEDIATELY` → 15 min (mínimo WorkManager) con red; `BootReceiver` re-registra `nova_update_scan` tras reboot además de reencolar downloads; nombres únicos se revisitan en P10-T04)
 - P05-T10 (ids de canales unificados en `core/common/NotificationChannelIds` y usados por app + downloader; `InstallOutcomeNotifier` en `feature:updates` publica success de install en `installation` y fallos de download/verify/install en `errors` desde el resumen de `updateAll`; strings en `core:ui` 4 locales; 5 canales/5 usados, 5 sitios `NotificationCompat.Builder`)
+- P05-T11 (la retención del escaneo se extrae a `data/.../UpdateRetention.kt`: `shouldDeleteUpdateRow` puro — fila en vuelo fresca sobrevive, zombie >24h se borra, terminal se borra, candidata nunca se borra — con `UpdateRetentionTest`; `CheckForUpdatesUseCaseTest` con fakes de interfaces: play desactivado salta el pase Play, play sin acceso retiene paquetes sin responder, fallo de repos sin fuente comparable → Failure, filas legacy DISCOVERY se limpian antes del pase; 8 tests nuevos, `:data` y `:domain` unit test verdes)
 
 ## Bloqueado
 
@@ -98,7 +99,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - [x] P05-T08 Separar `SOURCE_PLAY_WEB` de `SOURCE_PLAY`
 - [x] P05-T09 WorkManager: constraints, intervalo, `BootReceiver` re-arma scan
 - [x] P05-T10 Notificaciones INSTALLATION y ERRORS
-- [ ] P05-T11 Tests `UpdateEngine` / `SourceResolutionPolicy` / scan sin mirrors
+- [x] P05-T11 Tests motor (póliza de retención de filas en vuelo + uso del `CheckForUpdatesUseCase`)
 
 ## P06 Fuentes personalizadas
 
