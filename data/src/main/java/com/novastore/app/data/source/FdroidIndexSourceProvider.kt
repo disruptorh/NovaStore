@@ -11,9 +11,7 @@ import com.novastore.app.core.model.RepositoryConfig
 import com.novastore.app.domain.source.AppSourceProvider
 import com.novastore.app.domain.source.SourcePreview
 import com.novastore.app.core.network.fdroid.FdroidIndexClient
-import com.novastore.app.core.network.fdroid.ParsedIndex
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CancellationException
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,31 +28,30 @@ class FdroidIndexSourceProvider @Inject constructor(
 
     override suspend fun isEnabled(): Boolean = true
 
+    /**
+     * Validate an F-Droid index without touching the local catalog: download
+     * the index, parse it, and preview up to 5 app names. A failed download
+     * (TLS/404) and an unparseable index are surfaced as typed failures — an
+     * index that cannot be fetched is never reported as "ok with 0 apps".
+     */
     override suspend fun validate(config: RepositoryConfig): AppResult<SourcePreview> {
-        return runCatching {
-            val cache = File(context.cacheDir, "fdroid-index-validate")
+        val cache = File(context.cacheDir, "fdroid-index-validate")
+        runCatching {
             if (cache.exists()) cache.delete()
             cache.parentFile?.mkdirs()
-            val fetched = fdroidIndexClient.fetchIndex(config.metadataUrl, cache)
-            val parsed = fetched.getOrNull()?.let { f ->
-                fdroidIndexClient.parseIndex(cache, f, listOf("en")).getOrNull()
-            } ?: ParsedIndex(
-                repoName = config.name,
-                apps = emptyList(),
-                versions = emptyList(),
-            )
-            AppResult.Success(
-                SourcePreview(
-                    appCountHint = parsed.apps.size,
-                    sampleNames = parsed.apps.take(3).mapNotNull { it.name },
-                    warning = null,
-                ),
-            )
-        }.getOrElse { t ->
-            if (t is CancellationException) throw t
-            val msg = t.message ?: "Invalid F-Droid index"
-            AppResult.Failure(NovaError.Unknown(msg, t))
         }
+        val fetched = fdroidIndexClient.fetchIndex(config.metadataUrl, cache).getOrNull()
+            ?: return AppResult.Failure(NovaError.Repository("Could not fetch the F-Droid index: check the URL or your connection."))
+        val parsed = fdroidIndexClient.parseIndex(cache, fetched, listOf("en")).getOrNull()
+            ?: return AppResult.Failure(NovaError.Repository("Could not parse the F-Droid index JSON."))
+        val names = parsed.apps.mapNotNull { it.name }
+        return AppResult.Success(
+            SourcePreview(
+                appCountHint = names.size,
+                sampleNames = names.take(5),
+                warning = null,
+            ),
+        )
     }
 
     override suspend fun search(query: String): List<RemoteApp> = emptyList()

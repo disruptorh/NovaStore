@@ -1,5 +1,6 @@
 package com.novastore.app.data.source
 
+import com.novastore.app.core.model.ProviderType
 import com.novastore.app.core.model.RepositoryConfig
 import com.novastore.app.domain.source.AppSourceProvider
 import com.novastore.app.domain.source.SourceRegistry
@@ -22,6 +23,15 @@ class SourceRegistryImpl @Inject constructor(
     }
 
     override suspend fun getForConfig(config: RepositoryConfig): AppSourceProvider? {
-        return registered[config.repositoryId]?.second ?: providers.firstOrNull()
+        registered[config.repositoryId]?.second?.let { return it }
+        return providerForType(config.providerType) ?: providers.firstOrNull()
+    }
+
+    override suspend fun providerForType(type: ProviderType): AppSourceProvider? {
+        val direct = providers.firstOrNull { it.type == type }
+        if (direct != null) return direct
+        // GitLab configs are served by the Gitea-compatible provider (host detection).
+        if (type == ProviderType.GITLAB) return providers.firstOrNull { it.type == ProviderType.GITEA }
+        return null
     }
 }

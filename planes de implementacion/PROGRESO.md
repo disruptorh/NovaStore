@@ -25,6 +25,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - P05-T04 (keys `apkpure_mirror_enabled`/`apkcombo_mirror_enabled` + flows/setters fuera de `SettingsDataStore`; toggles fuera de `SettingsScreen`/`SettingsViewModel`; valores previos inertes, sin migración estructural)
 - P05-T05 (`SOURCE_APKPURE`/`SOURCE_APKCOMBO`/`isInstallSourceAllowed`/`SyntheticVersionCodes`/`Stage.MIRRORS`/`MirrorRequired`/`mergeMirrorVersions`/`mirrorVersionsFor` eliminados; SourceBadge/AppCards/AppDetails/Updates sin ramas mirror; ScanProgress* sin MIRRORS; strings+locales y comentarios limpiados; se mantiene `StoreLinks` parse en `core:model`)
 - P05-T08 (`SOURCE_PLAY_WEB = "play-web"` distinto de `SOURCE_PLAY`; `DownloadUpdateUseCase.prepare()` sube candidates `play-web` → Play; download() guarda `NovaError.Metadata` para `play-web`)
+- P04 completo (T08 validate+preview en los 4 providers con errores tipeados TLS/404/JSON inválido/regex 0 matches; T09 `docs/source-providers.md` citando solo clases reales; T10 `SourceUrls` de normalización/rechazo + tests registry/URL ≥8 green). Detalle en `04_CAPA_DE_FUENTES.md`.
 
 ## Bloqueado
 
@@ -77,9 +78,9 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - [x] P04-T05 Provider GitHub Releases
 - [x] P04-T06 Provider GitLab / Gitea / Codeberg
 - [x] P04-T07 Provider URL directa / HTML + regex
-- [ ] P04-T08 Validación URL + preview de fetch
-- [ ] P04-T09 Documentar alta de provider nuevo (reescribir `docs/source-providers.md` a la realidad)
-- [ ] P04-T10 Tests unitarios de registry y URL
+- [x] P04-T08 Validación URL + preview de fetch
+- [x] P04-T09 Documentar alta de provider nuevo (reescribir `docs/source-providers.md` a la realidad)
+- [x] P04-T10 Tests unitarios de registry y URL
 
 ## P05 Motor de actualizaciones
 
