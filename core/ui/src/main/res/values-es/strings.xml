@@ -286,6 +286,11 @@
     <string name="settings_repo_name_only">Fuente integrada: solo puede cambiarse el nombre local.</string>
     <string name="settings_repo_apk_url_regex">Regex de URL de APK</string>
     <string name="settings_repo_apk_url_regex_hint">Regex cuyo grupo 1 captura la URL de descarga del APK</string>
+    <string name="settings_repo_test">Probar fuente</string>
+    <string name="settings_repo_preview_found">%1$d apps encontradas</string>
+    <string name="settings_repo_remove">Eliminar</string>
+    <string name="settings_repo_delete_confirm">Se quitarán %1$d apps del catálogo. Esta acción no se puede deshacer.</string>
+    <string name="settings_repo_delete_builtin">Las fuentes integradas siempre vuelven. Esto deshabilitará la fuente y quitará sus %1$d apps del catálogo.</string>
     <string name="provider_fdroid_index">Índice F-Droid</string>
     <string name="provider_github">Lanzamientos de GitHub</string>
     <string name="provider_gitea">Gitea / Codeberg</string>

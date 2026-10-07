@@ -286,6 +286,11 @@
     <string name="settings_repo_name_only">Встроенный источник: можно изменить только локальное название.</string>
     <string name="settings_repo_apk_url_regex">Регэксп URL APK</string>
     <string name="settings_repo_apk_url_regex_hint">Регэксп, группа 1 которого захватывает URL загрузки APK</string>
+    <string name="settings_repo_test">Проверить источник</string>
+    <string name="settings_repo_preview_found">Найдено приложений: %1$d</string>
+    <string name="settings_repo_remove">Удалить</string>
+    <string name="settings_repo_delete_confirm">Будет удалено %1$d приложений из каталога. Действие необратимо.</string>
+    <string name="settings_repo_delete_builtin">Встроенные источники всегда возвращаются. Источник будет отключён, а его %1$d приложений удалены из каталога.</string>
     <string name="provider_fdroid_index">Индекс F-Droid</string>
     <string name="provider_github">Релизы GitHub</string>
     <string name="provider_gitea">Gitea / Codeberg</string>

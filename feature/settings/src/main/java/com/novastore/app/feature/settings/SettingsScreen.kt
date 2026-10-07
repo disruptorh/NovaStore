@@ -100,6 +100,7 @@ import com.novastore.app.core.ui.R as UiR
 import com.novastore.app.core.ui.components.SourceBadge
 import com.novastore.app.core.ui.theme.AccentPalettes
 import com.novastore.app.core.ui.theme.OnEmerald
+import com.novastore.app.domain.source.SourcePreview
 import com.novastore.app.domain.repository.AccountState
 import java.text.DateFormat
 import java.util.Date
@@ -483,7 +484,13 @@ fun SettingsScreen(
     if (showAddRepository) {
         RepositoryEditorDialog(
             initial = null,
+            preview = state.sourcePreview,
+            previewError = state.sourcePreviewError,
+            previewLoading = state.sourcePreviewLoading,
             onDismiss = { showAddRepository = false },
+            onTest = { name, url, type, apkUrlRegex ->
+                viewModel.testSource(name, url, type, apkUrlRegex)
+            },
             onConfirm = { name, url, type, apkUrlRegex ->
                 viewModel.addCustomRepository(name, url, type, apkUrlRegex)
                 showAddRepository = false
@@ -493,7 +500,13 @@ fun SettingsScreen(
     editRepository?.let { repository ->
         RepositoryEditorDialog(
             initial = repository,
+            preview = state.sourcePreview,
+            previewError = state.sourcePreviewError,
+            previewLoading = state.sourcePreviewLoading,
             onDismiss = { editRepository = null },
+            onTest = { name, url, type, apkUrlRegex ->
+                viewModel.testSource(name, url, type, apkUrlRegex)
+            },
             onConfirm = { name, url, type, apkUrlRegex ->
                 viewModel.saveRepository(repository.repositoryId, name, url, type, apkUrlRegex)
                 editRepository = null
@@ -1189,6 +1202,8 @@ private fun RepositoriesManager(
     onAdd: () -> Unit,
     onRefreshAll: () -> Unit,
 ) {
+    var pendingRemove by remember { mutableStateOf<RepositoryConfig?>(null) }
+
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         val enabledCount = state.repositories.count { it.enabled }
         val totalApps = state.repositories.filter { it.enabled }.sumOf { state.appCounts[it.repositoryId] ?: 0 }
@@ -1205,7 +1220,7 @@ private fun RepositoriesManager(
                 loading = repository.repositoryId in state.refreshingIds,
                 onToggle = { enabled -> onToggle(repository.repositoryId, enabled) },
                 onRefresh = { onRefresh(repository.repositoryId) },
-                onRemove = { onRemove(repository.repositoryId) },
+                onRemove = { pendingRemove = repository },
                 onEdit = { onEdit(repository) },
             )
         }
@@ -1221,6 +1236,44 @@ private fun RepositoriesManager(
                 Text(stringResource(UiR.string.settings_refresh_all))
             }
         }
+    }
+
+    pendingRemove?.let { repository ->
+        val appCount = state.appCounts[repository.repositoryId] ?: 0
+        AlertDialog(
+            onDismissRequest = { pendingRemove = null },
+            title = { Text(repository.name) },
+            text = {
+                Text(
+                    text = stringResource(
+                        if (repository.isBuiltIn) {
+                            UiR.string.settings_repo_delete_builtin
+                        } else {
+                            UiR.string.settings_repo_delete_confirm
+                        },
+                        appCount,
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onRemove(repository.repositoryId)
+                        pendingRemove = null
+                    },
+                ) {
+                    Text(
+                        stringResource(UiR.string.settings_repo_remove),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingRemove = null }) {
+                    Text(stringResource(UiR.string.action_cancel))
+                }
+            },
+        )
     }
 }
 
@@ -1268,10 +1321,8 @@ private fun RepositoryRow(
                     }
                 }
                 Switch(checked = repository.enabled, onCheckedChange = onToggle, enabled = !loading)
-                if (!repository.isBuiltIn) {
-                    IconButton(onClick = onRemove) {
-                        Icon(Icons.Filled.Delete, contentDescription = stringResource(UiR.string.action_cancel))
-                    }
+                IconButton(onClick = onRemove) {
+                    Icon(Icons.Filled.Delete, contentDescription = stringResource(UiR.string.action_cancel))
                 }
             }
             Row(
@@ -1424,7 +1475,11 @@ private fun SessionProviderDialog(
 @Composable
 private fun RepositoryEditorDialog(
     initial: RepositoryConfig?,
+    preview: SourcePreview?,
+    previewError: String?,
+    previewLoading: Boolean,
     onDismiss: () -> Unit,
+    onTest: (name: String, url: String, type: ProviderType, apkUrlRegex: String) -> Unit,
     onConfirm: (name: String, url: String, type: ProviderType, apkUrlRegex: String) -> Unit,
 ) {
     val editing = initial != null
@@ -1507,6 +1562,63 @@ private fun RepositoryEditorDialog(
                         singleLine = true,
                         shape = RoundedCornerShape(14.dp),
                     )
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    TextButton(
+                        onClick = { onTest(name, url, type, apkUrlRegex) },
+                        enabled = url.isNotBlank() && !previewLoading,
+                    ) {
+                        if (previewLoading) {
+                            CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                            Spacer(Modifier.width(6.dp))
+                        } else {
+                            Icon(
+                                Icons.Filled.CloudDownload,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Spacer(Modifier.width(6.dp))
+                        }
+                        Text(stringResource(UiR.string.settings_repo_test))
+                    }
+                }
+                when {
+                    previewError != null -> Text(
+                        text = previewError,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                    preview != null -> {
+                        val count = preview.appCountHint
+                        if (count != null) {
+                            Text(
+                                text = stringResource(UiR.string.settings_repo_preview_found, count),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        if (preview.sampleNames.isNotEmpty()) {
+                            preview.sampleNames.forEach { name ->
+                                Text(
+                                    text = name,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
+                        preview.warning?.let {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.tertiary,
+                            )
+                        }
+                    }
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,

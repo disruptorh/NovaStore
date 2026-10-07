@@ -286,6 +286,11 @@
     <string name="settings_repo_name_only">Source intégrée : seul le nom local peut être modifié.</string>
     <string name="settings_repo_apk_url_regex">Regex des URL d\'APK</string>
     <string name="settings_repo_apk_url_regex_hint">Regex dont le groupe 1 capture l\'URL de téléchargement de l\'APK</string>
+    <string name="settings_repo_test">Tester la source</string>
+    <string name="settings_repo_preview_found">%1$d applications trouvées</string>
+    <string name="settings_repo_remove">Supprimer</string>
+    <string name="settings_repo_delete_confirm">Cela retirera %1$d applications du catalogue. Action irréversible.</string>
+    <string name="settings_repo_delete_builtin">Les sources intégrées reviennent toujours. Cela désactivera la source et retirera ses %1$d applications du catalogue.</string>
     <string name="provider_fdroid_index">Index F-Droid</string>
     <string name="provider_github">Versions GitHub</string>
     <string name="provider_gitea">Gitea / Codeberg</string>

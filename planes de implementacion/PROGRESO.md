@@ -105,13 +105,15 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 ## P06 Fuentes personalizadas
 
 - [x] P06-T01 UI add/edit con tipo de proveedor
-- [ ] P06-T02 Preview de resultados al añadir
-- [ ] P06-T03 Enable/disable + delete con confirmación
+- [x] P06-T02 Preview de resultados al añadir
+- [x] P06-T03 Enable/disable + delete con confirmación
 - [ ] P06-T04 Reordenar prioridad persistente (`ensureBuiltIns` no pisa)
 - [ ] P06-T05 Import/export JSON
 - [ ] P06-T06 Fuente preferida por app en detalle
 - [ ] P06-T07 Catálogo único: misma regla de dedup en DAO y updates
 - [ ] P06-T08 Integridad hash/firma en flujo de alta (aviso si el índice no trae sha256)
+- P06-T02 (`PreviewSourceUseCase` en domain con `@Inject SourceRegistry`: build un `RepositoryConfig` "preview" y delega en `providerForType(type)?.validate`; éxito → sampleNames (cap 5) + appCountHint + warning, fallo tipado; test domain con fake registry/provider: éxito ≤5, fallo 404 tipado, tipo sin provider → Failure. `SettingsViewModel.testSource` (extraJsonFor para HTML regex; estado `sourcePreview/sourcePreviewError/sourcePreviewLoading` en `SettingsUiState`); `RepositoryEditorDialog` botón "Test source" (spinner mientras carga, error color error, aviso warning, resultado live sin escribir catálogo). Verificación: `:domain:testReleaseUnitTest --tests PreviewSourceUseCaseTest` + compila settings/app.)
+- P06-T03 (delete: `RepositoriesManager.pendingRemove` state → `AlertDialog` con `settings_repo_delete_confirm` (custom, "%d apps del catálogo, no se puede deshacer") o `settings_repo_delete_builtin` (built-in: se deshabilita y siempre vuelve); botón de borrar ahora visible también en built-ins (delete = disable, comportamiento `remove` existente); confirm llama `onRemove` y limpia; strings 4 locales; compila.)
 
 ## P07 Sistema de diseño
 

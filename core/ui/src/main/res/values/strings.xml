@@ -286,6 +286,11 @@
     <string name="settings_repo_name_only">Built-in source — only the local name can be changed.</string>
     <string name="settings_repo_apk_url_regex">APK URL regex</string>
     <string name="settings_repo_apk_url_regex_hint">Regex whose group 1 captures the APK download URL</string>
+    <string name="settings_repo_test">Test source</string>
+    <string name="settings_repo_preview_found">%1$d apps found</string>
+    <string name="settings_repo_remove">Remove</string>
+    <string name="settings_repo_delete_confirm">This will remove %1$d apps from your catalog. This cannot be undone.</string>
+    <string name="settings_repo_delete_builtin">Built-in sources always return. This will disable the source and remove its %1$d apps from the catalog.</string>
     <string name="provider_fdroid_index">F-Droid index</string>
     <string name="provider_github">GitHub releases</string>
     <string name="provider_gitea">Gitea / Codeberg</string>

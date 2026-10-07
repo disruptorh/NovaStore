@@ -18,7 +18,9 @@ import com.novastore.app.domain.repository.AccountRepository
 import com.novastore.app.domain.repository.AccountState
 import com.novastore.app.domain.repository.RepositoriesRepository
 import com.novastore.app.domain.repository.SettingsRepository
+import com.novastore.app.domain.source.SourcePreview
 import com.novastore.app.domain.usecase.ListDeviceProfilesUseCase
+import com.novastore.app.domain.usecase.PreviewSourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +37,10 @@ data class SettingsUiState(
     val appCounts: Map<String, Int> = emptyMap(),
     /** Repository ids currently being loaded. */
     val refreshingIds: Set<String> = emptySet(),
+    /** Live result of the "Test" button in the source editor (P06-T02). */
+    val sourcePreview: SourcePreview? = null,
+    val sourcePreviewError: String? = null,
+    val sourcePreviewLoading: Boolean = false,
     val notice: String? = null,
     val rootState: RootAccessState = RootAccessState.UNAVAILABLE,
     val busy: Boolean = false,
@@ -68,6 +74,7 @@ class SettingsViewModel @Inject constructor(
     private val rootAccessProvider: RootAccessProvider,
     private val settingsDataStore: SettingsDataStore,
     private val listDeviceProfiles: ListDeviceProfilesUseCase,
+    private val previewSource: PreviewSourceUseCase,
     accountRepository: AccountRepository,
 ) : ViewModel() {
 
@@ -77,6 +84,9 @@ class SettingsViewModel @Inject constructor(
     private val notice = MutableStateFlow<String?>(null)
     private val refreshingIds = MutableStateFlow<Set<String>>(emptySet())
     private val deviceProfiles = MutableStateFlow<List<DeviceProfile>>(emptyList())
+    private val sourcePreview = MutableStateFlow<SourcePreview?>(null)
+    private val sourcePreviewError = MutableStateFlow<String?>(null)
+    private val sourcePreviewLoading = MutableStateFlow(false)
 
     init {
         viewModelScope.launch {
@@ -123,13 +133,20 @@ class SettingsViewModel @Inject constructor(
                 settingsDataStore.appLanguage,
             ) { theme, accent, language -> Triple(theme, accent, language) },
             accountRepository.accountState,
-        ) { appearance, account -> appearance to account },
-    ) { (settings, repositories, counts), (root, isBusy, refreshing), (errorMessage, noticeMessage), play, (appearance, account) ->
+            combine(sourcePreview, sourcePreviewError, sourcePreviewLoading) { preview, message, loading ->
+                Triple(preview, message, loading)
+            },
+        ) { appearance, account, previews -> Triple(appearance, account, previews) },
+    ) { (settings, repositories, counts), (root, isBusy, refreshing), (errorMessage, noticeMessage), play, (appearance, account, previews) ->
+        val (preview, previewError, previewLoading) = previews
         SettingsUiState(
             settings = settings,
             repositories = repositories,
             appCounts = counts,
             refreshingIds = refreshing,
+            sourcePreview = preview,
+            sourcePreviewError = previewError,
+            sourcePreviewLoading = previewLoading,
             rootState = root,
             busy = isBusy,
             error = errorMessage,
@@ -306,6 +323,25 @@ class SettingsViewModel @Inject constructor(
 
     fun removeRepository(repositoryId: String) {
         viewModelScope.launch { repositoriesRepository.remove(repositoryId) }
+    }
+
+    /** P06-T02: probes the source form through the provider — writes nothing. */
+    fun testSource(
+        name: String,
+        url: String,
+        providerType: ProviderType,
+        apkUrlRegex: String = "",
+    ) {
+        viewModelScope.launch {
+            sourcePreview.value = null
+            sourcePreviewError.value = null
+            sourcePreviewLoading.value = true
+            when (val result = previewSource(name, url, providerType, extraJsonFor(providerType, apkUrlRegex))) {
+                is AppResult.Failure -> sourcePreviewError.value = result.error.userMessage
+                is AppResult.Success -> sourcePreview.value = result.value
+            }
+            sourcePreviewLoading.value = false
+        }
     }
 
     fun addCustomRepository(
