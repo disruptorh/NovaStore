@@ -1,88 +1,44 @@
 # Source Providers
 
-## Интерфейс
+## AppSourceProvider
 
-`AppSourceProvider` (domain/repository) — контракт любого источника каталога:
+The `AppSourceProvider` interface (domain) defines the contract for any catalog source:
 
 ```kotlin
 interface AppSourceProvider {
     val providerId: String
     val displayName: String
+    val type: ProviderType
+
     suspend fun isEnabled(): Boolean
+    suspend fun validate(config: RepositoryConfig): AppResult<SourcePreview>
     suspend fun search(query: String): List<RemoteApp>
     suspend fun getAppDetails(packageName: String): RemoteAppDetails?
     suspend fun getVersions(packageName: String): List<AppVersion>
-    suspend fun getLatestVersion(packageName: String): AppVersion?
-    suspend fun getDownloadInfo(version: AppVersion): DownloadInfo
-    suspend fun refresh()
+    suspend fun refresh(): AppResult<Unit>
 }
 ```
 
-Провайдер сообщает только: что за приложение, какие версии существуют, где артефакт,
-какая metadata доступна. Он НЕ знает про `UpdateEngine` и `PackageInstaller`.
+Providers return what data exists — they never fabricate missing fields. `SourcePreview` (domain) carries a sample and optional warning after validation. `RepositoryConfig` (core-model) adds `providerType`, `priority`, and `extraJson` fields.
 
-## Реализованные провайдеры
+## Provider implementations (data/source)
 
-### FdroidSourceProvider (data/source)
+- **FdroidIndexSourceProvider** — wraps `FdroidIndexClient` (core/network) and the existing F-Droid index parsing. Validation fetches a small cache copy and parses it to produce `SourcePreview`. Skeleton methods (`search`, `getAppDetails`, `getVersions`, `refresh`) are minimal stubs for now; the existing catalog flow remains responsible for F-Droid catalog materialization.
+- **GitHubReleaseSourceProvider** — `providerType = GITHUB`. Skeleton implementation; validation returns an empty preview. Intended to wrap `GitHubClient` for release-based discovery.
+- **GiteaCompatibleSourceProvider** — `providerType = GITEA`. Skeleton implementation (covers Gitea/GitLab-compatible release layouts).
+- **HtmlRegexSourceProvider** — `providerType = HTML_REGEX`. Skeleton implementation for direct/HTML+regex sources (constraints: HTTPS-only, timeouts, regex caps are the responsibility of concrete use cases).
 
-Реальный клиент публичного индекса F-Droid **index-v1.json** — структурированный
-формат, который использует и официальный клиент F-Droid (HTML не скрейпится):
+## SourceRegistry
 
-- `https://f-droid.org/repo/index-v1.json` (базовый URL настраивается);
-- поля: packageName, name, summary, description, license, categories, author,
-  icon (относительный путь), added/lastUpdated, versions: versionCode, versionName,
-  apkName, size, **sha256**, minSdk/targetSdk, sig (если индекс его отдаёт);
-- иконки: `<repo>/icons-640/<pkg>_<versionCode>.png`;
-- ETag/If-None-Match кэширование индекса (не качаем заново без изменений);
-- `refresh()` — обновление индекса, cancellable, не блокирует UI.
+`SourceRegistry` (domain) and `SourceRegistryImpl` (data) aggregate enabled providers by repository configuration. The registry can return enabled providers and look up a provider for a given config.
 
-Поля, которых нет в индексе, не выдумываются (`null`).
+## RepositoryConfig/Entity
 
-### GenericRepositorySourceProvider
+- `RepositoryConfig` (core-model): adds `priority`, `providerType`, `extraJson`.
+- `RepositoryEntity` (core-database): adds `providerType`, `extraJson`; migration `5→6` adds columns with defaults.
+- Mappers translate between entity and model; Room schema `6.json` is exported.
 
-Любой F-Droid-совместимый репозиторий: пользовательский `baseUrl` + `index-v1.json`
-(формат self-hosted fdroidserver-репозиториев). Позволяет добавить собственный/корпоративный
-источник без изменения кода.
+## Notes
 
-### SourceRegistry (data/source)
-
-Агрегирует провайдеры: enabled/trust-статусы из Room (`RepositoryEntity` + DataStore),
-единый поиск/детали по включённым источникам.
-
-## Trust (§12)
-
-```
-TRUSTED   — источник включён и помечен доверенным (F-Droid по умолчанию)
-UNKNOWN   — пользовательский репозиторий до подтверждения
-DISABLED  — выключен пользователем
-INVALID   — индекс не читается / репозиторий недоступен
-```
-
-Из UNKNOWN установка не выполняется без явного решения пользователя. В UI источник
-всегда показывается: «Source: F-Droid» / «Source: Custom Repository».
-
-## Как добавить новый провайдер
-
-1. Создать `class XxxSourceProvider @Inject constructor(...) : AppSourceProvider`
-   в `data/source/`.
-2. Использовать собственные DTO (kotlinx.serialization) и клиент (OkHttp) для
-   вашего формата метаданных.
-3. Зарегистрировать в `SourceRegistry` (DI-модуль `DataModule`).
-4. Trust по умолчанию — `UNKNOWN`, включение — только через пользовательский UI.
-
-Никакие изменения в `UpdateEngine` не требуются — он работает с абстракцией.
-
-## Разрешение мульти-источников
-
-Один package в нескольких источниках → `SourceResolutionPolicy` (core:updater):
-совместимость подписи → trust → versionCode → приоритет пользователя. Выбранный
-источник показывается пользователю. Разная подпись у источника B → автообновление
-заблокировано (§74).
-
-## Ограничения
-
-- Google Play API не существует публично → провайдера нет, и fake-провайдер не
-  создаётся (§141).
-- index-v2 пока не используется: index-v1 покрывает те же данные компактнее
-  (см. README «Ограничения»).
-- LocalRepositorySourceProvider (локальная папка с индексом) — точка расширения.
+- HTTPS-only and conservative timeouts are expected for remote HTML/regex sources.
+- Provider implementations are currently skeletal (per P04). They compile against existing clients and can be expanded incrementally without breaking the build.
