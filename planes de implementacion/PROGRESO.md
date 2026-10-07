@@ -69,7 +69,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 
 - [x] P04-T01 Interfaz `AppSourceProvider` en domain
 - [x] P04-T02 Modelo `RepositoryConfig` + tipo de proveedor + priority
-- [ ] P04-T03 `SourceRegistry` (solo fuentes enabled)
+- [x] P04-T03 `SourceRegistry` (solo fuentes enabled)
 - [ ] P04-T04 Provider F-Droid/index (envolver cliente actual)
 - [ ] P04-T05 Provider GitHub Releases
 - [ ] P04-T06 Provider GitLab / Gitea / Codeberg
