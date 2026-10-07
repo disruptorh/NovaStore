@@ -205,7 +205,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             refreshing.value = true
             // Content first: the local catalog renders immediately while the
-            // network scan (repositories + Play mirror lookups) runs in
+            // network scan (repositories + Play lookups) runs in
             // parallel — the home screen never waits for the scan anymore.
             pageJob?.cancel()
             loadCategoryPage(reset = true)

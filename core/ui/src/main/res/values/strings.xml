@@ -10,7 +10,6 @@
     <string name="cd_check_updates">Check for updates</string>
     <string name="cd_screenshot">Screenshot</string>
     <string name="cd_app_icon">App icon</string>
-    <string name="cd_mirror_source">Mirror source</string>
     <string name="cd_search_layout">Result layout</string>
     <string name="cd_search_sort">Sort order</string>
     <string name="cd_search_columns">Grid columns</string>
@@ -150,7 +149,6 @@
     <string name="updates_update_all">Update all</string>
     <string name="updates_count_many">%d updates available</string>
     <string name="updates_total_size">Total size: %s</string>
-    <string name="details_notice_mirror_js">This mirror serves files only through its web scripts. Enable the APKPure mirror or sign in with a device Google account for a direct download.</string>
     <string name="updates_discovery_line">Updated on Google Play: %1$s</string>
     <string name="updates_discovery_no_date">Updated on Google Play — version unconfirmed</string>
     <string name="updates_discovery_state">Unconfirmed — tap Check</string>
@@ -165,7 +163,6 @@
     <string name="updates_notice_confirmation">Android needs your confirmation for %s — check the notification or tap Update again.</string>
     <string name="updates_notice_failed">Installation of %s failed.</string>
     <string name="updates_notice_cancelled">Installation of %s was cancelled.</string>
-    <string name="updates_notice_mirror">Finish %s on its app page — the built-in mirror browser completes the download.</string>
     <string name="updates_summary_title">Update summary</string>
     <string name="updates_summary_processed">Processed: %d</string>
     <string name="updates_summary_installed">Installed: %d</string>
@@ -233,7 +230,6 @@
     <string name="account_anonymous_engine_sub">Recommended · no account · always works</string>
     <string name="account_anonymous_note">No Google account needed — search, browse and download right away.</string>
     <string name="account_tier_web_catalog_desc">Public Google Play pages — search, details and screenshots for every app.</string>
-    <string name="account_tier_mirror_desc">Anonymous version history and download fallback.</string>
     <string name="account_tier_fdroid_desc">Native open-source repositories, always available.</string>
     <string name="account_toggle_email_form">Sign in with email and app password</string>
     <string name="account_device_login_hint">Passwordless: uses the Google account already on this phone — no password, no 2FA, no server. Android may show a one-time consent dialog.</string>
@@ -248,7 +244,7 @@
     <string name="account_sign_out">Sign out</string>
     <string name="account_fdroid_only">Anonymous mode</string>
     <string name="account_fdroid_only_sub">Nova Anonymous Engine is active</string>
-    <string name="account_fdroid_only_desc">You\'re using Nova Store without a Google account: the Web Catalog, community mirror and F-Droid repositories cover search, details and downloads. Sign in below only if you want your own Play library.</string>
+    <string name="account_fdroid_only_desc">You\'re using Nova Store without a Google account: the Web Catalog and F-Droid repositories cover search, details and downloads. Sign in below only if you want your own Play library.</string>
     <string name="account_reset">Reset to sign-in</string>
     <string name="account_error_hint">Tip: Google requires an App Password when 2-Step Verification is on. Create one at myaccount.google.com/apppasswords and use it here — or use the device-account login, which needs no password at all.</string>
 
@@ -266,13 +262,9 @@
     <string name="settings_play_updates_desc">Also resolve updates through your Play session</string>
     <string name="settings_sources">Sources</string>
     <string name="sources_play_anonymous">Google Play without an account</string>
-    <string name="sources_play_anonymous_desc">Real Google Play (search, exact versions, original APK files) with no account, no Google services and no microG needed. Mirrors below are used only when Play cannot deliver.</string>
+    <string name="sources_play_anonymous_desc">Real Google Play (search, exact versions, original APK files) with no account, no Google services and no microG needed.</string>
     <string name="sources_web_catalog">Nova Web Catalog</string>
     <string name="sources_web_catalog_desc">Anonymous public Google Play pages — search, details and screenshots for every app, no account needed.</string>
-    <string name="sources_mirror">Community mirror (APKPure)</string>
-    <string name="sources_mirror_desc">Metadata only: browses anonymous version history. Files are never installed from mirrors.</string>
-    <string name="sources_mirror_combo">Second mirror (APKCombo)</string>
-    <string name="sources_mirror_combo_desc">Additional anonymous version history (metadata only).</string>
     <string name="sources_github">GitHub releases</string>
     <string name="sources_github_desc">Open-source apps published as APK releases</string>
     <string name="sources_gitlab">GitLab releases</string>
@@ -419,7 +411,7 @@
     <string name="settings_about_version_label">Version</string>
     <string name="settings_about_version_value">%1$s (build %2$d)</string>
     <string name="settings_about_sources">Sources</string>
-    <string name="settings_about_sources_value">Google Play (no account), F-Droid repositories, GitHub, GitLab, community mirrors</string>
+    <string name="settings_about_sources_value">Google Play (no account), F-Droid repositories, GitHub, GitLab</string>
     <string name="settings_about_device">This device</string>
     <string name="settings_about_privacy">Privacy</string>
     <string name="settings_about_license">License</string>
@@ -450,7 +442,6 @@
     <string name="scan_stage_repositories">Updating repositories…</string>
     <string name="scan_stage_installed">Reading installed apps…</string>
     <string name="scan_stage_play">Checking Google Play…</string>
-    <string name="scan_stage_mirrors">Checking mirrors…</string>
     <string name="settings_search_pinned">Pin the search bar</string>
     <string name="settings_search_pinned_desc">On: always visible on Home. Off: slides under the header while you scroll down and returns as soon as you scroll up.</string>
 </resources>

@@ -49,10 +49,6 @@ data class SettingsUiState(
     // --- Nova anonymous access tiers (own engine) ---
     /** Nova Web Catalog: anonymous public play.google.com pages. */
     val playWebCatalogEnabled: Boolean = true,
-    /** Community mirror (APKPure): anonymous versions + downloads fallback. */
-    val apkPureMirrorEnabled: Boolean = true,
-    /** Second mirror stage (APKCombo): version history + download attempts. */
-    val apkComboMirrorEnabled: Boolean = true,
     /** GitHub releases catalog in search and details. */
     val githubCatalogEnabled: Boolean = true,
     /** GitLab releases catalog in search and details. */
@@ -101,12 +97,10 @@ class SettingsViewModel @Inject constructor(
             deviceProfiles,
             combine(
                 settingsDataStore.playWebCatalogEnabled,
-                settingsDataStore.apkPureMirrorEnabled,
-                settingsDataStore.apkComboMirrorEnabled,
                 settingsDataStore.githubCatalogEnabled,
                 settingsDataStore.gitlabCatalogEnabled,
-            ) { webCatalog, mirror, combo, github, gitlab ->
-                SourceToggles(webCatalog, mirror, combo, github, gitlab)
+            ) { webCatalog, github, gitlab ->
+                SourceToggles(webCatalog, github, gitlab)
             },
         ) { profile, dispenser, playUpdates, profiles, sources ->
             PlaySettings(
@@ -116,8 +110,6 @@ class SettingsViewModel @Inject constructor(
                 anonymousPlayEnabled = playUpdates.second,
                 deviceProfiles = profiles,
                 playWebCatalogEnabled = sources.playWebCatalogEnabled,
-                apkPureMirrorEnabled = sources.apkPureMirrorEnabled,
-                apkComboMirrorEnabled = sources.apkComboMirrorEnabled,
                 githubCatalogEnabled = sources.githubCatalogEnabled,
                 gitlabCatalogEnabled = sources.gitlabCatalogEnabled,
             )
@@ -146,8 +138,6 @@ class SettingsViewModel @Inject constructor(
             playUpdatesEnabled = play.playUpdatesEnabled,
             anonymousPlayEnabled = play.anonymousPlayEnabled,
             playWebCatalogEnabled = play.playWebCatalogEnabled,
-            apkPureMirrorEnabled = play.apkPureMirrorEnabled,
-            apkComboMirrorEnabled = play.apkComboMirrorEnabled,
             githubCatalogEnabled = play.githubCatalogEnabled,
             gitlabCatalogEnabled = play.gitlabCatalogEnabled,
             themeMode = appearance.first,
@@ -164,17 +154,13 @@ class SettingsViewModel @Inject constructor(
         val anonymousPlayEnabled: Boolean,
         val deviceProfiles: List<DeviceProfile>,
         val playWebCatalogEnabled: Boolean,
-        val apkPureMirrorEnabled: Boolean,
-        val apkComboMirrorEnabled: Boolean,
         val githubCatalogEnabled: Boolean,
         val gitlabCatalogEnabled: Boolean,
     )
 
-    /** The five source toggles, bundled to respect the 5-flow combine limit. */
+    /** The source toggles, bundled to respect the 5-flow combine limit. */
     private data class SourceToggles(
         val playWebCatalogEnabled: Boolean,
-        val apkPureMirrorEnabled: Boolean,
-        val apkComboMirrorEnabled: Boolean,
         val githubCatalogEnabled: Boolean,
         val gitlabCatalogEnabled: Boolean,
     )
@@ -221,20 +207,6 @@ class SettingsViewModel @Inject constructor(
     fun setPlayWebCatalogEnabled(enabled: Boolean) {
         viewModelScope.launch {
             settingsDataStore.setPlayWebCatalogEnabled(enabled)
-        }
-    }
-
-    /** Community mirror (APKPure): anonymous versions + downloads fallback. */
-    fun setApkPureMirrorEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            settingsDataStore.setApkPureMirrorEnabled(enabled)
-        }
-    }
-
-    /** Community mirror stage two (APKCombo): version history + downloads. */
-    fun setApkComboMirrorEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            settingsDataStore.setApkComboMirrorEnabled(enabled)
         }
     }
 

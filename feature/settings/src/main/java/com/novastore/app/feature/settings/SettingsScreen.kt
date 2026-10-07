@@ -276,20 +276,7 @@ fun SettingsScreen(
                     checked = state.playWebCatalogEnabled,
                     onChecked = viewModel::setPlayWebCatalogEnabled,
                 )
-                SwitchRow(
-                    icon = Icons.Filled.CloudDownload,
-                    label = stringResource(UiR.string.sources_mirror),
-                    description = stringResource(UiR.string.sources_mirror_desc),
-                    checked = state.apkPureMirrorEnabled,
-                    onChecked = viewModel::setApkPureMirrorEnabled,
-                )
-                SwitchRow(
-                    icon = Icons.Filled.CloudDownload,
-                    label = stringResource(UiR.string.sources_mirror_combo),
-                    description = stringResource(UiR.string.sources_mirror_combo_desc),
-                    checked = state.apkComboMirrorEnabled,
-                    onChecked = viewModel::setApkComboMirrorEnabled,
-                )
+
                 SwitchRow(
                     icon = Icons.Filled.Code,
                     label = stringResource(UiR.string.sources_github),

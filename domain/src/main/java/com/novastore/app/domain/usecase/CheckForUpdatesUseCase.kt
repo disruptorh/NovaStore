@@ -4,7 +4,6 @@ import com.novastore.app.core.common.AppResult
 import com.novastore.app.core.model.AppVersion
 import com.novastore.app.core.model.InstalledApp
 import com.novastore.app.core.model.SOURCE_PLAY
-import com.novastore.app.core.model.SyntheticVersionCodes
 import com.novastore.app.core.model.UpdateCandidate
 import com.novastore.app.core.model.UpdateConfidence
 import com.novastore.app.core.model.UpdateState
@@ -74,8 +73,7 @@ class CheckForUpdatesUseCase @Inject constructor(
      * repository build is a Play app (installed by Play, by Nova from Play,
      * or sideloaded) — the installer package alone misses apps Nova itself
      * installed. Exact versions come from the native Play protocol through
-     * any session (account or anonymous); the community mirrors only cover
-     * packages Play did not answer for.
+     * any session (account or anonymous).
      */
     private suspend fun addPlayCandidates(
         report: UpdateScanReport,

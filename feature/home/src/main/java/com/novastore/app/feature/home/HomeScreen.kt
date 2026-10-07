@@ -1233,7 +1233,6 @@ private fun ScanProgressBanner(progress: com.novastore.app.domain.repository.Sca
             com.novastore.app.domain.repository.ScanProgress.Stage.REPOSITORIES -> UiR.string.scan_stage_repositories
             com.novastore.app.domain.repository.ScanProgress.Stage.INSTALLED_APPS -> UiR.string.scan_stage_installed
             com.novastore.app.domain.repository.ScanProgress.Stage.GOOGLE_PLAY -> UiR.string.scan_stage_play
-            com.novastore.app.domain.repository.ScanProgress.Stage.MIRRORS -> UiR.string.scan_stage_mirrors
         },
     )
     Surface(

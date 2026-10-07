@@ -126,7 +126,7 @@ data class DownloadEntity(
  * Play Web Watch — the last "Updated on" date observed on the public Play
  * listing of a package, used by the DISCOVERY tier of the update engine:
  * the date changed since the previous scan → the app probably has a new
- * release, even when no mirror or Play session is available.
+ * release, even when no Play session is available.
  */
 @Entity(tableName = "play_freshness")
 data class PlayFreshnessEntity(

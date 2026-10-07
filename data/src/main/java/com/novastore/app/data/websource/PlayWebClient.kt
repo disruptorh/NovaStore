@@ -494,7 +494,7 @@ class PlayWebClient @Inject constructor(
             changelog = null, // Play loads "What's new" through a separate RPC
             website = website ?: privacy,
             sourceCodeUrl = null,
-            versions = emptyList(), // versions come from the mirror or a signed-in session
+            versions = emptyList(), // versions come from a signed-in session or the catalog
             screenshots = if (screenshots.isNotEmpty()) screenshots else listOfNotNull(banner),
             videoUrl = videoUrl,
             ratingCount = ratingCount,

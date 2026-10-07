@@ -162,7 +162,7 @@ fun AppCardRow(
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                         NovaRatingBar(value = rating, starSize = 12.dp)
-                    } else if (app.license != null || app.source !in setOf("play", "apkpure", "apkcombo")) {
+                    } else if (app.license != null || app.source != "play") {
                         Text(
                             text = androidx.compose.ui.res.stringResource(com.novastore.app.core.ui.R.string.app_card_open_source),
                             style = MaterialTheme.typography.labelSmall,

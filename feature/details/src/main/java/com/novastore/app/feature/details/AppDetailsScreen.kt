@@ -234,7 +234,7 @@ fun AppDetailsScreen(
  * REAL download progress for the install flow: a determinate bar with
  * percent, transferred/total bytes and live speed while the engine
  * reports DOWNLOADING; the honest indeterminate bar only covers phases
- * without measurable progress (mirror resolution, verification, the
+ * without measurable progress (delivery resolution, verification, the
  * PackageInstaller session itself).
  */
 @Composable

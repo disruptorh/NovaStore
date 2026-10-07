@@ -35,8 +35,6 @@ sealed class UpdateNotice {
     data class Failed(val appName: String) : UpdateNotice()
     /** The user dismissed the system install dialog — neutral, not red. */
     data class Cancelled(val appName: String) : UpdateNotice()
-    /** APKCombo's file link is JavaScript-gated — finish it on the app page. */
-    data class MirrorRequired(val appName: String) : UpdateNotice()
     /** One update failed; [reason] is the source's explanation. */
     data class FailedReason(val appName: String, val reason: String) : UpdateNotice()
     /** The installed build is signed with another key (modified app). */
@@ -239,7 +237,7 @@ class UpdatesViewModel @Inject constructor(
                     // actions — never a download attempt that can only fail.
                     return@launch
                 }
-                // Mirror rows are served by Google Play when it has the build.
+                // Web-listing rows are served by Google Play when it has the build.
                 val candidate = downloadUpdate.prepare(stored)
                 val file = when (val download = downloadUpdate(candidate)) {
                     is AppResult.Failure -> {

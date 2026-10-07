@@ -10,7 +10,6 @@
     <string name="cd_check_updates">Vérifier les mises à jour</string>
     <string name="cd_screenshot">Capture d\'écran</string>
     <string name="cd_app_icon">Icône de l\'application</string>
-    <string name="cd_mirror_source">Source du miroir</string>
     <string name="cd_search_layout">Disposition des résultats</string>
     <string name="cd_search_sort">Ordre de tri</string>
     <string name="cd_search_columns">Colonnes</string>
@@ -150,7 +149,6 @@
     <string name="updates_update_all">Tout mettre à jour</string>
     <string name="updates_count_many">%d mises à jour disponibles</string>
     <string name="updates_total_size">Taille totale : %s</string>
-    <string name="details_notice_mirror_js">Ce miroir ne sert les fichiers que via ses scripts web. Activez le miroir APKPure ou connectez-vous avec le compte Google de l\'appareil pour un téléchargement direct.</string>
     <string name="updates_discovery_line">Mise à jour sur Google Play : %1$s</string>
     <string name="updates_discovery_no_date">Mise à jour sur Google Play — version non confirmée</string>
     <string name="updates_discovery_state">Non confirmé — appuyez sur Vérifier</string>
@@ -165,7 +163,6 @@
     <string name="updates_notice_confirmation">Android attend votre confirmation pour %s — consultez la notification ou appuyez à nouveau sur Mettre à jour.</string>
     <string name="updates_notice_failed">Échec de la mise à jour de %s.</string>
     <string name="updates_notice_cancelled">Installation de %s annulée.</string>
-    <string name="updates_notice_mirror">Terminez %s sur sa page — le navigateur miroir intégré terminera le téléchargement.</string>
     <string name="updates_summary_title">Résumé des mises à jour</string>
     <string name="updates_summary_processed">Traitées : %d</string>
     <string name="updates_summary_installed">Installées : %d</string>
@@ -233,7 +230,6 @@
     <string name="account_anonymous_engine_sub">Recommandé · sans compte · fonctionne toujours</string>
     <string name="account_anonymous_note">Aucun compte Google nécessaire — recherchez, explorez et téléchargez immédiatement.</string>
     <string name="account_tier_web_catalog_desc">Pages publiques de Google Play — recherche, fiches et captures d\'écran pour chaque application.</string>
-    <string name="account_tier_mirror_desc">Historique de versions et téléchargement de secours, en anonyme.</string>
     <string name="account_tier_fdroid_desc">Dépôts open source natifs, toujours disponibles.</string>
     <string name="account_toggle_email_form">Se connecter par e-mail et mot de passe d\'application</string>
     <string name="account_device_login_hint">Sans mot de passe : utilise le compte Google déjà présent sur ce téléphone — sans mot de passe, sans 2FA, sans serveur. Android peut demander une autorisation unique.</string>
@@ -248,7 +244,7 @@
     <string name="account_sign_out">Se déconnecter</string>
     <string name="account_fdroid_only">Mode anonyme</string>
     <string name="account_fdroid_only_sub">Le moteur Nova Anonymous est actif</string>
-    <string name="account_fdroid_only_desc">Vous utilisez Nova Store sans compte Google : le catalogue web, le miroir communautaire et les dépôts F-Droid couvrent la recherche, les fiches et les téléchargements. Connectez-vous ci-dessous uniquement si vous voulez votre propre bibliothèque Play.</string>
+    <string name="account_fdroid_only_desc">Vous utilisez Nova Store sans compte Google : le catalogue web et les dépôts F-Droid couvrent la recherche, les fiches et les téléchargements. Connectez-vous ci-dessous uniquement si vous voulez votre propre bibliothèque Play.</string>
     <string name="account_reset">Réinitialiser la connexion</string>
     <string name="account_error_hint">Astuce : avec la validation en deux étapes, Google n\'accepte qu\'un mot de passe d\'application de 16 caractères. Créez-le sur myaccount.google.com/apppasswords — ou utilisez le compte de l\'appareil, sans mot de passe.</string>
 
@@ -266,13 +262,9 @@
     <string name="settings_play_updates_desc">Résoudre aussi les mises à jour via votre session Play</string>
     <string name="settings_sources">Sources</string>
     <string name="sources_play_anonymous">Google Play sans compte</string>
-    <string name="sources_play_anonymous_desc">Le vrai Google Play (recherche, versions exactes, APK d\'origine) sans compte, sans services Google ni microG. Les miroirs ci-dessous ne servent que si Play ne livre pas le fichier.</string>
+    <string name="sources_play_anonymous_desc">Le vrai Google Play (recherche, versions exactes, APK d\'origine) sans compte, sans services Google ni microG.</string>
     <string name="sources_web_catalog">Catalogue web Nova</string>
     <string name="sources_web_catalog_desc">Pages publiques de Google Play en anonyme — recherche, fiches et captures d\'écran pour chaque application, sans compte.</string>
-    <string name="sources_mirror">Miroir communautaire (APKPure)</string>
-    <string name="sources_mirror_desc">Métadonnées uniquement : consulte l\'historique des versions en anonyme. Les fichiers ne sont jamais installés depuis les miroirs.</string>
-    <string name="sources_mirror_combo">Second miroir (APKCombo)</string>
-    <string name="sources_mirror_combo_desc">Historique de versions anonyme supplémentaire (métadonnées uniquement).</string>
     <string name="sources_github">Versions GitHub</string>
     <string name="sources_github_desc">Applications open source publiées en APK</string>
     <string name="sources_gitlab">Versions GitLab</string>
@@ -418,7 +410,7 @@
     <string name="settings_about_version_label">Version</string>
     <string name="settings_about_version_value">%1$s (build %2$d)</string>
     <string name="settings_about_sources">Sources</string>
-    <string name="settings_about_sources_value">Google Play (sans compte), dépôts F-Droid, GitHub, GitLab, miroirs</string>
+    <string name="settings_about_sources_value">Google Play (sans compte), dépôts F-Droid, GitHub, GitLab</string>
     <string name="settings_about_device">Cet appareil</string>
     <string name="settings_about_privacy">Confidentialité</string>
     <string name="settings_about_license">Licence</string>
@@ -449,7 +441,6 @@
     <string name="scan_stage_repositories">Mise à jour des dépôts…</string>
     <string name="scan_stage_installed">Lecture des apps installées…</string>
     <string name="scan_stage_play">Vérification de Google Play…</string>
-    <string name="scan_stage_mirrors">Vérification des miroirs…</string>
     <string name="settings_search_pinned">Épingler la barre de recherche</string>
     <string name="settings_search_pinned_desc">Activé : toujours visible sur l\'accueil. Désactivé : glisse sous l\'en-tête quand vous défilez vers le bas et revient dès que vous remontez.</string>
 </resources>

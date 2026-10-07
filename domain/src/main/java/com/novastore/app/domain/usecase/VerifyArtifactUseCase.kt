@@ -82,12 +82,12 @@ class VerifyArtifactUseCase @Inject constructor(
     }
 
     /**
-     * XAPK containers (APKPure bundles) are unpacked first, then the SAME
+     * XAPK containers are unpacked first, then the SAME
      * guarantees apply as for plain APKs: package identity and signature are
      * verified on the BASE apk, and the whole set (base + device-matched
      * config splits) installs as one PackageInstaller session.
      *
-     * The versionCode check is deliberately lenient on one point: mirror
+     * The versionCode check is deliberately lenient on one point: web
      * metadata codes do not always equal the base apk's real code, so either
      * the manifest's or the base's code must match the candidate. The plan
      * itself always carries the REAL code read from the base — the

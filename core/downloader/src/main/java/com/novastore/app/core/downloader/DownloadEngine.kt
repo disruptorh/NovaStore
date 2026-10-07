@@ -367,7 +367,7 @@ class DownloadEngine @Inject constructor(
                     }
                     val body = response.body ?: throw IOException("Empty response body")
 
-                    // HTTP 200 ≠ APK: mirrors behind anti-bot protection answer
+                    // HTTP 200 ≠ APK: anti-bot protected hosts answer
                     // with a Cloudflare interstitial / HTML wrapper served with
                     // a SUCCESS code. Saving that as "app.apk" only moves the
                     // failure into the installer; refuse document content

@@ -8,7 +8,6 @@ import com.novastore.app.core.database.dao.UpdateHistoryDao
 import com.novastore.app.core.database.entity.AppVersionEntity
 import com.novastore.app.core.database.entity.UpdateEntity
 import com.novastore.app.core.datastore.SettingsDataStore
-import com.novastore.app.core.model.SyntheticVersionCodes
 import com.novastore.app.core.model.UpdateCandidate
 import com.novastore.app.core.model.UpdateConfidence
 import com.novastore.app.core.model.UpdateHistoryRecord
@@ -128,13 +127,9 @@ class UpdatesRepositoryImpl @Inject constructor(
         // DISCOVERY rows are exempt: they are date signals whose available
         // versionCode IS the installed one by design.
         //
-        // Additional guards (v7.0.2): APKCombo rows carry SYNTHETIC
-        // versionCodes (~900M minus rank) that pass the code rule
-        // trivially — that is exactly why v7.0.1's fix alone did not clear
-        // the junk rows. For synthetic codes the version NAME must also be
-        // strictly newer (the same rule the scan applies at creation), and
-        // an EQUAL normalized name never counts as an update for anyone —
-        // a same-name release is the same release.
+        // Additional guard: an EQUAL normalized version name never counts as
+        // an update — a same-name release is the same release, whatever the
+        // code says.
         val rowConfidence = runCatching { UpdateConfidence.valueOf(confidence) }
             .getOrDefault(UpdateConfidence.EXACT)
         // DISCOVERY rows (a Play page date signal whose available version IS
@@ -148,16 +143,6 @@ class UpdatesRepositoryImpl @Inject constructor(
             if (availableName != null && installedName != null) {
                 // Same release name = same release, whatever the codes say.
                 if (VersionComparator.compareVersionNames(installedName, availableName) == 0) return null
-                // Synthetic mirror codes: require a strictly NEWER name —
-                // the code alone proves nothing for them.
-                if (SyntheticVersionCodes.isSynthetic(version.versionCode) &&
-                    VersionComparator.compareVersionNames(installedName, availableName) >= 0
-                ) {
-                    return null
-                }
-            } else if (SyntheticVersionCodes.isSynthetic(version.versionCode)) {
-                // No usable names: a synthetic code alone is never an update.
-                return null
             }
         }
         return toCandidate(installed, version)

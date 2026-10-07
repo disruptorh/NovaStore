@@ -370,7 +370,6 @@ private fun noticeText(notice: UpdateNotice): String = when (notice) {
     is UpdateNotice.NeedsConfirmation -> stringResource(UiR.string.updates_notice_confirmation, notice.appName)
     is UpdateNotice.Failed -> stringResource(UiR.string.updates_notice_failed, notice.appName)
     is UpdateNotice.Cancelled -> stringResource(UiR.string.updates_notice_cancelled, notice.appName)
-    is UpdateNotice.MirrorRequired -> stringResource(UiR.string.updates_notice_mirror, notice.appName)
     is UpdateNotice.FailedReason -> "${notice.appName}: ${notice.reason}"
     is UpdateNotice.ForeignSignature -> stringResource(UiR.string.updates_notice_modified, notice.appName)
 }
@@ -727,8 +726,6 @@ private fun UpdateButton(
 @Composable
 private fun sourceLabel(source: String, names: Map<String, String>): String = when (source.lowercase()) {
     "play" -> "Google Play"
-    "apkpure" -> "APKPure"
-    "apkcombo" -> "APKCombo"
     "github" -> "GitHub"
     "gitlab" -> "GitLab"
     else -> names[source] ?: source.replaceFirstChar { it.uppercase() }

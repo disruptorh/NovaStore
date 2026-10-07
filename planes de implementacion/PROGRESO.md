@@ -22,6 +22,9 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - P03-T08 (iconos instalados ya no se persisten: scan/upsert escriben `icon = null`; UI lee de PackageManager vía `InstalledAppIcon` con LruCache off-main)
 - P03-T09 (auditoría de hilos OK: 0 `runBlocking` en features, `fetchIndex`/`parseIndex` en IO, `replaceSource`/`ensureBuiltIns` Room suspend, bloqueo de features en `Dispatchers.IO`)
 - P03-T10 (baseline profile con path de cold start: `app/src/main/baseline-prof.txt` con MainActivity/NovaStoreApp/NovaStoreRoot; APK sigue empaquetando `assets/dexopt/baseline.prof`+`.profm`)
+- P05-T04 (keys `apkpure_mirror_enabled`/`apkcombo_mirror_enabled` + flows/setters fuera de `SettingsDataStore`; toggles fuera de `SettingsScreen`/`SettingsViewModel`; valores previos inertes, sin migración estructural)
+- P05-T05 (`SOURCE_APKPURE`/`SOURCE_APKCOMBO`/`isInstallSourceAllowed`/`SyntheticVersionCodes`/`Stage.MIRRORS`/`MirrorRequired`/`mergeMirrorVersions`/`mirrorVersionsFor` eliminados; SourceBadge/AppCards/AppDetails/Updates sin ramas mirror; ScanProgress* sin MIRRORS; strings+locales y comentarios limpiados; se mantiene `StoreLinks` parse en `core:model`)
+- P05-T08 (`SOURCE_PLAY_WEB = "play-web"` distinto de `SOURCE_PLAY`; `DownloadUpdateUseCase.prepare()` sube candidates `play-web` → Play; download() guarda `NovaError.Metadata` para `play-web`)
 
 ## Bloqueado
 
@@ -83,11 +86,11 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - [x] P05-T01 Borrar `ApkPureClient` y `ApkComboClient`
 - [x] P05-T02 Quitar `mirrorVersionsFor` y `mergeMirrorVersions`
 - [x] P05-T03 Reescribir `CheckForUpdatesUseCase` sin etapa MIRRORS
-- [ ] P05-T04 Quitar keys/toggles APKPure/APKCombo + migración DataStore
-- [ ] P05-T05 Quitar constantes/UI/tests de fuentes mirror (salvo parseo de links externos si se mantiene)
+- [x] P05-T04 Quitar keys/toggles APKPure/APKCombo + migración DataStore
+- [x] P05-T05 Quitar constantes/UI/tests de fuentes mirror (salvo parseo de links externos si se mantiene)
 - [ ] P05-T06 Scan solo contra providers enabled + Play si toggle Play activo
 - [ ] P05-T07 Unificar política de dedup (preferida → prioridad → versionCode)
-- [ ] P05-T08 Separar `SOURCE_PLAY_WEB` de `SOURCE_PLAY`
+- [x] P05-T08 Separar `SOURCE_PLAY_WEB` de `SOURCE_PLAY`
 - [ ] P05-T09 WorkManager: constraints, intervalo, `BootReceiver` re-arma scan
 - [ ] P05-T10 Notificaciones INSTALLATION y ERRORS
 - [ ] P05-T11 Tests `UpdateEngine` / `SourceResolutionPolicy` / scan sin mirrors

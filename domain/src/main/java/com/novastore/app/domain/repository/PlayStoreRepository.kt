@@ -34,7 +34,7 @@ interface PlayStoreRepository {
     /**
      * Resolves the download files (base + splits) for one package/version via
      * the Play purchase/delivery endpoints (account or anonymous session). The
-     * URLs are single-use. The community mirror is never used as a fallback.
+     * URLs are single-use.
      *
      * @throws com.novastore.app.core.model.PlayStoreException when no session is
      * available, the app is paid/unavailable, or Play refuses the delivery.
@@ -63,11 +63,4 @@ interface PlayStoreRepository {
      * are simply absent.
      */
     suspend fun summaries(packageNames: Collection<String>): Map<String, RemoteApp>
-
-    /**
-     * Nova anonymous tier: latest versions from the community mirror, bulk.
-     * Empty when the mirror is disabled in settings or unreachable. Works
-     * without any account or server.
-     */
-    suspend fun mirrorVersionsFor(packageNames: Collection<String>): Map<String, List<AppVersion>>
 }

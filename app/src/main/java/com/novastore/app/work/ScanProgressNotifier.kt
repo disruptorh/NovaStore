@@ -54,7 +54,6 @@ class ScanProgressNotifier @Inject constructor(
                 ScanProgress.Stage.REPOSITORIES -> R.string.scan_progress_repositories
                 ScanProgress.Stage.INSTALLED_APPS -> R.string.scan_progress_installed
                 ScanProgress.Stage.GOOGLE_PLAY -> R.string.scan_progress_play
-                ScanProgress.Stage.MIRRORS -> R.string.scan_progress_mirrors
             },
         )
         val text = buildString {

@@ -64,8 +64,8 @@ class NovaStoreApp : Application(), Configuration.Provider, ImageLoaderFactory {
      * the Application's [ImageLoaderFactory] implementation. Tuning: memory
      * cache at 20% of max memory, a 256 MB disk cache under
      * cacheDir/nova_image_cache, Cache-Control headers ignored (icon CDNs
-     * and mirrors send hostile no-cache headers that would starve the disk
-     * cache) and a short 120 ms global crossfade. Previously no shared
+     * and app stores send hostile no-cache headers that would starve the
+     * disk cache) and a short 120 ms global crossfade. Previously no shared
      * loader config existed, so home-grid cells decoded without any cache
      * sizing — a major source of home-screen jank.
      */

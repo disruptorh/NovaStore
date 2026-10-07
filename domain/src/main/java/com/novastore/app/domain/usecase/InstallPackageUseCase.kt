@@ -6,7 +6,6 @@ import com.novastore.app.core.model.InstallationMode
 import com.novastore.app.core.model.NovaError
 import com.novastore.app.core.model.PackageInstallationPlan
 import com.novastore.app.core.model.UpdateState
-import com.novastore.app.core.model.isInstallSourceAllowed
 import com.novastore.app.core.installer.InstallationStrategyResolver
 import com.novastore.app.domain.repository.InstalledAppsRepository
 import com.novastore.app.domain.repository.PackageTrustRepository
@@ -31,12 +30,6 @@ class InstallPackageUseCase @Inject constructor(
     private val packageTrustRepository: PackageTrustRepository,
 ) {
     suspend operator fun invoke(plan: PackageInstallationPlan, mode: InstallationMode): AppResult<InstallResult> {
-        // Hard boundary: an artifact delivered by a metadata-only mirror is
-        // never installed, regardless of how it reached this plan.
-        if (!isInstallSourceAllowed(plan.source)) {
-            updatesRepository.transition(plan.packageName, UpdateState.FAILED)
-            return AppResult.failure(NovaError.MirrorMetadataOnly(packageName = plan.packageName))
-        }
         updatesRepository.transition(plan.packageName, UpdateState.INSTALLING)
 
         try {

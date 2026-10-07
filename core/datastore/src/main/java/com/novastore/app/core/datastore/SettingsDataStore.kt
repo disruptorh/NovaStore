@@ -96,10 +96,6 @@ class SettingsDataStore @Inject constructor(
         // --- Nova anonymous access tiers (own engine, no servers) ---
         /** Nova Web Catalog: public play.google.com pages — search/details/screenshots without an account. */
         val PLAY_WEB_CATALOG_ENABLED = booleanPreferencesKey("play_web_catalog_enabled")
-        /** Community mirror (APKPure): anonymous versions + downloads fallback. */
-        val APKPURE_MIRROR_ENABLED = booleanPreferencesKey("apkpure_mirror_enabled")
-        /** Second mirror stage (APKCombo): version history + download attempts. */
-        val APKCOMBO_MIRROR_ENABLED = booleanPreferencesKey("apkcombo_mirror_enabled")
         /** GitHub releases catalog in search and details. */
         val GITHUB_CATALOG_ENABLED = booleanPreferencesKey("github_catalog_enabled")
         /** GitLab releases catalog in search and details. */
@@ -294,35 +290,6 @@ class SettingsDataStore @Inject constructor(
         playWebCatalogEnabled.first()
     }
 
-    /** Community mirror (APKPure) — anonymous versions + download fallback. */
-    val apkPureMirrorEnabled: Flow<Boolean> = context.settingsDataStore.data.map { prefs ->
-        prefs[Keys.APKPURE_MIRROR_ENABLED] ?: true
-    }
-
-    suspend fun setApkPureMirrorEnabled(enabled: Boolean) {
-        context.settingsDataStore.edit { prefs ->
-            prefs[Keys.APKPURE_MIRROR_ENABLED] = enabled
-        }
-    }
-
-    suspend fun apkPureMirrorEnabledSnapshot(): Boolean = withContext(dispatcherProvider.io) {
-        apkPureMirrorEnabled.first()
-    }
-
-    /** Community mirror stage two (APKCombo) — anonymous version history + downloads. */
-    val apkComboMirrorEnabled: Flow<Boolean> = context.settingsDataStore.data.map { prefs ->
-        prefs[Keys.APKCOMBO_MIRROR_ENABLED] ?: true
-    }
-
-    suspend fun setApkComboMirrorEnabled(enabled: Boolean) {
-        context.settingsDataStore.edit { prefs ->
-            prefs[Keys.APKCOMBO_MIRROR_ENABLED] = enabled
-        }
-    }
-
-    suspend fun apkComboMirrorEnabledSnapshot(): Boolean = withContext(dispatcherProvider.io) {
-        apkComboMirrorEnabled.first()
-    }
 
     /** GitHub releases catalog — searchable apps installable from GitHub Releases. */
     val githubCatalogEnabled: Flow<Boolean> = context.settingsDataStore.data.map { prefs ->

@@ -23,8 +23,6 @@ import com.novastore.app.core.model.PlayDownloadFile
 import com.novastore.app.core.model.PlayStoreException
 import com.novastore.app.core.model.RemoteApp
 import com.novastore.app.core.model.RemoteAppDetails
-import com.novastore.app.core.model.SOURCE_APKCOMBO
-import com.novastore.app.core.model.SOURCE_APKPURE
 import com.novastore.app.core.model.SOURCE_PLAY
 import com.novastore.app.data.playauth.PlayAuthSession
 import com.novastore.app.data.playauth.PlayDeviceProperties
@@ -62,9 +60,6 @@ fun interface PlaySessionListener {
  *     protocol and original Play files with no account on the device and no
  *     Google services required; kept in memory only and re-minted
  *     automatically when Play rejects it.
- *
- * The community mirrors (APKPure/APKCombo) are queried for CATALOGUE data
- * only ([mirrorVersionsFor]); they never deliver a file.
  */
 @Singleton
 class PlayStoreRepositoryImpl @Inject constructor(
@@ -328,9 +323,8 @@ class PlayStoreRepositoryImpl @Inject constructor(
     override suspend fun purchaseDownloadFiles(packageName: String, versionCode: Long): List<PlayDownloadFile> =
         withContext(dispatcherProvider.io) {
             // Delivery must come from Google Play itself (account or anonymous
-            // session). It never falls through to the community mirrors: those
-            // are metadata-only, so a Play refusal is reported instead of being
-            // masked by a mirror artifact.
+            // session). A Play refusal is reported instead of being
+            // masked by another source.
             val playFailure: Throwable = try {
                 val files = withAuth { auth ->
                     PurchaseHelper.with(auth).purchase(packageName, versionCode.toInt(), OFFER_TYPE)
@@ -529,25 +523,6 @@ class PlayStoreRepositoryImpl @Inject constructor(
                 anonymousAuthFailedAt = 0
             }
         }.getOrNull()
-    }
-
-    // ------------------------------------------------------------------
-    // Nova anonymous tier (community mirror catalogue — metadata only)
-    // ------------------------------------------------------------------
-
-    /**
-     * Latest versions from the community mirror, bulk, for the catalogue and
-     * update scan. Metadata only: mirror artifacts are never downloaded or
-     * installed (isInstallSourceAllowed).
-     */
-    override suspend fun mirrorVersionsFor(packageNames: Collection<String>): Map<String, List<AppVersion>> {
-        // Each mirror is switched on/off on its own: disabling APKPure no
-        // longer silently disables APKCombo as well.
-        val pureOn = settingsDataStore.apkPureMirrorEnabledSnapshot()
-        val comboOn = settingsDataStore.apkComboMirrorEnabledSnapshot()
-        if (!pureOn && !comboOn) return emptyMap()
-        // Source racing: both mirrors are queried concurrently; APKPure wins
-        return emptyMap<String, List<AppVersion>>()
     }
 
     // ------------------------------------------------------------------

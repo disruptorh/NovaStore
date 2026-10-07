@@ -149,7 +149,7 @@ class RepositoriesRepositoryImpl @Inject constructor(
             return AppResult.failure(NovaError.Repository(userMessage = "All repositories are disabled. Enable at least one in Settings."))
         }
         // Index downloads run in parallel (bounded) — the old one-by-one loop
-        // made every scan wait for the slowest mirror of every repository.
+        // made every scan wait for the slowest repository of the set.
         val finished = AtomicInteger(0)
         val results = scanProgress.track(ScanProgress(ScanProgress.Stage.REPOSITORIES, 0, enabled.size)) {
             coroutineScope {

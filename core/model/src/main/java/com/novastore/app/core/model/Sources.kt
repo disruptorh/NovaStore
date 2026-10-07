@@ -17,21 +17,9 @@ const val PLAY_INSTALLER_PACKAGE = "com.android.vending"
 /**
  * Nova Web Catalog — public play.google.com store pages read without any
  * account or server. Provides search, details and screenshots anonymously.
+ * Metadata only: it never delivers an APK.
  */
-const val SOURCE_PLAY_WEB = "play"
-
-/**
- * Nova community mirror — APKPure, used as an account-less fallback for
- * versions and downloads when no Google Play session is signed in.
- */
-const val SOURCE_APKPURE = "apkpure"
-
-/**
- * Nova community mirror — APKCombo (same catalog family, different domain;
- * serves a different edge network and survives some blocks). Second stage
- * of the account-less mirror chain.
- */
-const val SOURCE_APKCOMBO = "apkcombo"
+const val SOURCE_PLAY_WEB = "play-web"
 
 /**
  * Nova GitHub catalog — release-tracked repositories whose APK assets are
@@ -44,15 +32,3 @@ const val SOURCE_GITHUB = "github"
  * installed straight from GitLab Releases.
  */
 const val SOURCE_GITLAB = "gitlab"
-
-/**
- * Whether an artifact from [source] may be installed. The community mirrors
- * (APKPure, APKCombo) are metadata-only: their catalogs stay browsable for
- * version history, but their files are never downloaded or installed.
- *
- * This is a deny-list, not an allow-list, so every built-in F-Droid-style
- * repository (including IzzyOnDroid) and any repository the user adds remain
- * installable.
- */
-fun isInstallSourceAllowed(source: String): Boolean =
-    source != SOURCE_APKPURE && source != SOURCE_APKCOMBO

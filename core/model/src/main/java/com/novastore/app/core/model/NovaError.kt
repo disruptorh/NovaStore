@@ -38,18 +38,6 @@ sealed class NovaError(
         "The downloaded file has no verifiable signature. Installation was blocked.",
     )
 
-    /**
-     * The version comes from a metadata-only community mirror. Mirrors are
-     * browsable for their version history, but installation is restricted to
-     * Google Play and F-Droid-style repositories.
-     */
-    data class MirrorMetadataOnly(
-        override val userMessage: String =
-            "This version comes from a metadata-only mirror and cannot be installed. " +
-                "Install it from Google Play or an F-Droid repository.",
-        val packageName: String? = null,
-    ) : NovaError(userMessage)
-
     data object IncompatibleDevice : NovaError(
         "This application is not compatible with your device.",
     )
@@ -75,16 +63,6 @@ sealed class NovaError(
         override val userMessage: String = "Installation failed.",
         val detail: String? = null,
     ) : NovaError(userMessage)
-
-    /**
-     * The APKCombo mirror hides the final file link behind in-page
-     * JavaScript. The UI reacts by opening the built-in mirror browser
-     * (which intercepts the download automatically), not with a raw error.
-     */
-    data object MirrorJsGated : NovaError(
-        "The mirror produces this download link in-page (JavaScript). " +
-            "The built-in mirror browser will finish it automatically.",
-    )
 
     data object PermissionDenied : NovaError(
         "A required permission is missing. Enable \"Install unknown apps\" for Nova Store in system settings.",

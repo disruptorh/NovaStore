@@ -10,8 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.novastore.app.core.model.SOURCE_APKCOMBO
-import com.novastore.app.core.model.SOURCE_APKPURE
 import com.novastore.app.core.model.SOURCE_FDROID
 import com.novastore.app.core.model.SOURCE_GITHUB
 import com.novastore.app.core.model.SOURCE_GITLAB
@@ -49,14 +47,9 @@ fun SourceBadge(
             MaterialTheme.colorScheme.tertiary.copy(alpha = 0.12f),
             MaterialTheme.colorScheme.tertiary,
         )
-        SOURCE_APKPURE -> Triple(
-            "Mirror",
-            MaterialTheme.colorScheme.secondary.copy(alpha = 0.16f),
-            MaterialTheme.colorScheme.secondary,
-        )
-        SOURCE_APKCOMBO -> Triple(
-            "Mirror",
-            MaterialTheme.colorScheme.secondary.copy(alpha = 0.16f),
+        "play-web" -> Triple(
+            "Web",
+            MaterialTheme.colorScheme.secondary.copy(alpha = 0.14f),
             MaterialTheme.colorScheme.secondary,
         )
         else -> Triple(

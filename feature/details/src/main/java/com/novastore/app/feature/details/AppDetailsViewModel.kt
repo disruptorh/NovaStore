@@ -10,7 +10,6 @@ import com.novastore.app.core.model.InstallResult
 import com.novastore.app.core.model.InstallationMode
 import com.novastore.app.core.model.InstalledApp
 import com.novastore.app.core.model.RemoteAppDetails
-import com.novastore.app.core.model.SOURCE_APKPURE
 import com.novastore.app.core.model.UpdateCandidate
 import com.novastore.app.core.model.UpdateState
 import com.novastore.app.core.ui.R as UiR
@@ -74,7 +73,7 @@ data class AppDetailsUiState(
     val unavailableReason: UnavailableReason? = null,
     val busy: Boolean = false,
     val error: String? = null,
-    /** Localized error banner, a core/ui string resource (mirror-browser cases). */
+    /** Localized error banner, a core/ui string resource (browser-flow cases). */
     val errorRes: Int? = null,
     val notice: DetailsNotice? = null,
     /** Latest user reviews from the anonymous Play feed; empty when none. */
@@ -201,8 +200,6 @@ class AppDetailsViewModel @Inject constructor(
         val version = current.bestVersion ?: return
         val appName = current.details?.app?.name ?: version.packageName
         viewModelScope.launch {
-            // The mirror-takeover notice stays visible through the busy phase;
-            // it is replaced by the final install result below.
             state.update { ui ->
                 ui.copy(
                     busy = true,
@@ -224,7 +221,7 @@ class AppDetailsViewModel @Inject constructor(
                 isSystemApp = false,
             )
             val requested = UpdateCandidate(installed = installed, available = version, source = version.source)
-            // Mirror/web versions are delivered by Google Play when it has the build.
+            // Web-listing versions are delivered by Google Play when it has the build.
             val candidate = downloadUpdate.prepare(requested)
             updatesRepository.saveCandidate(candidate, UpdateState.DISCOVERED)
 
@@ -290,12 +287,11 @@ class AppDetailsViewModel @Inject constructor(
         val paidOnly = best == null && installable.any { it.isPaid }
 
         // Same version NAME = same release, whatever the codes say (device
-        // variants, mirror codes) — never an "11.0.3 → 11.0.3" Update button.
+        // variants) — never an "11.0.3 → 11.0.3" Update button.
         val sameVersion = best != null && installed != null &&
             normalize(best.versionName) != null &&
             normalize(best.versionName) == normalize(installed.versionName)
-        val sameMirrorVersion = sameVersion
-        val effectiveBest = if (sameMirrorVersion) null else best
+        val effectiveBest = if (sameVersion) null else best
 
         val (action, reason) = when {
             paidOnly -> DetailsAction.UNAVAILABLE to UnavailableReason.PAID
@@ -305,7 +301,7 @@ class AppDetailsViewModel @Inject constructor(
                 DetailsAction.UNAVAILABLE to UnavailableReason.INCOMPATIBLE
             best == null ->
                 DetailsAction.UNAVAILABLE to UnavailableReason.SIGNATURE
-            sameMirrorVersion -> DetailsAction.UP_TO_DATE to null
+            sameVersion -> DetailsAction.UP_TO_DATE to null
             installed == null -> DetailsAction.INSTALL to null
             effectiveBest != null && isNewerThanInstalled(effectiveBest, installed) ->
                 DetailsAction.UPDATE to null
@@ -318,7 +314,7 @@ class AppDetailsViewModel @Inject constructor(
      * Version choice by signing key: Android only accepts an update signed
      * like the installed app. Repository builds with a matching signer win;
      * otherwise Google Play's own build (the developer's key); then any other
-     * source. For fresh installs: repository → Play → mirrors/releases.
+     * source. For fresh installs: repository → Play → releases.
      */
     private fun pickBest(installable: List<AppVersion>, installed: InstalledApp?): AppVersion? {
         val signer = installed?.signingCertDigest
@@ -333,19 +329,8 @@ class AppDetailsViewModel @Inject constructor(
         return groups.firstOrNull { it.isNotEmpty() }?.maxByOrNull { it.versionCode }
     }
 
-    /** Mirror codes are not Android versionCodes: their NAME must be newer. */
-    private fun isNewerThanInstalled(version: AppVersion, installed: InstalledApp): Boolean {
-        if (isMirrorSource(version.source)) {
-            val available = normalize(version.versionName) ?: return false
-            val current = normalize(installed.versionName) ?: return false
-            return com.novastore.app.core.model.VersionComparator.compareVersionNames(current, available) < 0
-        }
-        return version.versionCode > installed.versionCode
-    }
-
-    private fun isMirrorSource(source: String): Boolean =
-        source == com.novastore.app.core.model.SOURCE_APKPURE ||
-            source == com.novastore.app.core.model.SOURCE_APKCOMBO
+    private fun isNewerThanInstalled(version: AppVersion, installed: InstalledApp): Boolean =
+        version.versionCode > installed.versionCode
 
     private fun normalize(name: String?): String? =
         name?.trim()?.removePrefix("v")?.removePrefix("V")?.lowercase()?.takeIf { it.isNotEmpty() }

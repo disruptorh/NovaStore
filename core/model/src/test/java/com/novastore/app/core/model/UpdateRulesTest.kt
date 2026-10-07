@@ -50,12 +50,10 @@ class UpdateRulesTest {
     }
 
     @Test
-    fun mirrorRowsDecideByName() {
-        // Synthetic APKCombo code (~900M) must not fake an update.
-        assertFalse(UpdateRules.isRealUpdate(installed("11.11.3", 34194), version("11.11.3", 899_999_999, SOURCE_APKCOMBO)))
-        assertFalse(UpdateRules.isRealUpdate(installed("5.0", 50), version("4.9", 899_999_998, SOURCE_APKPURE)))
-        assertTrue(UpdateRules.isRealUpdate(installed("5.0", 50), version("5.1", 899_999_999, SOURCE_APKCOMBO)))
-        assertFalse(UpdateRules.isRealUpdate(installed("5.0", 50), version("v899999999", 899_999_999, SOURCE_APKCOMBO)))
+    fun higherCodeWithOlderNameIsAnUpdate() {
+        // Repository rows carry real Android versionCodes: a strictly higher
+        // code always wins even when the display name looks older.
+        assertTrue(UpdateRules.isRealUpdate(installed("5.0", 50), version("10", 100)))
     }
 
     @Test

@@ -13,7 +13,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Unpacks APKPure-style XAPK containers.
+ * Unpacks bundled XAPK containers.
  *
  * An XAPK is a ZIP holding a `manifest.json` plus the actual APK set of the
  * app (base + config splits for ABI/density/locale). Until v7 such bundles
@@ -147,7 +147,7 @@ class XapkExtractor @Inject constructor(
     }
 
     /**
-     * Device-matching selection for `config.*` splits. Mirrors Play's own
+     * Device-matching selection for `config.*` splits. Follows Play.s own
      * bundle resolution: a foreign ABI never ships, densities degrade
      * gracefully, and locale splits keep the device language + English.
      * Unknown split ids are kept — installing an extra signed config APK

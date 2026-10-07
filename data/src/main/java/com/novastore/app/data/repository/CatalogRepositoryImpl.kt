@@ -30,18 +30,14 @@ import kotlinx.coroutines.withContext
 
 /**
  * Read access to the app catalog: F-Droid repositories, the Nova Web Catalog
- * (anonymous public Play pages), the GitHub and GitLab release catalogs, and
- * the community mirror chain for anonymous downloads.
+ * (anonymous public Play pages), and the GitHub/GitLab release catalogs.
  *
  * Access tiers, fully automatic:
  *  - **Signed-in session** — the native Play protocol (search, details,
  *    versions, delivery);
  *  - **Nova Web Catalog** — anonymous play.google.com pages (search, details,
  *    screenshots, ratings, full descriptions, user reviews);
- *  - **GitHub / GitLab** — release-tracked open-source apps;
- *  - **Community mirrors** — APKPure then APKCombo: anonymous version
- *    histories merged into details so every app shows an up-to-date
- *    "available version" list even when nobody is signed in.
+ *  - **GitHub / GitLab** — release-tracked open-source apps.
  */
 @Singleton
 class CatalogRepositoryImpl @Inject constructor(
@@ -293,7 +289,7 @@ class CatalogRepositoryImpl @Inject constructor(
                 )
             }
             val merged = mergeDetails(fdroid, play)
-            mergeMirrorVersions(merged, packageName)
+            return@withContext merged
         }
 
     private suspend fun githubDetails(packageName: String): RemoteAppDetails? {
@@ -319,16 +315,6 @@ class CatalogRepositoryImpl @Inject constructor(
             val tag = language.tag ?: Locale.getDefault().toLanguageTag()
             runCatching { playReviewsClient.reviews(packageName, tag) }.getOrDefault(emptyList())
         }
-
-    /**
-     * Anonymous tier: when nobody signed in, the community mirror chain
-     * (APKPure → APKCombo) fills the "available version" list so every app
-     * can be installed/updated without an account.
-     */
-    private suspend fun mergeMirrorVersions(
-        details: RemoteAppDetails?,
-        packageName: String,
-    ): RemoteAppDetails? = details
 
     /**
      * Merge rules:

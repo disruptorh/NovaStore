@@ -16,7 +16,7 @@ data class ScanProgress(
     /** Name of the repository/source currently being processed, if any. */
     val label: String? = null,
 ) {
-    enum class Stage { REPOSITORIES, INSTALLED_APPS, GOOGLE_PLAY, MIRRORS }
+    enum class Stage { REPOSITORIES, INSTALLED_APPS, GOOGLE_PLAY }
 }
 
 /**

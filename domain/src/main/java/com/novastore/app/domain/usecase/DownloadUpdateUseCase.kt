@@ -6,14 +6,11 @@ import com.novastore.app.core.downloader.api.DownloadRequester
 import com.novastore.app.core.downloader.api.DownloadSplit
 import com.novastore.app.core.model.NovaError
 import com.novastore.app.core.model.PlayStoreException
-import com.novastore.app.core.model.SOURCE_APKCOMBO
-import com.novastore.app.core.model.SOURCE_APKPURE
 import com.novastore.app.core.model.SOURCE_PLAY
 import com.novastore.app.core.model.SOURCE_PLAY_WEB
 import com.novastore.app.core.model.VersionComparator
 import com.novastore.app.core.model.UpdateCandidate
 import com.novastore.app.core.model.UpdateState
-import com.novastore.app.core.model.isInstallSourceAllowed
 import com.novastore.app.domain.repository.PlayStoreRepository
 import com.novastore.app.domain.repository.UpdatesRepository
 import java.io.File
@@ -38,16 +35,16 @@ class DownloadUpdateUseCase @Inject constructor(
 ) {
     /**
      * Upgrades a candidate to the best delivery route BEFORE downloading:
-     * rows that came from a community mirror (or a web listing) are served by
-     * Google Play itself whenever Play (account or anonymous session) knows
-     * the app and offers the same or a newer release for this device —
-     * original files, exact versionCode, correct splits, no page scripts or
-     * captchas in the way. The returned candidate is the one to verify and
-     * install. Unchanged when Play cannot help.
+     * rows that came from a Web Catalog listing are served by Google Play
+     * itself whenever Play (account or anonymous session) knows the app and
+     * offers the same or a newer release for this device — original files,
+     * exact versionCode, correct splits, no hosted pages in the way. The
+     * returned candidate is the one to verify and install. Unchanged when
+     * Play cannot help.
      */
     suspend fun prepare(candidate: UpdateCandidate): UpdateCandidate {
         val version = candidate.available
-        if (version.source == SOURCE_PLAY || !isMirrorOrWeb(version.source)) return candidate
+        if (version.source == SOURCE_PLAY || version.source != SOURCE_PLAY_WEB) return candidate
         val play = runCatching { playStoreRepository.resolvePlayLatest(version.packageName) }.getOrNull()
             ?: return candidate
         val installedCode = candidate.installed.versionCode
@@ -57,7 +54,7 @@ class DownloadUpdateUseCase @Inject constructor(
         if (wanted != null && offered != null &&
             VersionComparator.compareVersionNames(offered, wanted) < 0
         ) {
-            // Play (for this device) is behind the mirror — keep the mirror row.
+            // Play (for this device) is behind the web listing — keep the row.
             return candidate
         }
         val upgraded = candidate.copy(available = play, source = SOURCE_PLAY)
@@ -66,9 +63,6 @@ class DownloadUpdateUseCase @Inject constructor(
         }
         return upgraded
     }
-
-    private fun isMirrorOrWeb(source: String): Boolean =
-        source == SOURCE_APKPURE || source == SOURCE_APKCOMBO || source == SOURCE_PLAY_WEB
 
     suspend operator fun invoke(candidate: UpdateCandidate): AppResult<File> {
         val result = download(candidate)
@@ -83,11 +77,14 @@ class DownloadUpdateUseCase @Inject constructor(
 
     private suspend fun download(candidate: UpdateCandidate): AppResult<File> {
         val version = candidate.available
-        // Metadata-only mirrors must never deliver an artifact. A mirror
-        // candidate normally reaches here only after prepare() failed to
-        // upgrade it to a Google Play delivery; refuse it now.
-        if (!isInstallSourceAllowed(version.source)) {
-            return AppResult.failure(NovaError.MirrorMetadataOnly(packageName = version.packageName))
+        // The Web Catalog is metadata only: it must never deliver an artifact.
+        if (version.source == SOURCE_PLAY_WEB) {
+            return AppResult.failure(
+                NovaError.Metadata(
+                    userMessage = "This version comes from the Web Catalog and cannot be downloaded directly. Install it from Google Play or a repository.",
+                    packageName = version.packageName,
+                ),
+            )
         }
         updatesRepository.transition(version.packageName, UpdateState.QUEUED)
 

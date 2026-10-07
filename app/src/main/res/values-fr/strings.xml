@@ -4,7 +4,6 @@
     <string name="scan_progress_repositories">Chargement des dépôts…</string>
     <string name="scan_progress_installed">Lecture des applications installées…</string>
     <string name="scan_progress_play">Vérification de Google Play…</string>
-    <string name="scan_progress_mirrors">Vérification des miroirs…</string>
     <string name="notification_updates_more">%1$s et %2$d de plus</string>
     <string name="notification_updates_summary_more">+%1$d de plus</string>
     <string name="notification_update_all">Tout mettre à jour</string>

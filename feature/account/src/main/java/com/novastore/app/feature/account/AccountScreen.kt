@@ -269,7 +269,7 @@ private fun NovaLogoHeader() {
 
 /**
  * The primary card: Nova's own anonymous access engine. Three tiers —
- * Nova Web Catalog, community mirror, F-Droid — no account, never fails.
+ * Nova Web Catalog, repositories, F-Droid — no account, never fails.
  */
 @Composable
 private fun NovaAnonymousEngineCard(
@@ -319,11 +319,6 @@ private fun NovaAnonymousEngineCard(
             icon = Icons.Filled.Language,
             title = stringResource(UiR.string.sources_web_catalog),
             description = stringResource(UiR.string.account_tier_web_catalog_desc),
-        )
-        EngineTierRow(
-            icon = Icons.Filled.CloudDownload,
-            title = stringResource(UiR.string.sources_mirror),
-            description = stringResource(UiR.string.account_tier_mirror_desc),
         )
         EngineTierRow(
             icon = Icons.Filled.Android,
@@ -638,7 +633,6 @@ private fun AnonymousEngineActiveCard(
         )
 
         ActiveTierRow(stringResource(UiR.string.sources_web_catalog))
-        ActiveTierRow(stringResource(UiR.string.sources_mirror))
         ActiveTierRow(stringResource(UiR.string.sources_fdroid_repos))
 
         OutlinedButton(

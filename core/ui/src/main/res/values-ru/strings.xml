@@ -10,7 +10,6 @@
     <string name="cd_check_updates">Проверить обновления</string>
     <string name="cd_screenshot">Скриншот</string>
     <string name="cd_app_icon">Иконка приложения</string>
-    <string name="cd_mirror_source">Источник зеркала</string>
     <string name="cd_search_layout">Макет результатов</string>
     <string name="cd_search_sort">Сортировка</string>
     <string name="cd_search_columns">Колонки сетки</string>
@@ -150,7 +149,6 @@
     <string name="updates_update_all">Обновить всё</string>
     <string name="updates_count_many">Доступно обновлений: %d</string>
     <string name="updates_total_size">Общий размер: %s</string>
-    <string name="details_notice_mirror_js">Это зеркало отдаёт файлы только через скрипты сайта. Включите зеркало APKPure или войдите через Google-аккаунт устройства для прямой загрузки.</string>
     <string name="updates_discovery_line">Обновлено в Google Play: %1$s</string>
     <string name="updates_discovery_no_date">Обновлено в Google Play — версия не подтверждена</string>
     <string name="updates_discovery_state">Не подтверждено — нажмите «Проверить»</string>
@@ -165,7 +163,6 @@
     <string name="updates_notice_confirmation">Android ждёт подтверждения для %s — проверьте уведомление или нажмите «Обновить» ещё раз.</string>
     <string name="updates_notice_failed">Не удалось обновить %s.</string>
     <string name="updates_notice_cancelled">Установка %s отменена.</string>
-    <string name="updates_notice_mirror">Завершите обновление %s на странице приложения — встроенный браузер зеркала закончит загрузку.</string>
     <string name="updates_summary_title">Итог обновления</string>
     <string name="updates_summary_processed">Обработано: %d</string>
     <string name="updates_summary_installed">Установлено: %d</string>
@@ -233,7 +230,6 @@
     <string name="account_anonymous_engine_sub">Рекомендуется · без аккаунта · работает всегда</string>
     <string name="account_anonymous_note">Аккаунт Google не нужен — поиск, обзор и загрузка доступны сразу.</string>
     <string name="account_tier_web_catalog_desc">Публичные страницы Google Play — поиск, описания и скриншоты любого приложения.</string>
-    <string name="account_tier_mirror_desc">Анонимная история версий и резервная загрузка.</string>
     <string name="account_tier_fdroid_desc">Родные open-source репозитории, всегда доступны.</string>
     <string name="account_toggle_email_form">Войти по почте и паролю приложения</string>
     <string name="account_device_login_hint">Без пароля: использует Google-аккаунт, уже добавленный на этом телефоне — без пароля, без 2FA и без серверов. Android может один раз запросить разрешение.</string>
@@ -248,7 +244,7 @@
     <string name="account_sign_out">Выйти</string>
     <string name="account_fdroid_only">Анонимный режим</string>
     <string name="account_fdroid_only_sub">Движок Nova Anonymous активен</string>
-    <string name="account_fdroid_only_desc">Вы используете Nova Store без аккаунта Google: веб-каталог, зеркало сообщества и репозитории F-Droid закрывают поиск, описания и загрузки. Войдите ниже, только если нужна ваша личная библиотека Play.</string>
+    <string name="account_fdroid_only_desc">Вы используете Nova Store без аккаунта Google: веб-каталог и репозитории F-Droid закрывают поиск, описания и загрузки. Войдите ниже, только если нужна ваша личная библиотека Play.</string>
     <string name="account_reset">Сбросить к выбору входа</string>
     <string name="account_error_hint">Совет: при включённой двухэтапной аутентификации Google принимает только 16-значный пароль приложения. Создайте его на myaccount.google.com/apppasswords — или войдите через аккаунт устройства, где пароль не нужен вовсе.</string>
 
@@ -266,13 +262,9 @@
     <string name="settings_play_updates_desc">Искать обновления также через сессию Play</string>
     <string name="settings_sources">Источники</string>
     <string name="sources_play_anonymous">Google Play без аккаунта</string>
-    <string name="sources_play_anonymous_desc">Настоящий Google Play (поиск, точные версии, оригинальные APK) без аккаунта, без сервисов Google и без microG. Зеркала ниже — только запасной путь, если Play не отдал файл.</string>
+    <string name="sources_play_anonymous_desc">Настоящий Google Play (поиск, точные версии, оригинальные APK) без аккаунта, без сервисов Google и без microG.</string>
     <string name="sources_web_catalog">Веб-каталог Nova</string>
     <string name="sources_web_catalog_desc">Анонимные публичные страницы Google Play — поиск, описания и скриншоты любого приложения, без аккаунта.</string>
-    <string name="sources_mirror">Зеркало сообщества (APKPure)</string>
-    <string name="sources_mirror_desc">Только метаданные: просмотр истории версий анонимно. Файлы из зеркал никогда не устанавливаются.</string>
-    <string name="sources_mirror_combo">Второе зеркало (APKCombo)</string>
-    <string name="sources_mirror_combo_desc">Дополнительная история версий в анонимном режиме (только метаданные).</string>
     <string name="sources_github">Релизы GitHub</string>
     <string name="sources_github_desc">Open-source приложения, публикуемые APK-релизами</string>
     <string name="sources_gitlab">Релизы GitLab</string>
@@ -418,7 +410,7 @@
     <string name="settings_about_version_label">Версия</string>
     <string name="settings_about_version_value">%1$s (сборка %2$d)</string>
     <string name="settings_about_sources">Источники</string>
-    <string name="settings_about_sources_value">Google Play (без аккаунта), F-Droid-репозитории, GitHub, GitLab, зеркала сообщества</string>
+    <string name="settings_about_sources_value">Google Play (без аккаунта), F-Droid-репозитории, GitHub, GitLab</string>
     <string name="settings_about_device">Это устройство</string>
     <string name="settings_about_privacy">Конфиденциальность</string>
     <string name="settings_about_license">Лицензия</string>
@@ -449,7 +441,6 @@
     <string name="scan_stage_repositories">Обновление репозиториев…</string>
     <string name="scan_stage_installed">Чтение установленных приложений…</string>
     <string name="scan_stage_play">Проверка Google Play…</string>
-    <string name="scan_stage_mirrors">Проверка зеркал…</string>
     <string name="settings_search_pinned">Закрепить строку поиска</string>
     <string name="settings_search_pinned_desc">Вкл.: всегда видна на главной. Выкл.: при прокрутке вниз уезжает под шапку и возвращается при первом движении вверх.</string>
 </resources>

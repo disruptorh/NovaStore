@@ -192,9 +192,7 @@ class AccountRepositoryImpl @Inject constructor(
      *  1. **Nova Web Catalog** — the public play.google.com store pages are
      *     read directly from the device: search, details, screenshots and
      *     ratings for every Play app, anonymously.
-     *  2. **Community mirror** — anonymous version histories and APK
-     *     downloads, so updates and installs work without an account.
-     *  3. **F-Droid repositories** — the complete native catalog.
+     *  2. **F-Droid repositories** — the complete native catalog.
      *
      * Optional (advanced): a user-configured session provider URL can mint
      * a genuine Play session; when it fails the engine simply stays on the
@@ -218,7 +216,7 @@ class AccountRepositoryImpl @Inject constructor(
 
         // Account-less engine: the anonymous Play session (minted on demand
         // by the Play repository) gives genuine Play search, versions and
-        // delivery; mirrors and repositories cover the rest.
+        // delivery; repositories cover the rest.
         settingsDataStore.setAnonymousPlayEnabled(true)
         settingsDataStore.update { it.copy(anonymousMode = true) }
         state.value = AccountState.Anonymous

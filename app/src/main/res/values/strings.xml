@@ -18,7 +18,6 @@
     <string name="scan_progress_repositories">Loading repositories…</string>
     <string name="scan_progress_installed">Reading installed apps…</string>
     <string name="scan_progress_play">Checking Google Play…</string>
-    <string name="scan_progress_mirrors">Checking mirrors…</string>
     <string name="notification_updates_more">%1$s and %2$d more</string>
     <string name="notification_updates_summary_more">+%1$d more</string>
     <string name="notification_update_all">Update all</string>

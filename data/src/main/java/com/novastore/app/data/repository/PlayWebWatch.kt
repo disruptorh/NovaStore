@@ -22,13 +22,13 @@ import kotlinx.coroutines.withContext
  *
  * Watches the public play.google.com listings of installed packages and
  * reports the ones whose "Updated on" date changed since the previous scan.
- * No account, no mirror, no third-party server: the listing page is public
- * and served everywhere (unlike the Cloudflare-gated mirrors).
+ * No account, no third-party server: the listing page is public and served
+ * everywhere.
  *
  * The signal is deliberately weak-but-honest: a changed date means the
  * developer published something new; it does NOT confirm a new versionCode.
- * That confirmation (EXACT) still comes from a native session or a mirror,
- * so the engine only ever tags these candidates as DISCOVERY.
+ * That confirmation (EXACT) still comes from a native session, so the
+ * engine only ever tags these candidates as DISCOVERY.
  *
  * The very first observation of a package only records the baseline —
  * a date nobody has seen before must not produce an update signal.
