@@ -72,7 +72,17 @@ interface CatalogDao {
     @Query("SELECT * FROM app_versions WHERE packageName = :packageName ORDER BY versionCode DESC")
     suspend fun getVersions(packageName: String): List<AppVersionEntity>
 
-    @Query("SELECT * FROM app_versions WHERE packageName IN (:packageNames)")
+    /**
+     * Versions from ENABLED repositories only. A disabled repo's rows never
+     * produce an update candidate (P05-T06).
+     */
+    @Query(
+        """
+        SELECT * FROM app_versions
+        WHERE packageName IN (:packageNames)
+          AND source IN (SELECT repositoryId FROM repositories WHERE enabled = 1)
+        """,
+    )
     suspend fun getVersionsFor(packageNames: List<String>): List<AppVersionEntity>
 
     /** Most recently updated packages, one row per package. */
