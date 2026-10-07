@@ -3,8 +3,6 @@ package com.novastore.app.domain.usecase
 import com.novastore.app.core.common.AppResult
 import com.novastore.app.core.model.AppVersion
 import com.novastore.app.core.model.InstalledApp
-import com.novastore.app.core.model.SOURCE_APKCOMBO
-import com.novastore.app.core.model.SOURCE_APKPURE
 import com.novastore.app.core.model.SOURCE_PLAY
 import com.novastore.app.core.model.SyntheticVersionCodes
 import com.novastore.app.core.model.UpdateCandidate
@@ -151,32 +149,8 @@ class CheckForUpdatesUseCase @Inject constructor(
             }
         }
 
-        // 2) Community mirrors for what Play did not answer (apps not on
-        //    Play for this device/region, or Play unreachable).
         val leftovers = playApps.filterNot { it.packageName in answered }
-        if (leftovers.isNotEmpty()) {
-            scanProgress.update(ScanProgress(ScanProgress.Stage.MIRRORS))
-            val mirror = runCatching {
-                playStoreRepository.mirrorVersionsFor(leftovers.map { it.packageName })
-            }.getOrDefault(emptyMap())
-            leftovers.filter { mirror[it.packageName].isNullOrEmpty() }.forEach { unconfirmed += it.packageName }
-            for (app in leftovers) {
-                val best = mirror[app.packageName]
-                    ?.filter { isRealUpdate(app, it) }
-                    ?.let { real ->
-                        real.filterNot { SyntheticVersionCodes.isSynthetic(it.versionCode) }
-                            .maxByOrNull { it.versionCode }
-                            ?: real.maxByOrNull { it.versionCode }
-                    }
-                    ?: continue
-                candidates += UpdateCandidate(
-                    installed = app,
-                    available = best,
-                    source = SOURCE_PLAY,
-                    confidence = confidenceFor(app, best),
-                )
-            }
-        }
+        leftovers.forEach { unconfirmed += it.packageName }
 
         candidates.forEach { updatesRepository.saveCandidate(it, UpdateState.DISCOVERED) }
         return mergeIntoReport(report, candidates, errors)

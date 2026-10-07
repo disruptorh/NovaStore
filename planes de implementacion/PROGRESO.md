@@ -82,7 +82,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 
 - [x] P05-T01 Borrar `ApkPureClient` y `ApkComboClient`
 - [x] P05-T02 Quitar `mirrorVersionsFor` y `mergeMirrorVersions`
-- [ ] P05-T03 Reescribir `CheckForUpdatesUseCase` sin etapa MIRRORS
+- [x] P05-T03 Reescribir `CheckForUpdatesUseCase` sin etapa MIRRORS
 - [ ] P05-T04 Quitar keys/toggles APKPure/APKCombo + migración DataStore
 - [ ] P05-T05 Quitar constantes/UI/tests de fuentes mirror (salvo parseo de links externos si se mantiene)
 - [ ] P05-T06 Scan solo contra providers enabled + Play si toggle Play activo
