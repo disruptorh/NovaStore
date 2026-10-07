@@ -443,4 +443,7 @@
     <string name="scan_stage_play">Vérification de Google Play…</string>
     <string name="settings_search_pinned">Épingler la barre de recherche</string>
     <string name="settings_search_pinned_desc">Activé : toujours visible sur l\'accueil. Désactivé : glisse sous l\'en-tête quand vous défilez vers le bas et revient dès que vous remontez.</string>
+    <string name="notification_install_success_title">Mise à jour installée</string>
+    <string name="notification_install_success_text">%1$s a été mis à jour vers la dernière version.</string>
+    <string name="notification_update_error_title">Mise à jour de %1$s échouée</string>
 </resources>

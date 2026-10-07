@@ -10,6 +10,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import com.novastore.app.core.common.DispatcherProvider
+import com.novastore.app.core.common.NotificationChannelIds
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.delay
@@ -45,7 +46,10 @@ class DownloadWorker @AssistedInject constructor(
     override suspend fun getForegroundInfo(): ForegroundInfo = createForegroundInfo()
 
     private fun createForegroundInfo(): ForegroundInfo {
-        val notification: Notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
+        val notification: Notification = NotificationCompat.Builder(
+            applicationContext,
+            NotificationChannelIds.DOWNLOADS,
+        )
             .setContentTitle("Nova Store")
             .setContentText("Downloading updates…")
             .setSmallIcon(android.R.drawable.stat_sys_download)
@@ -64,7 +68,6 @@ class DownloadWorker @AssistedInject constructor(
 
     companion object {
         const val UNIQUE_WORK_NAME = "nova_download_queue"
-        private const val CHANNEL_ID = "downloads"
         private const val NOTIFICATION_ID = 42
         private const val POLL_MS = 2_000L
         private const val IDLE_TICKS_BEFORE_FINISH = 3

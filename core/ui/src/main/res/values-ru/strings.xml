@@ -443,4 +443,7 @@
     <string name="scan_stage_play">Проверка Google Play…</string>
     <string name="settings_search_pinned">Закрепить строку поиска</string>
     <string name="settings_search_pinned_desc">Вкл.: всегда видна на главной. Выкл.: при прокрутке вниз уезжает под шапку и возвращается при первом движении вверх.</string>
+    <string name="notification_install_success_title">Обновление установлено</string>
+    <string name="notification_install_success_text">%1$s обновлено до последней версии.</string>
+    <string name="notification_update_error_title">Обновление %1$s не удалось</string>
 </resources>

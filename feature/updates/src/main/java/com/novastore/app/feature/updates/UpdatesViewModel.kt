@@ -89,6 +89,7 @@ class UpdatesViewModel @Inject constructor(
     private val catalogRepository: com.novastore.app.domain.repository.CatalogRepository,
     repositoriesRepository: com.novastore.app.domain.repository.RepositoriesRepository,
     downloadQueue: GetDownloadQueueUseCase,
+    private val installOutcomeNotifier: InstallOutcomeNotifier,
 ) : ViewModel() {
 
     private val sourceFilter = MutableStateFlow<String?>(null)
@@ -212,12 +213,33 @@ class UpdatesViewModel @Inject constructor(
             summary.value = null
             when (val result = updateAll.invoke()) {
                 is AppResult.Failure -> lastError.value = result.error.userMessage
-                is AppResult.Success -> summary.value = result.value
+                is AppResult.Success -> {
+                    summary.value = result.value
+                    notifyOutcomes(result.value)
+                }
             }
             updateAllInProgress.value = false
             // The candidate list is re-derived right away so finished apps
             // drop out of the list without a manual refresh.
             rescanQuietly()
+        }
+    }
+
+    /** Publish install success / failure outcomes (P05-T10). */
+    private suspend fun notifyOutcomes(summary: UpdateAllUseCase.Summary) {
+        for (item in summary.results) {
+            when (item.outcome) {
+                UpdateAllUseCase.Outcome.INSTALLED ->
+                    installOutcomeNotifier.notifyInstalled(item.packageName, item.appName)
+                UpdateAllUseCase.Outcome.FAILED ->
+                    installOutcomeNotifier.notifyFailed(
+                        item.packageName,
+                        item.appName,
+                        item.error?.userMessage ?: "Update failed",
+                    )
+                UpdateAllUseCase.Outcome.AWAITING_USER_CONFIRMATION,
+                UpdateAllUseCase.Outcome.SKIPPED -> Unit
+            }
         }
     }
 

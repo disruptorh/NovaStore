@@ -7,6 +7,7 @@ import android.content.Context
 import android.os.Build
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.novastore.app.core.common.NotificationChannelIds
 import com.novastore.app.core.datastore.SettingsDataStore
 import com.novastore.app.core.downloader.api.DownloadRequester
 import com.novastore.app.domain.repository.AccountRepository
@@ -155,10 +156,10 @@ class NovaStoreApp : Application(), Configuration.Provider, ImageLoaderFactory {
     companion object {
         private const val IMAGE_DISK_CACHE_BYTES = 256L * 1024 * 1024
         private const val IMAGE_CROSSFADE_MILLIS = 120
-        const val CHANNEL_UPDATES = "updates"
-        const val CHANNEL_DOWNLOADS = "downloads"
-        const val CHANNEL_INSTALLATION = "installation"
-        const val CHANNEL_ERRORS = "errors"
-        const val CHANNEL_SCAN = "scan_progress"
+        const val CHANNEL_UPDATES = NotificationChannelIds.UPDATES
+        const val CHANNEL_DOWNLOADS = NotificationChannelIds.DOWNLOADS
+        const val CHANNEL_INSTALLATION = NotificationChannelIds.INSTALLATION
+        const val CHANNEL_ERRORS = NotificationChannelIds.ERRORS
+        const val CHANNEL_SCAN = NotificationChannelIds.SCAN
     }
 }

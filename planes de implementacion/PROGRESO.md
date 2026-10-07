@@ -29,6 +29,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - P05-T06 (`CatalogDao.getVersionsFor` filtra por `source IN (repositories enabled)` — un repo disabled nunca genera candidato ni marca la app como gestionada; el pase Play lo respeta vía el mismo DAO; `getVersions(packageName)` de detalle/install queda intacto. Nota: las `getVersions(pkg)` de GitHub/Gitea/HTML siguen en stub (vuelven vivas en P06/P07 al materializar providers); el loop del pseudocódigo no consulta providers con `enabled=false`.)
 - P05-T07 (`SourceResolutionPolicy.select` reordenada a prioridad-first: preferida (caller) → menor priority → mayor versionCode → source id; 5 tests ≥4 casos y `docs/update-engine.md` documenta prioridad-first; comentario `RepositoryEntity` "lower wins" alineado)
 - P05-T09 (`WorkScheduler`: `setRequiresBatteryNotLow(threshold > 0)` y `IMMEDIATELY` → 15 min (mínimo WorkManager) con red; `BootReceiver` re-registra `nova_update_scan` tras reboot además de reencolar downloads; nombres únicos se revisitan en P10-T04)
+- P05-T10 (ids de canales unificados en `core/common/NotificationChannelIds` y usados por app + downloader; `InstallOutcomeNotifier` en `feature:updates` publica success de install en `installation` y fallos de download/verify/install en `errors` desde el resumen de `updateAll`; strings en `core:ui` 4 locales; 5 canales/5 usados, 5 sitios `NotificationCompat.Builder`)
 
 ## Bloqueado
 
@@ -96,7 +97,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - [x] P05-T07 Unificar política de dedup (preferida → prioridad → versionCode)
 - [x] P05-T08 Separar `SOURCE_PLAY_WEB` de `SOURCE_PLAY`
 - [x] P05-T09 WorkManager: constraints, intervalo, `BootReceiver` re-arma scan
-- [ ] P05-T10 Notificaciones INSTALLATION y ERRORS
+- [x] P05-T10 Notificaciones INSTALLATION y ERRORS
 - [ ] P05-T11 Tests `UpdateEngine` / `SourceResolutionPolicy` / scan sin mirrors
 
 ## P06 Fuentes personalizadas

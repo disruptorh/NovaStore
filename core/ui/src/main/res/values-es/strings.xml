@@ -443,4 +443,7 @@
     <string name="scan_stage_play">Comprobando Google Play…</string>
     <string name="settings_search_pinned">Fijar la barra de búsqueda</string>
     <string name="settings_search_pinned_desc">Activado: siempre visible en Inicio. Desactivado: se oculta bajo la cabecera al desplazarte hacia abajo y vuelve al subir.</string>
+    <string name="notification_install_success_title">Actualización instalada</string>
+    <string name="notification_install_success_text">%1$s se actualizó a la última versión.</string>
+    <string name="notification_update_error_title">%1$s no pudo actualizarse</string>
 </resources>

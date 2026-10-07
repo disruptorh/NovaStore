@@ -444,4 +444,7 @@
     <string name="scan_stage_play">Checking Google Play…</string>
     <string name="settings_search_pinned">Pin the search bar</string>
     <string name="settings_search_pinned_desc">On: always visible on Home. Off: slides under the header while you scroll down and returns as soon as you scroll up.</string>
+    <string name="notification_install_success_title">Update installed</string>
+    <string name="notification_install_success_text">%1$s was updated to the latest version.</string>
+    <string name="notification_update_error_title">%1$s failed to update</string>
 </resources>
