@@ -24,6 +24,23 @@ interface RepositoryDao {
     @Query("UPDATE repositories SET enabled = :enabled WHERE repositoryId = :repositoryId")
     suspend fun setEnabled(repositoryId: String, enabled: Boolean)
 
+    /** Persists an in-place edit (name, provider type, URL and extra JSON). */
+    @Query(
+        """
+        UPDATE repositories SET name = :name, baseUrl = :baseUrl, metadataUrl = :metadataUrl,
+            providerType = :providerType, extraJson = :extraJson
+        WHERE repositoryId = :repositoryId
+        """,
+    )
+    suspend fun updateFields(
+        repositoryId: String,
+        name: String,
+        baseUrl: String,
+        metadataUrl: String,
+        providerType: String,
+        extraJson: String?,
+    )
+
     @Query("UPDATE repositories SET lastRefreshAt = :timestamp, lastRefreshError = :error WHERE repositoryId = :repositoryId")
     suspend fun setRefreshResult(repositoryId: String, timestamp: Long, error: String?)
 

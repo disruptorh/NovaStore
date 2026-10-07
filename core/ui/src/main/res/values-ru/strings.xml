@@ -281,6 +281,16 @@
     <string name="settings_repositories">Репозитории</string>
     <string name="settings_repos_enabled">Включено %1$d из %2$d · приложений в каталоге: %3$d</string>
     <string name="settings_add_repository">Добавить репозиторий</string>
+    <string name="settings_edit_repository">Изменить репозиторий</string>
+    <string name="settings_repo_type">Тип источника</string>
+    <string name="settings_repo_name_only">Встроенный источник: можно изменить только локальное название.</string>
+    <string name="settings_repo_apk_url_regex">Регэксп URL APK</string>
+    <string name="settings_repo_apk_url_regex_hint">Регэксп, группа 1 которого захватывает URL загрузки APK</string>
+    <string name="provider_fdroid_index">Индекс F-Droid</string>
+    <string name="provider_github">Релизы GitHub</string>
+    <string name="provider_gitea">Gitea / Codeberg</string>
+    <string name="provider_gitlab">GitLab</string>
+    <string name="provider_html_regex">HTML-страница</string>
     <string name="settings_refresh_all">Обновить все</string>
     <string name="settings_repo_name">Название</string>
     <string name="settings_repo_url">URL репозитория</string>

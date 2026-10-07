@@ -1,6 +1,7 @@
 package com.novastore.app.domain.repository
 
 import com.novastore.app.core.common.AppResult
+import com.novastore.app.core.model.ProviderType
 import com.novastore.app.core.model.RepositoryConfig
 import kotlinx.coroutines.flow.Flow
 
@@ -16,8 +17,29 @@ interface RepositoriesRepository {
 
     suspend fun get(repositoryId: String): RepositoryConfig?
 
-    /** Adds a user repository (any F-Droid compatible URL) and loads it. */
-    suspend fun add(name: String, url: String): AppResult<Unit>
+    /**
+     * Adds a source (any F-Droid compatible or provider-backed URL) and loads
+     * it. [extraJson] carries provider-specific settings (e.g. the HTML
+     * source's "apkUrlRegex"). Re-adding an existing URL only re-enables it.
+     */
+    suspend fun add(
+        name: String,
+        url: String,
+        providerType: ProviderType = ProviderType.FDROID_INDEX,
+        extraJson: String? = null,
+    ): AppResult<Unit>
+
+    /**
+     * Persists an in-place edit (name, provider type, URL, extras). Built-in
+     * sources only ever change their local name — the URL stays locked.
+     */
+    suspend fun update(
+        repositoryId: String,
+        name: String,
+        url: String,
+        providerType: ProviderType,
+        extraJson: String?,
+    ): AppResult<Unit>
 
     /** Enabling loads the repository; disabling removes its apps from the catalog. */
     suspend fun setEnabled(repositoryId: String, enabled: Boolean): AppResult<Unit>

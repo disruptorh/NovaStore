@@ -281,6 +281,16 @@
     <string name="settings_repositories">Dépôts</string>
     <string name="settings_repos_enabled">%1$d sur %2$d actifs · %3$d applications au catalogue</string>
     <string name="settings_add_repository">Ajouter un dépôt</string>
+    <string name="settings_edit_repository">Modifier le dépôt</string>
+    <string name="settings_repo_type">Type de source</string>
+    <string name="settings_repo_name_only">Source intégrée : seul le nom local peut être modifié.</string>
+    <string name="settings_repo_apk_url_regex">Regex des URL d\'APK</string>
+    <string name="settings_repo_apk_url_regex_hint">Regex dont le groupe 1 capture l\'URL de téléchargement de l\'APK</string>
+    <string name="provider_fdroid_index">Index F-Droid</string>
+    <string name="provider_github">Versions GitHub</string>
+    <string name="provider_gitea">Gitea / Codeberg</string>
+    <string name="provider_gitlab">GitLab</string>
+    <string name="provider_html_regex">Page HTML</string>
     <string name="settings_refresh_all">Tout actualiser</string>
     <string name="settings_repo_name">Nom</string>
     <string name="settings_repo_url">URL du dépôt</string>

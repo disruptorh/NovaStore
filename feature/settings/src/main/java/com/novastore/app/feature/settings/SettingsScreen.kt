@@ -91,6 +91,7 @@ import com.novastore.app.core.model.AccentPalette
 import com.novastore.app.core.model.AppLanguage
 import com.novastore.app.core.model.DeviceProfile
 import com.novastore.app.core.model.InstallationMode
+import com.novastore.app.core.model.ProviderType
 import com.novastore.app.core.model.RepositoryConfig
 import com.novastore.app.core.model.RootAccessState
 import com.novastore.app.core.model.ThemeMode
@@ -117,6 +118,7 @@ fun SettingsScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showAddRepository by remember { mutableStateOf(false) }
+    var editRepository by remember { mutableStateOf<RepositoryConfig?>(null) }
     var showSessionProvider by remember { mutableStateOf(false) }
     var fdroidExpanded by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
@@ -306,6 +308,7 @@ fun SettingsScreen(
                         onToggle = { id, enabled -> viewModel.setRepositoryEnabled(id, enabled) },
                         onRefresh = { viewModel.refreshRepository(it) },
                         onRemove = { viewModel.removeRepository(it) },
+                        onEdit = { editRepository = it },
                         onAdd = { showAddRepository = true },
                         onRefreshAll = { viewModel.refreshRepositories() },
                     )
@@ -478,12 +481,23 @@ fun SettingsScreen(
     }
 
     if (showAddRepository) {
-        AddRepositoryDialog(
+        RepositoryEditorDialog(
+            initial = null,
             onDismiss = { showAddRepository = false },
-            onConfirm = { name, url ->
-                viewModel.addCustomRepository(name, url)
+            onConfirm = { name, url, type, apkUrlRegex ->
+                viewModel.addCustomRepository(name, url, type, apkUrlRegex)
                 showAddRepository = false
             },
+        )
+    }
+    editRepository?.let { repository ->
+        RepositoryEditorDialog(
+            initial = repository,
+            onDismiss = { editRepository = null },
+            onConfirm = { name, url, type, apkUrlRegex ->
+                viewModel.saveRepository(repository.repositoryId, name, url, type, apkUrlRegex)
+                editRepository = null
+            }
         )
     }
     if (showSessionProvider) {
@@ -1171,6 +1185,7 @@ private fun RepositoriesManager(
     onToggle: (String, Boolean) -> Unit,
     onRefresh: (String) -> Unit,
     onRemove: (String) -> Unit,
+    onEdit: (RepositoryConfig) -> Unit,
     onAdd: () -> Unit,
     onRefreshAll: () -> Unit,
 ) {
@@ -1191,6 +1206,7 @@ private fun RepositoriesManager(
                 onToggle = { enabled -> onToggle(repository.repositoryId, enabled) },
                 onRefresh = { onRefresh(repository.repositoryId) },
                 onRemove = { onRemove(repository.repositoryId) },
+                onEdit = { onEdit(repository) },
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -1216,11 +1232,13 @@ private fun RepositoryRow(
     onToggle: (Boolean) -> Unit,
     onRefresh: () -> Unit,
     onRemove: () -> Unit,
+    onEdit: () -> Unit,
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         shape = RoundedCornerShape(14.dp),
         modifier = Modifier.fillMaxWidth(),
+        onClick = onEdit,
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
             Row(
@@ -1399,19 +1417,39 @@ private fun SessionProviderDialog(
     )
 }
 
+/**
+ * Add or edit a source. Add: full form (name, provider type, URL, extra).
+ * Edit of a built-in: only the local name — the URL and type are locked.
+ */
 @Composable
-private fun AddRepositoryDialog(
+private fun RepositoryEditorDialog(
+    initial: RepositoryConfig?,
     onDismiss: () -> Unit,
-    onConfirm: (name: String, url: String) -> Unit,
+    onConfirm: (name: String, url: String, type: ProviderType, apkUrlRegex: String) -> Unit,
 ) {
-    var name by remember { mutableStateOf("") }
-    var url by remember { mutableStateOf("") }
+    val editing = initial != null
+    val urlLocked = initial?.isBuiltIn == true
+    var name by remember { mutableStateOf(initial?.name.orEmpty()) }
+    var type by remember { mutableStateOf(initial?.providerType ?: ProviderType.FDROID_INDEX) }
+    var url by remember { mutableStateOf(initial?.baseUrl.orEmpty()) }
+    var apkUrlRegex by remember {
+        mutableStateOf(initial?.let { config ->
+            val json = config.extraJson
+            if (config.providerType == ProviderType.HTML_REGEX && json != null && json.isNotBlank()) {
+                runCatching { org.json.JSONObject(json).optString("apkUrlRegex") }.getOrDefault("")
+            } else {
+                ""
+            }
+        } ?: "")
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(UiR.string.settings_add_repository)) },
+        title = {
+            Text(stringResource(if (editing) UiR.string.settings_edit_repository else UiR.string.settings_add_repository))
+        },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -1419,15 +1457,57 @@ private fun AddRepositoryDialog(
                     singleLine = true,
                     shape = RoundedCornerShape(14.dp),
                 )
+                if (!urlLocked) {
+                    LabelRow(stringResource(UiR.string.settings_repo_type))
+                    ChoiceChipGrid(
+                        items = ProviderType.entries.map { provider ->
+                            provider to stringResource(
+                                when (provider) {
+                                    ProviderType.FDROID_INDEX -> UiR.string.provider_fdroid_index
+                                    ProviderType.GITHUB -> UiR.string.provider_github
+                                    ProviderType.GITEA -> UiR.string.provider_gitea
+                                    ProviderType.GITLAB -> UiR.string.provider_gitlab
+                                    ProviderType.HTML_REGEX -> UiR.string.provider_html_regex
+                                },
+                            )
+                        },
+                        selected = type,
+                        onSelect = { type = it },
+                    )
+                }
                 OutlinedTextField(
                     value = url,
-                    onValueChange = { url = it },
+                    onValueChange = {
+                        if (!urlLocked) url = it
+                    },
                     label = { Text(stringResource(UiR.string.settings_repo_url)) },
-                    placeholder = { Text("https://example.com/fdroid/repo") },
-                    supportingText = { Text(stringResource(UiR.string.settings_repo_hint)) },
+                    placeholder = {
+                        Text(
+                            when (type) {
+                                ProviderType.FDROID_INDEX -> "https://example.com/fdroid/repo"
+                                ProviderType.GITHUB -> "https://github.com/owner/repo"
+                                ProviderType.GITEA, ProviderType.GITLAB -> "https://codeberg.org/owner/repo"
+                                ProviderType.HTML_REGEX -> "https://example.com/downloads"
+                            },
+                        )
+                    },
+                    supportingText = {
+                        Text(stringResource(UiR.string.settings_repo_hint))
+                    },
                     singleLine = true,
                     shape = RoundedCornerShape(14.dp),
+                    enabled = !urlLocked,
                 )
+                if (type == ProviderType.HTML_REGEX) {
+                    OutlinedTextField(
+                        value = apkUrlRegex,
+                        onValueChange = { apkUrlRegex = it },
+                        label = { Text(stringResource(UiR.string.settings_repo_apk_url_regex)) },
+                        supportingText = { Text(stringResource(UiR.string.settings_repo_apk_url_regex_hint)) },
+                        singleLine = true,
+                        shape = RoundedCornerShape(14.dp),
+                    )
+                }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -1439,7 +1519,9 @@ private fun AddRepositoryDialog(
                         modifier = Modifier.size(16.dp),
                     )
                     Text(
-                        stringResource(UiR.string.settings_repo_trust),
+                        text = stringResource(
+                            if (urlLocked) UiR.string.settings_repo_name_only else UiR.string.settings_repo_trust,
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -1448,9 +1530,13 @@ private fun AddRepositoryDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { onConfirm(name, url) },
-                enabled = url.isNotBlank(),
-            ) { Text(stringResource(UiR.string.settings_add_repository)) }
+                onClick = { onConfirm(name, url, type, apkUrlRegex) },
+                enabled = url.isNotBlank() &&
+                    name.isNotBlank() &&
+                    (type != ProviderType.HTML_REGEX || apkUrlRegex.isNotBlank()),
+            ) {
+                Text(stringResource(if (editing) UiR.string.action_save else UiR.string.settings_add_repository))
+            }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(UiR.string.action_cancel)) }

@@ -9,6 +9,7 @@ import com.novastore.app.core.model.RootAccessState
 import com.novastore.app.core.common.AppResult
 import com.novastore.app.core.model.AccentPalette
 import com.novastore.app.core.model.AppLanguage
+import com.novastore.app.core.model.ProviderType
 import com.novastore.app.core.model.RepositoryConfig
 import com.novastore.app.core.model.RootAccessResult
 import com.novastore.app.core.model.ThemeMode
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 data class SettingsUiState(
     val settings: UpdateSettings = UpdateSettings(),
@@ -306,17 +308,47 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { repositoriesRepository.remove(repositoryId) }
     }
 
-    fun addCustomRepository(name: String, url: String) {
+    fun addCustomRepository(
+        name: String,
+        url: String,
+        providerType: ProviderType = ProviderType.FDROID_INDEX,
+        apkUrlRegex: String = "",
+    ) {
         viewModelScope.launch {
             busy.value = true
             error.value = null
-            when (val result = repositoriesRepository.add(name, url)) {
+            when (val result = repositoriesRepository.add(name, url, providerType, extraJsonFor(providerType, apkUrlRegex))) {
                 is AppResult.Failure -> error.value = "Could not load the repository: ${result.error.userMessage}"
                 is AppResult.Success -> notice.value = "Repository added."
             }
             busy.value = false
         }
     }
+
+    fun saveRepository(
+        repositoryId: String,
+        name: String,
+        url: String,
+        providerType: ProviderType,
+        apkUrlRegex: String = "",
+    ) {
+        viewModelScope.launch {
+            busy.value = true
+            error.value = null
+            when (val result = repositoriesRepository.update(repositoryId, name, url, providerType, extraJsonFor(providerType, apkUrlRegex))) {
+                is AppResult.Failure -> error.value = result.error.userMessage
+                is AppResult.Success -> notice.value = "Repository saved."
+            }
+            busy.value = false
+        }
+    }
+
+    private fun extraJsonFor(providerType: ProviderType, apkUrlRegex: String): String? =
+        if (providerType == ProviderType.HTML_REGEX && apkUrlRegex.isNotBlank()) {
+            JSONObject().put("apkUrlRegex", apkUrlRegex).toString()
+        } else {
+            null
+        }
 
     fun refreshRepositories() {
         viewModelScope.launch {

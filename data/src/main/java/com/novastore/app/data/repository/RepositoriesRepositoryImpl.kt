@@ -9,8 +9,10 @@ import com.novastore.app.core.database.entity.RemoteAppEntity
 import com.novastore.app.core.database.entity.RepositoryEntity
 import com.novastore.app.core.model.ArtifactType
 import com.novastore.app.core.model.NovaError
+import com.novastore.app.core.model.ProviderType
 import com.novastore.app.core.model.RepositoryConfig
 import com.novastore.app.core.model.SourceTrust
+import com.novastore.app.core.model.SourceUrls
 import com.novastore.app.core.network.fdroid.FdroidIndexClient
 import com.novastore.app.core.network.fdroid.IndexValidators
 import com.novastore.app.core.network.fdroid.ParsedIndex
@@ -80,8 +82,109 @@ class RepositoriesRepositoryImpl @Inject constructor(
         return repositoryDao.all().associate { it.repositoryId to it.priority }
     }
 
-    override suspend fun add(name: String, url: String): AppResult<Unit> {
+    override suspend fun add(
+        name: String,
+        url: String,
+        providerType: ProviderType,
+        extraJson: String?,
+    ): AppResult<Unit> {
         ensureBuiltIns()
+        if (providerType == ProviderType.FDROID_INDEX) {
+            return addFdroid(name, url)
+        }
+        // Provider-backed source: an https reference on the provider's own
+        // validate() contract. Only the row is written here; the preview pass
+        // (P06-T02) proves the source works before the user confirms and the
+        // provider materialization lands in P06/P07.
+        val canonical = SourceUrls.normalizeSourceUrl(url.ifBlank { "" })?.takeIf {
+            when (providerType) {
+                ProviderType.GITEA -> it.removePrefix("https://").contains('/')
+                ProviderType.GITLAB -> it.removePrefix("https://").contains('/')
+                else -> true
+            }
+        }
+            ?: return AppResult.failure(
+                NovaError.Repository(
+                    userMessage = if (providerType == ProviderType.HTML_REGEX) {
+                        "HTML sources need an https:// base URL."
+                    } else {
+                        "Provide a project: an https:// URL ending in owner/repo (GitHub, GitLab, Gitea)."
+                    },
+                ),
+            )
+        val existing = repositoryDao.all().firstOrNull {
+            (it.metadataUrl.ifBlank { it.baseUrl }).equals(canonical, ignoreCase = true)
+        }
+        val id = existing?.repositoryId ?: ("custom-" + sha256(canonical.lowercase()).take(12))
+        if (existing == null) {
+            repositoryDao.upsert(
+                RepositoryEntity(
+                    repositoryId = id,
+                    name = name.trim().ifBlank { providerDefaultName(providerType, canonical) },
+                    baseUrl = canonical,
+                    metadataUrl = canonical,
+                    trust = SourceTrust.UNKNOWN.name,
+                    enabled = true,
+                    isBuiltIn = false,
+                    lastRefreshAt = null,
+                    lastRefreshError = null,
+                    priority = CUSTOM_PRIORITY,
+                    providerType = providerType.name,
+                    extraJson = extraJson,
+                ),
+            )
+        } else {
+            repositoryDao.setEnabled(id, true)
+        }
+        // No F-Droid index exists behind a provider source; nothing to fetch
+        // until the provider materialization is wired in (P06/P07).
+        return AppResult.success(Unit)
+    }
+
+    override suspend fun update(
+        repositoryId: String,
+        name: String,
+        url: String,
+        providerType: ProviderType,
+        extraJson: String?,
+    ): AppResult<Unit> {
+        val row = repositoryDao.get(repositoryId)
+            ?: return AppResult.failure(
+                NovaError.Repository(userMessage = "Unknown repository.", repositoryId = repositoryId),
+            )
+        if (providerType == ProviderType.FDROID_INDEX) {
+            val normalized = FdroidIndexClient.normalizeRepoUrl(url)
+            if (!normalized.startsWith("https://")) {
+                return AppResult.failure(NovaError.Repository(userMessage = "Repository URLs must use HTTPS."))
+            }
+            repositoryDao.updateFields(
+                repositoryId = repositoryId,
+                name = name.trim().ifBlank { row.name },
+                baseUrl = normalized,
+                metadataUrl = "$normalized/index-v2.json",
+                providerType = providerType.name,
+                extraJson = null,
+            )
+        } else {
+            val canonical = SourceUrls.normalizeSourceUrl(url.ifBlank { "" })
+                ?: return AppResult.failure(
+                    NovaError.Repository(
+                        userMessage = "The source needs a usable https:// reference (owner/repo for GitHub, GitLab and Gitea; a page URL for HTML).",
+                    ),
+                )
+            repositoryDao.updateFields(
+                repositoryId = repositoryId,
+                name = name.trim().ifBlank { row.name },
+                baseUrl = canonical,
+                metadataUrl = canonical,
+                providerType = providerType.name,
+                extraJson = extraJson,
+            )
+        }
+        return AppResult.success(Unit)
+    }
+
+    private suspend fun addFdroid(name: String, url: String): AppResult<Unit> {
         val normalized = FdroidIndexClient.normalizeRepoUrl(url)
         if (!normalized.startsWith("https://")) {
             return AppResult.failure(NovaError.Repository(userMessage = "Repository URLs must use HTTPS."))
@@ -318,8 +421,10 @@ class RepositoriesRepositoryImpl @Inject constructor(
                             priority = index,
                         ),
                     )
-                } else if (row.priority != index || row.name != builtIn.name) {
-                    repositoryDao.upsert(row.copy(priority = index, name = builtIn.name, isBuiltIn = true))
+                } else if (row.priority != index) {
+                    // Positioning is restored, but a user-renamed local name
+                    // is preserved — built-ins may only be re-named locally.
+                    repositoryDao.upsert(row.copy(priority = index, isBuiltIn = true))
                 }
             }
             seeded = true
@@ -333,6 +438,15 @@ class RepositoriesRepositoryImpl @Inject constructor(
 
     private fun sha256(value: String): String =
         MessageDigest.getInstance("SHA-256").digest(value.toByteArray()).joinToString("") { "%02x".format(it) }
+
+    private fun providerDefaultName(providerType: ProviderType, canonical: String): String {
+        val host = canonical.removePrefix("https://").substringBefore('/').substringBefore(':')
+        val project = canonical.removePrefix("https://").substringAfter('/', "missing").substringBefore('/')
+            .takeIf { it.isNotBlank() && it != "missing" }
+        val label = project?.takeIf { providerType != ProviderType.HTML_REGEX }
+            ?: host
+        return "${providerType.name.lowercase().substringBefore('_')} · $label"
+    }
 
     private companion object {
         const val SEPARATOR = "|"
