@@ -6,6 +6,8 @@
     <string name="cd_account">Cuenta</string>
     <string name="cd_more">Más opciones</string>
     <string name="cd_refresh">Actualizar</string>
+    <string name="cd_reorder_up">Mover fuente arriba</string>
+    <string name="cd_reorder_down">Mover fuente abajo</string>
     <string name="cd_downloads">Descargas</string>
     <string name="cd_check_updates">Buscar actualizaciones</string>
     <string name="cd_screenshot">Captura de pantalla</string>

@@ -24,6 +24,9 @@ interface RepositoryDao {
     @Query("UPDATE repositories SET enabled = :enabled WHERE repositoryId = :repositoryId")
     suspend fun setEnabled(repositoryId: String, enabled: Boolean)
 
+    @Query("UPDATE repositories SET priority = :priority WHERE repositoryId = :repositoryId")
+    suspend fun updatePriority(repositoryId: String, priority: Int)
+
     /** Persists an in-place edit (name, provider type, URL and extra JSON). */
     @Query(
         """

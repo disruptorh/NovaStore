@@ -6,6 +6,8 @@
     <string name="cd_account">Аккаунт</string>
     <string name="cd_more">Ещё</string>
     <string name="cd_refresh">Обновить</string>
+    <string name="cd_reorder_up">Переместить источник выше</string>
+    <string name="cd_reorder_down">Переместить источник ниже</string>
     <string name="cd_downloads">Загрузки</string>
     <string name="cd_check_updates">Проверить обновления</string>
     <string name="cd_screenshot">Скриншот</string>

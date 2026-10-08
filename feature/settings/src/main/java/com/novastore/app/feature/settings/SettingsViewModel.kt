@@ -325,6 +325,10 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { repositoriesRepository.remove(repositoryId) }
     }
 
+    fun reorderRepositories(idsInOrder: List<String>) {
+        viewModelScope.launch { repositoriesRepository.reorder(idsInOrder) }
+    }
+
     /** P06-T02: probes the source form through the provider — writes nothing. */
     fun testSource(
         name: String,

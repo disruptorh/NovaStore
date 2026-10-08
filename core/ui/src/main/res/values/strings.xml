@@ -6,6 +6,8 @@
     <string name="cd_account">Account</string>
     <string name="cd_more">More options</string>
     <string name="cd_refresh">Refresh</string>
+    <string name="cd_reorder_up">Move source up</string>
+    <string name="cd_reorder_down">Move source down</string>
     <string name="cd_downloads">Downloads</string>
     <string name="cd_check_updates">Check for updates</string>
     <string name="cd_screenshot">Screenshot</string>

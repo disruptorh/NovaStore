@@ -224,6 +224,12 @@ class RepositoriesRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun reorder(idsInOrder: List<String>) {
+        idsInOrder.forEachIndexed { index, repositoryId ->
+            repositoryDao.updatePriority(repositoryId, (index + 1) * 10)
+        }
+    }
+
     override suspend fun remove(repositoryId: String) {
         val repository = repositoryDao.get(repositoryId) ?: return
         catalogDao.clearSource(repositoryId)
@@ -404,29 +410,9 @@ class RepositoriesRepositoryImpl @Inject constructor(
         seedMutex.withLock {
             if (seeded) return
             val existing = repositoryDao.all().associateBy { it.repositoryId }
-            BUILT_IN_REPOSITORIES.forEachIndexed { index, builtIn ->
-                val row = existing[builtIn.id]
-                if (row == null) {
-                    repositoryDao.upsert(
-                        RepositoryEntity(
-                            repositoryId = builtIn.id,
-                            name = builtIn.name,
-                            baseUrl = builtIn.url,
-                            metadataUrl = "${builtIn.url}/index-v2.json",
-                            trust = SourceTrust.TRUSTED.name,
-                            enabled = builtIn.enabledByDefault,
-                            isBuiltIn = true,
-                            lastRefreshAt = null,
-                            lastRefreshError = null,
-                            priority = index,
-                        ),
-                    )
-                } else if (row.priority != index) {
-                    // Positioning is restored, but a user-renamed local name
-                    // is preserved — built-ins may only be re-named locally.
-                    repositoryDao.upsert(row.copy(priority = index, isBuiltIn = true))
-                }
-            }
+            // Existing rows are never updated here: user-renamed names and any
+            // user reordering of priority survive (P06-T04).
+            missingBuiltInRows(existing).forEach { repositoryDao.upsert(it) }
             seeded = true
         }
     }

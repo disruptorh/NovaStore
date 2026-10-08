@@ -46,6 +46,13 @@ interface RepositoriesRepository {
 
     suspend fun remove(repositoryId: String)
 
+    /**
+     * Reassigns priorities along [idsInOrder] (10, 20, 30, …). The order is
+     * persisted, so it survives process death. Built-in sources that were
+     * already in the database are never re-positioned afterwards.
+     */
+    suspend fun reorder(idsInOrder: List<String>)
+
     suspend fun refresh(repositoryId: String): AppResult<Unit>
 
     /**

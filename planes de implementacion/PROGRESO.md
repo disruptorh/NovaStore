@@ -107,13 +107,14 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - [x] P06-T01 UI add/edit con tipo de proveedor
 - [x] P06-T02 Preview de resultados al añadir
 - [x] P06-T03 Enable/disable + delete con confirmación
-- [ ] P06-T04 Reordenar prioridad persistente (`ensureBuiltIns` no pisa)
+- [x] P06-T04 Reordenar prioridad persistente (`ensureBuiltIns` no pisa)
 - [ ] P06-T05 Import/export JSON
 - [ ] P06-T06 Fuente preferida por app en detalle
 - [ ] P06-T07 Catálogo único: misma regla de dedup en DAO y updates
 - [ ] P06-T08 Integridad hash/firma en flujo de alta (aviso si el índice no trae sha256)
 - P06-T02 (`PreviewSourceUseCase` en domain con `@Inject SourceRegistry`: build un `RepositoryConfig` "preview" y delega en `providerForType(type)?.validate`; éxito → sampleNames (cap 5) + appCountHint + warning, fallo tipado; test domain con fake registry/provider: éxito ≤5, fallo 404 tipado, tipo sin provider → Failure. `SettingsViewModel.testSource` (extraJsonFor para HTML regex; estado `sourcePreview/sourcePreviewError/sourcePreviewLoading` en `SettingsUiState`); `RepositoryEditorDialog` botón "Test source" (spinner mientras carga, error color error, aviso warning, resultado live sin escribir catálogo). Verificación: `:domain:testReleaseUnitTest --tests PreviewSourceUseCaseTest` + compila settings/app.)
 - P06-T03 (delete: `RepositoriesManager.pendingRemove` state → `AlertDialog` con `settings_repo_delete_confirm` (custom, "%d apps del catálogo, no se puede deshacer") o `settings_repo_delete_builtin` (built-in: se deshabilita y siempre vuelve); botón de borrar ahora visible también en built-ins (delete = disable, comportamiento `remove` existente); confirm llama `onRemove` y limpia; strings 4 locales; compila.)
+- P06-T04 (`RepositoryDao.updatePriority`; API `RepositoriesRepository.reorder(idsInOrder)` → prioridades 10,20,30… persistidas; `ensureBuiltIns` refactor: la decisión "solo filas ausentes" extraída a `missingBuiltInRows(existing)` pura en `BuiltInRepositories.kt` — filas existentes NUNCA se devuelven (su `upsert` REPLACE clobberearía nombre/prioridad; ese es el motivo del guard); impl `ensureBuiltIns` solo upsert de ausentes. UI: botones ↑/↓ en `RepositoryRow` (KeyboardArrowUp/Down, `onReorder` en `RepositoriesManager`, `viewModel.reorderRepositories`), cd_reorder_up/down en 4 locales. Tests: `RepositoryPriorityTest` (2→1: reorder persiste tras re-read — "matar proceso" en DAO; el test "upsert no pisa" se movió a `BuiltInRepositoriesTest`: insertIfAbsent cubre todos, existente NUNCA devuelto → nombre+prioridad sobreviven, disabledByDefault preservado); compila + verdes.)
 
 ## P07 Sistema de diseño
 

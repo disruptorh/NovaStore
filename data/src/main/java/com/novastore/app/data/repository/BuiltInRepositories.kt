@@ -1,5 +1,8 @@
 package com.novastore.app.data.repository
 
+import com.novastore.app.core.database.entity.RepositoryEntity
+import com.novastore.app.core.model.SourceTrust
+
 /**
  * F-Droid compatible repositories shipped with Nova Store. Every entry was
  * checked to serve a live index. Users can disable any of them in Settings.
@@ -43,3 +46,30 @@ internal val BUILT_IN_REPOSITORIES = listOf(
     BuiltInRepository("fdroid-archive", "F-Droid Archive (old versions)", "https://f-droid.org/archive", enabledByDefault = false),
     BuiltInRepository("nethunter", "Kali NetHunter Store", "https://store.nethunter.com/repo", enabledByDefault = false),
 )
+
+/**
+ * Rows to insert for built-in repositories that are missing from the database.
+ * Existing rows are never returned: a user-renamed local name and any user
+ * reordering of priority survive (its REPLACE upsert would otherwise clobber
+ * them) — P06-T04.
+ */
+internal fun missingBuiltInRows(
+    existing: Map<String, RepositoryEntity>,
+    definitions: List<BuiltInRepository> = BUILT_IN_REPOSITORIES,
+): List<RepositoryEntity> =
+    definitions.mapIndexed { index, builtIn ->
+        builtIn.id to RepositoryEntity(
+            repositoryId = builtIn.id,
+            name = builtIn.name,
+            baseUrl = builtIn.url,
+            metadataUrl = "${builtIn.url}/index-v2.json",
+            trust = SourceTrust.TRUSTED.name,
+            enabled = builtIn.enabledByDefault,
+            isBuiltIn = true,
+            lastRefreshAt = null,
+            lastRefreshError = null,
+            priority = index,
+        )
+    }
+        .filter { (id, _) -> existing[id] == null }
+        .map { (_, row) -> row }

@@ -46,6 +46,8 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material.icons.filled.Storage
@@ -310,6 +312,7 @@ fun SettingsScreen(
                         onRefresh = { viewModel.refreshRepository(it) },
                         onRemove = { viewModel.removeRepository(it) },
                         onEdit = { editRepository = it },
+                        onReorder = { viewModel.reorderRepositories(it) },
                         onAdd = { showAddRepository = true },
                         onRefreshAll = { viewModel.refreshRepositories() },
                     )
@@ -1199,6 +1202,7 @@ private fun RepositoriesManager(
     onRefresh: (String) -> Unit,
     onRemove: (String) -> Unit,
     onEdit: (RepositoryConfig) -> Unit,
+    onReorder: (List<String>) -> Unit,
     onAdd: () -> Unit,
     onRefreshAll: () -> Unit,
 ) {
@@ -1214,12 +1218,26 @@ private fun RepositoriesManager(
             modifier = Modifier.padding(horizontal = 4.dp),
         )
         state.repositories.forEach { repository ->
+            val repositories = state.repositories
+            val index = repositories.indexOfFirst { it.repositoryId == repository.repositoryId }
             RepositoryRow(
                 repository = repository,
                 appCount = state.appCounts[repository.repositoryId] ?: 0,
                 loading = repository.repositoryId in state.refreshingIds,
+                canMoveUp = index > 0,
+                canMoveDown = index < repositories.lastIndex,
                 onToggle = { enabled -> onToggle(repository.repositoryId, enabled) },
                 onRefresh = { onRefresh(repository.repositoryId) },
+                onMoveUp = {
+                    val ids = repositories.map { it.repositoryId }.toMutableList()
+                    ids.removeAt(index).also { ids.add(index - 1, it) }
+                    onReorder(ids)
+                },
+                onMoveDown = {
+                    val ids = repositories.map { it.repositoryId }.toMutableList()
+                    ids.removeAt(index).also { ids.add(index + 1, it) }
+                    onReorder(ids)
+                },
                 onRemove = { pendingRemove = repository },
                 onEdit = { onEdit(repository) },
             )
@@ -1282,8 +1300,12 @@ private fun RepositoryRow(
     repository: RepositoryConfig,
     appCount: Int,
     loading: Boolean,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
     onToggle: (Boolean) -> Unit,
     onRefresh: () -> Unit,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit,
     onRemove: () -> Unit,
     onEdit: () -> Unit,
 ) {
@@ -1321,6 +1343,20 @@ private fun RepositoryRow(
                     }
                 }
                 Switch(checked = repository.enabled, onCheckedChange = onToggle, enabled = !loading)
+                Column {
+                    IconButton(onClick = onMoveUp, enabled = canMoveUp && !loading) {
+                        Icon(
+                            Icons.Filled.KeyboardArrowUp,
+                            contentDescription = stringResource(UiR.string.cd_reorder_up),
+                        )
+                    }
+                    IconButton(onClick = onMoveDown, enabled = canMoveDown && !loading) {
+                        Icon(
+                            Icons.Filled.KeyboardArrowDown,
+                            contentDescription = stringResource(UiR.string.cd_reorder_down),
+                        )
+                    }
+                }
                 IconButton(onClick = onRemove) {
                     Icon(Icons.Filled.Delete, contentDescription = stringResource(UiR.string.action_cancel))
                 }
