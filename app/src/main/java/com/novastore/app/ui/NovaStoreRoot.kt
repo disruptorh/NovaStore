@@ -1,5 +1,10 @@
 package com.novastore.app.ui
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -29,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -44,6 +48,7 @@ import com.novastore.app.core.datastore.SettingsDataStore
 import com.novastore.app.core.model.AccentPalette
 import com.novastore.app.core.model.ThemeMode
 import com.novastore.app.core.ui.R as UiR
+import com.novastore.app.core.ui.theme.NovaMotion
 import com.novastore.app.core.ui.theme.NovaTheme
 import com.novastore.app.domain.repository.UpdatesRepository
 import com.novastore.app.feature.account.AccountScreen
@@ -220,6 +225,22 @@ fun NovaStoreRoot(
                 navController = navController,
                 startDestination = TopDestination.Home.route,
                 modifier = Modifier.weight(1f),
+                enterTransition = {
+                    fadeIn(animationSpec = tween(NovaMotion.MIDDLE)) +
+                        slideInHorizontally(animationSpec = tween(NovaMotion.MIDDLE)) { it / 20 }
+                },
+                exitTransition = {
+                    fadeOut(animationSpec = tween(NovaMotion.MIDDLE)) +
+                        slideOutHorizontally(animationSpec = tween(NovaMotion.MIDDLE)) { -it / 20 }
+                },
+                popEnterTransition = {
+                    fadeIn(animationSpec = tween(NovaMotion.MIDDLE)) +
+                        slideInHorizontally(animationSpec = tween(NovaMotion.MIDDLE)) { -it / 20 }
+                },
+                popExitTransition = {
+                    fadeOut(animationSpec = tween(NovaMotion.MIDDLE)) +
+                        slideOutHorizontally(animationSpec = tween(NovaMotion.MIDDLE)) { it / 20 }
+                },
             ) {
                 composable(TopDestination.Home.route) {
                     HomeScreen(
@@ -238,6 +259,7 @@ fun NovaStoreRoot(
                         onOpenDownloads = { navController.navigate(ROUTE_DOWNLOADS) },
                         onOpenCategory = { key -> navController.navigate("category/" + android.net.Uri.encode(key)) },
                         onOpenSearchQuery = { q -> navController.navigate("$ROUTE_SEARCH?q=" + android.net.Uri.encode(q)) },
+                        onAddSource = { navController.navigate(ROUTE_SETTINGS) },
                     )
                 }
                 composable("ignored") {
@@ -317,7 +339,8 @@ fun NovaStoreRoot(
 /**
  * Bottom-navigation label that NEVER wraps: long localized tab names such as
  * «Установленные» would otherwise break into two lines and push the icon up.
- * 10sp labelMedium keeps even 13-char labels on one line at 4 tabs (360dp).
+ * labelSmall (11sp) is the smallest AA-compliant label; softWrap=false with
+ * ellipsis guarantees single-line even at 4 tabs on a 360dp screen.
  */
 @Composable
 private fun NovaTabLabel(labelRes: Int) {
@@ -326,6 +349,6 @@ private fun NovaTabLabel(labelRes: Int) {
         maxLines = 1,
         softWrap = false,
         overflow = TextOverflow.Ellipsis,
-        style = MaterialTheme.typography.labelMedium.copy(fontSize = 10.sp),
+        style = MaterialTheme.typography.labelSmall,
     )
 }
