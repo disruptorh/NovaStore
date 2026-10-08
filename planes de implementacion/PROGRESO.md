@@ -139,16 +139,41 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 
 ## P08 Rediseño pantallas
 
-- [ ] P08-T01 Home / descubrir
-- [ ] P08-T02 Búsqueda
-- [ ] P08-T03 Detalle
-- [ ] P08-T04 Descargas
-- [ ] P08-T05 Actualizaciones
-- [ ] P08-T06 Biblioteca / instaladas
-- [ ] P08-T07 Cuenta (consistencia visual)
-- [ ] P08-T08 Nav root + transiciones
-- [ ] P08-T09 Estados carga/vacío/error/offline en cada pantalla de P08
-- [ ] P08-T10 Targets 48 dp y contentDescription en pantallas tocadas
+- [x] P08-T01 Home / descubrir
+- [x] P08-T02 Búsqueda
+- [x] P08-T03 Detalle
+- [x] P08-T04 Descargas
+- [x] P08-T05 Actualizaciones
+- [x] P08-T06 Biblioteca / instaladas
+- [x] P08-T07 Cuenta (consistencia visual)
+- [x] P08-T08 Nav root + transiciones
+- [x] P08-T09 Estados carga/vacío/error/offline en cada pantalla de P08
+- [x] P08-T10 Targets 48 dp y contentDescription en pantallas tocadas
+- P08-T01 (HomeScreen.kt 1270 L **partido a 475 L**: entry + dispatch de estados; secciones extraídas a `HomeSections.kt` (408 L: headers, quick tiles, OfflineBanner, ScanProgressBanner, chips, `CatalogEmptyState`, shelf placeholder) y `HomeShelvesSection.kt` (313 L: HeroPager, ShelfCard, RecentAppCard, shimmer rows) y `HomeTopBar.kt` (197 L: topbar + `HomeSearchPill` tokenizado `NovaShapes.Sheet`+`NovaElevation.SEARCH_BAR`+`NovaSpacing`). Gradientes inline (~536) → exportados a `core/ui/theme/Color.kt` (`BrandIndigo`, `BrandViolet`, `NovaTitleBrush`, `UpToDateBrush`, `HeroGradients` como constantes de marca decorativas, usadas vía Brush en Home). `rg 'Color(0x' feature/home` = **0** (también `CircularProgressIndicator` = 0; loading = ShimmerBox skeleton). Empty catalog → EmptyState con CTA "Añadir fuente" (nueva string `home_catalog_empty_add_source` en 4 locales; wire `onAddSource = navigate(ROUTE_SETTINGS)` en Root; CTA refresca también en layout default). Shelf ≤20 ya vigente (`ROW_SIZE=20`, `SHELF_SIZE=18`, `observeRecentlyAdded(limit=20)`). **Decisión:** `NovaSearchBar` no existe en core/ui (plan asumía componente) → la pill inline quedó tokenizada en vez de nueva API compartida. `home_catalog_empty_action` quedó sin uso.)
+- P08-T02 (SearchScreen: `8.sp` del badge AUTO → `MaterialTheme.typography.labelSmall` (11sp) — `rg '\.sp'` search = 0; primer load con skeleton `SearchResultsSkeleton` (6 shimmer cards AppCardRow-like) cuando `results.isEmpty() && searching`; query vacío vs sin resultados siguen distintos (EmptyState ramas separadas ya existían y se conservan); keys ya presentes (`"${it.source}:${it.packageName}"`, chips `it ?: "all"`); offline usa `searchLocal`.)
+- P08-T03 (AppDetailsScreen: rama `state.loading` → `DetailsSkeleton` (ShimmerBox: icono 96dp `.clip(NovaShapes.Sheet)`, title/subtitle bars, banda de botón 52dp) reemplazando `LoadingState`/`CircularProgressIndicator` (sin imports de ambos); el loading string se mantiene vía `semantics` para TalkBack. Botón instalar ya era 52dp (`NovaGradients.kt:86`), Play 48dp. Touch ≥48 añadidos: banner "Open" (44→48), close del visor de screenshots (44→48), `SecondaryActionButton`, FilterChips de fuente (P06-T06), TextButtons (ver más/menos, leer reseñas), VersionRow, `ContactRow` (la fila del icono 20dp en DetailsExtraSections:224), permisos "Show all". Screenshots ya LazyRow con keys. `rg 'Icons.Filled.ArrowBack|KeyboardArrow'` details = 0 (AutoMirrored).)
+- P08-T04 (Downloads ya cumplía: `EmptyState` si cola vacía, LazyColumn virtualizada con keys en todas las secciones (active/queued/completed/failed por taskId), sección auto-clean en empty. Verificado, sin cambios.)
+- P08-T05 (Updates: `size(42.dp)` → `48.dp` en el MoreVert (L598); "Update all" y NoticeBanner ≥48; `rg -ni 'apkpure|apkcombo'` updates = 0; agrupación por fuente **activa** ya vigente (`UpdatesViewModel` agrupa `notIgnored.groupingBy { it.source }`, candidatos solo de fuentes enabled; mirrors eliminados en P05).)
+- P08-T06 (Installed NO tenía ruta de desinstalar → añadida: MoreVert por fila → DropdownMenu "Desinstalar" → **AlertDialog de confirmación** (`installed_uninstall_title` en 4 locales; reusa `details_uninstall`, `action_cancel`) → `InstalledViewModel.uninstall(packageName)` → `InstalledAppsRepository.uninstall` (sistema lanza su diálogo; lista se refresca vía PackageChangeReceiver). Filas 48dp (`heightIn`). Error → ErrorState+retry existente. LazyColumn con keys existente, búsqueda local y empty conservados.)
+- P08-T07 (Cuenta: ErrorBanner local duplicado eliminado → componente único **`core/ui/components/InfoBanner.kt`** (`InfoBannerKind.INFO/ERROR`, tokens: `NovaShapes.Card`, `NovaSpacing`, ≥48dp clickable, hint opcional). Account usa `InfoBanner(kind=ERROR, hint=…)`. Sin banners duplicados copy-paste.)
+- P08-T08 (NovaStoreRoot: `fontSize = 10.sp` → `MaterialTheme.typography.labelSmall` (11sp = mínimo AA; `labelTiny` del plan se satisface con labelSmall existente, sin añadir dimensión nueva; `softWrap=false`+ellipsis mantiene una línea a 4 tabs @360dp). Transiciones nav con `NovaMotion.MIDDLE` (fade ± slide 5% en NavHost enter/exit/pop). NavigationBar ya usaba token `surfaceContainer`; badge updates ya existía. Rutas intactas (deep links compile). `rg '10\.sp|\.sp'` Root = 0, import sp eliminado.)
+- P08-T09 (checklist estados, ver tabla abajo. Skeleton donde hay listas; error+retry en red; OfflineBanner en Home; `searchLocal` offline.)
+- P08-T10 (a11y en pantallas tocadas: contentDescription en todo icon-only; chevrons/flèches `AutoMirrored` (back, sort, chevrons, OpenInNew); targets ≥48 en details/updates/installed/home/search; decorative icons `null` documentados junto a texto.)
+- Nota DERIVADA (fuera de P08 pero bloqueante detectado al correr `testReleaseUnitTest`): el grafo Hilt de `:app` NO ensamblaba — `SourceRegistry` sin `@Binds` y el `setOf` de providers sin multibinding. `/*apk*/:app:assembleRelease` habría fallado desde la fase de fuentes. Fijado en `data/di/DataModule.kt` (`bindSourceRegistry` + 4 `@Binds @IntoSet` de providers: Fdroid, HtmlRegex/play-web, GitHub, Gitea) y `SourceRegistryImpl` con `@JvmSuppressWildcards` (use-site type) porque `Set` kotlin es covariante → `Set<? extends …>` nunca matchea el key `Set<…>` de Dagger. `:app:hiltJavaCompileRelease`, `testReleaseUnitTest` y `:app:assembleRelease` ahora pasan.
+
+### Tabla P08-T09 — estados por pantalla
+
+| Pantalla | Loading (skeleton) | Empty | Error + retry | Offline |
+|---|---|---|---|---|
+| Home | ShimmerBox (hero, chips, shelves, recientes) | EmptyState + CTA "Añadir fuente" | banner de estado + auto-retry init | OfflineBanner + searchLocal |
+| Search | `SearchResultsSkeleton` (primer load) | EmptyState diferenciado (query vacío vs sin hits) | ErrorState + retry | `searchLocal` fallback |
+| Details | `DetailsSkeleton` (header + botón) | N/A (o contenido o error) | ErrorState + retry | N/A (fallo de fuente → ErrorState) |
+| Downloads | N/A (sin pantalla de carga; progreso por item) | EmptyState "cola vacía" + auto-clean | N/A (fallidos en sección propia) | N/A (cola local) |
+| Updates | `UpdatesSkeleton` (+ barra scan) | EmptyState + botón scan | ErrorState + retry | N/A (fuentes sin mirror, P05) |
+| Installed | `InstalledSkeleton` | EmptyState | ErrorState + retry | N/A (lista local) |
+| Category | ShimmerBox grid + shimmer load-more | (hereda Home) | vía Home | vía Home |
+| Account | N/A | N/A | InfoBanner (ERROR) + mensaje contextual | N/A |
+| Settings | P09 | P09 | P09 | P09 |
 
 ## P09 Configuración
 
