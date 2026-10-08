@@ -85,12 +85,28 @@ interface CatalogDao {
     )
     suspend fun getVersionsFor(packageNames: List<String>): List<AppVersionEntity>
 
-    /** Most recently updated packages, one row per package. */
+    /**
+     * Most recently updated packages, one row per package. The row (header)
+     * comes from the highest-priority repository that carries the package —
+     * same rule as search/category/getApp (P06-T07). Ordering is the
+     * package-wide recency so a fresher, lower-priority row still surfaces.
+     */
     @Query(
         """
-        SELECT *, MAX(COALESCE(lastUpdatedAt, addedAt, 0)) AS recency FROM remote_apps
-        GROUP BY packageName
-        ORDER BY recency DESC
+        SELECT a.*
+        FROM remote_apps a
+        LEFT JOIN repositories r ON r.repositoryId = a.source
+        JOIN (
+            SELECT packageName AS pkg, MIN(COALESCE(r.priority, 1000)) AS pr
+            FROM remote_apps x
+            LEFT JOIN repositories r ON r.repositoryId = x.source
+            GROUP BY packageName
+        ) best ON best.pkg = a.packageName AND COALESCE(r.priority, 1000) = best.pr
+        GROUP BY a.packageName
+        ORDER BY (
+            SELECT MAX(COALESCE(x.lastUpdatedAt, x.addedAt, 0))
+            FROM remote_apps x WHERE x.packageName = a.packageName
+        ) DESC
         LIMIT :limit
         """,
     )
@@ -122,12 +138,23 @@ interface CatalogDao {
     )
     suspend fun listByCategory(category: String, offset: Int, limit: Int): List<RemoteAppEntity>
 
-    /** One page of the freshest apps overall ("All" category). */
+    /** One page of the freshest apps overall ("All" category), min-priority row per package. */
     @Query(
         """
-        SELECT *, MAX(COALESCE(lastUpdatedAt, addedAt, 0)) AS recency FROM remote_apps
-        GROUP BY packageName
-        ORDER BY recency DESC
+        SELECT a.*
+        FROM remote_apps a
+        LEFT JOIN repositories r ON r.repositoryId = a.source
+        JOIN (
+            SELECT packageName AS pkg, MIN(COALESCE(r.priority, 1000)) AS pr
+            FROM remote_apps x
+            LEFT JOIN repositories r ON r.repositoryId = x.source
+            GROUP BY packageName
+        ) best ON best.pkg = a.packageName AND COALESCE(r.priority, 1000) = best.pr
+        GROUP BY a.packageName
+        ORDER BY (
+            SELECT MAX(COALESCE(x.lastUpdatedAt, x.addedAt, 0))
+            FROM remote_apps x WHERE x.packageName = a.packageName
+        ) DESC
         LIMIT :limit OFFSET :offset
         """,
     )
