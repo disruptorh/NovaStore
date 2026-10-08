@@ -33,6 +33,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - P05-T11 (la retención del escaneo se extrae a `data/.../UpdateRetention.kt`: `shouldDeleteUpdateRow` puro — fila en vuelo fresca sobrevive, zombie >24h se borra, terminal se borra, candidata nunca se borra — con `UpdateRetentionTest`; `CheckForUpdatesUseCaseTest` con fakes de interfaces: play desactivado salta el pase Play, play sin acceso retiene paquetes sin responder, fallo de repos sin fuente comparable → Failure, filas legacy DISCOVERY se limpian antes del pase; 8 tests nuevos, `:data` y `:domain` unit test verdes)
 - P06-T01 (`RepositoryDao.updateFields` persiste name/baseUrl/metadataUrl/providerType/extraJson (2 tests Robolectric); `RepositoriesRepository.add` acepta `ProviderType` + `extraJson` y `update` nuevo; impl: F-Droid conserva `normalizeRepoUrl`+refresh, no-F-Droid escribe row canónica https (owner/repo para GitHub/GitLab/Gitea) sin tocar índices F-Droid, `ensureBuiltIns` ya NO sobrescribe el nombre local (solo reposiciona); `RepositoryEditorDialog` con selector de tipo, regex APK condicional para HTML y URL bloqueada en built-ins (edición solo nombre); strings en 4 locales; compila + tests verdes)
 - P11 completo (T01–T09). Detalles + riesgo aceptado en commit: P11-T01 `VerificationResult.Valid.checksumFromSource`; sha256 del source con mismatch → `ChecksumMismatch`, sin sha256 → hash local y flags `checksumFromSource=false`; `UpdateAllUseCase.autoUpdatable` exige sha256 válido (Play deja de auto-instalar — aceptado). P11-T02 `SignatureVerifier.anySignerMatches` compara TODOS los firma apkContentsSigners; digest instalado desconocido + app instalada → bloqueo `SignatureMismatch`. P11-T03 `DownloadUrlPolicy.isSecureDownloadUrl` (https-only) en `enqueue`+`executeDownload`; `NetworkSecurityConfig` cleartext off + `usesCleartextTraffic=false`; `StoreLinks.upgradeToHttps`. P11-T04 `SessionCipher.migrate()` + `SessionMigrations` (playAuth/anonPlay) en arranque. P11-T05 `RootCommandExecutor.isPathInsideCache` + 5 tests JVM. P11-T06 `UpdateEngine.resolverCandidates` puro en companion (catalog-driven, sin tocar sources/mirrors) + `UpdateEngineScanTest` (5); total @Test 147 > 35. P11-T07 build.yml ya corre `testReleaseUnitTest`; `run-tests.sh` `bash -n` OK; README documenta `connectedAndroidTest` local. P11-T08 chevrons AutoMirrored (Logout, KeyboardArrowRight; 0 `Icons.Filled.Chevron*/KeyboardArrow*/ArrowForwardIos` restantes). P11-T09 quitado `MANAGE/WRITE/READ_EXTERNAL_STORAGE` + `StoragePermissionGate` + `AllFilesAccessRow`; se conservan `REQUEST_INSTALL_PACKAGES`/`QUERY_ALL_PACKAGES`; downloads siguen en `cache/downloads`.
+- P12 completo (T01–T04). v7.3.0 / build 15. Re-medida en device (cold 392 ms, warm-content 3 190 ms, RSS/PSS 195 220/133 120 KB, jank 5.99 %); APK universal 6 337 308 B y splits ≤ 5.23 MB; `assembleRelease+lintVitalRelease+testReleaseUnitTest` exit 0; `AppDetailsScreen` tokenizado (0 `Color(0x` en Screens; `StarAmber`/`Favorite`/`BrandIndigo`); checklist 99/99 y `INFORME_FINAL.md` (SHA `44ed949`).
 
 ## Bloqueado
 
@@ -210,7 +211,7 @@ Cancelado: coste alto, riesgo de incongruencias (applicationId, workers, UA, cla
 
 ## P12 Pulido y release
 
-- [ ] P12-T01 Re-medir métricas vs baseline
-- [ ] P12-T02 `assembleRelease` + lint vital
-- [ ] P12-T03 Checklist `99_CRITERIOS_DE_FINALIZACION.md`
-- [ ] P12-T04 Escribir `INFORME_FINAL.md`
+- [x] P12-T01 Re-medir métricas vs baseline
+- [x] P12-T02 `assembleRelease` + lint vital
+- [x] P12-T03 Checklist `99_CRITERIOS_DE_FINALIZACION.md`
+- [x] P12-T04 Escribir `INFORME_FINAL.md`

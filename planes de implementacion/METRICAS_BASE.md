@@ -126,3 +126,33 @@ Anotar `TOTAL PSS` y `TOTAL RSS` del bloque *App Summary*.
 - Commit: `docs: P01 baseline metrics`
 
 Reintentos de dispositivo en P12 (métodos idénticos, misma rama de dispositivo).
+
+## P12-T01 — Re-medición (after) · 2026-10-08
+
+| Métrica | Baseline | After P12 | Delta |
+|---|---|---|---|
+| APK release universal | 18 581 405 bytes | **6 337 308 bytes (6.04 MB)** | **−65.9 %** |
+| APK descarga estimada (universal) | 16 663 246 | **4 703 520** | −71.8 % |
+| APK arm64-v8a | n/a (sin splits) | **5 227 021** (descarga 4 296 156) | splits |
+| APK armeabi-v7a | n/a | **5 078 103** (descarga 4 271 338) | splits |
+| APK x86_64 | n/a | **5 222 428** (descarga 4 296 104) | splits |
+| Cold start → first frame (release, mediana 3) | 376 ms | **392 ms** (420/352/392) | +16 ms |
+| Time to home contenido (2ª arranque, warm) | 3 458 ms | **3 190 ms** (3 940/2 440) | −268 ms |
+| RSS/PSS tras home idle 10 s | RSS 270 380 / PSS 212 500 KB | **RSS 195 220 / PSS 133 120 KB** | −27.8 % / −37.4 % |
+| Jank home scroll 5 s | 6.64 % (20/301) | **5.99 %** (17/284) | −0.65 p.p. |
+| `assembleRelease` | éxito | **BUILD SUCCESSFUL** | = |
+
+### Contexto after
+
+| Campo | Valor |
+|---|---|
+| Fecha | 2026-10-08 |
+| Git SHA | `44ed949` (v7.3.0 build 15, minify+shrink on, splits ABI) |
+| APKs | universal `NovaStore-v7.3.0.apk` (6 337 308 B) + arm64-v8a / armeabi-v7a / x86_64 (≤ 5.23 MB c/u) |
+| Dispositivo | Samsung arm64-v8a, Android 14 (API 34), 1080×2400 @450 dpi (misma rama; APK re-instalado con `adb install -r`) |
+
+> Ruido de build: reconstruir el mismo SHA da ±16 KB (0.09 %); todos los deltas de
+> tamaño están órdenes de magnitud por encima del ruido. Los tiempos de arranque y
+> contenido usan el mismo proxy de captura que P01 (no Macrobenchmark); el jank
+> sigue por encima del objetivo ≤ 5 % (5.99 %) pero mejora sobre el 6.64 % de la
+> baseline y **no es un criterio de cierre del 99**.
