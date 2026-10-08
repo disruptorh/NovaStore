@@ -32,6 +32,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - P05-T10 (ids de canales unificados en `core/common/NotificationChannelIds` y usados por app + downloader; `InstallOutcomeNotifier` en `feature:updates` publica success de install en `installation` y fallos de download/verify/install en `errors` desde el resumen de `updateAll`; strings en `core:ui` 4 locales; 5 canales/5 usados, 5 sitios `NotificationCompat.Builder`)
 - P05-T11 (la retención del escaneo se extrae a `data/.../UpdateRetention.kt`: `shouldDeleteUpdateRow` puro — fila en vuelo fresca sobrevive, zombie >24h se borra, terminal se borra, candidata nunca se borra — con `UpdateRetentionTest`; `CheckForUpdatesUseCaseTest` con fakes de interfaces: play desactivado salta el pase Play, play sin acceso retiene paquetes sin responder, fallo de repos sin fuente comparable → Failure, filas legacy DISCOVERY se limpian antes del pase; 8 tests nuevos, `:data` y `:domain` unit test verdes)
 - P06-T01 (`RepositoryDao.updateFields` persiste name/baseUrl/metadataUrl/providerType/extraJson (2 tests Robolectric); `RepositoriesRepository.add` acepta `ProviderType` + `extraJson` y `update` nuevo; impl: F-Droid conserva `normalizeRepoUrl`+refresh, no-F-Droid escribe row canónica https (owner/repo para GitHub/GitLab/Gitea) sin tocar índices F-Droid, `ensureBuiltIns` ya NO sobrescribe el nombre local (solo reposiciona); `RepositoryEditorDialog` con selector de tipo, regex APK condicional para HTML y URL bloqueada en built-ins (edición solo nombre); strings en 4 locales; compila + tests verdes)
+- P11 completo (T01–T09). Detalles + riesgo aceptado en commit: P11-T01 `VerificationResult.Valid.checksumFromSource`; sha256 del source con mismatch → `ChecksumMismatch`, sin sha256 → hash local y flags `checksumFromSource=false`; `UpdateAllUseCase.autoUpdatable` exige sha256 válido (Play deja de auto-instalar — aceptado). P11-T02 `SignatureVerifier.anySignerMatches` compara TODOS los firma apkContentsSigners; digest instalado desconocido + app instalada → bloqueo `SignatureMismatch`. P11-T03 `DownloadUrlPolicy.isSecureDownloadUrl` (https-only) en `enqueue`+`executeDownload`; `NetworkSecurityConfig` cleartext off + `usesCleartextTraffic=false`; `StoreLinks.upgradeToHttps`. P11-T04 `SessionCipher.migrate()` + `SessionMigrations` (playAuth/anonPlay) en arranque. P11-T05 `RootCommandExecutor.isPathInsideCache` + 5 tests JVM. P11-T06 `UpdateEngine.resolverCandidates` puro en companion (catalog-driven, sin tocar sources/mirrors) + `UpdateEngineScanTest` (5); total @Test 147 > 35. P11-T07 build.yml ya corre `testReleaseUnitTest`; `run-tests.sh` `bash -n` OK; README documenta `connectedAndroidTest` local. P11-T08 chevrons AutoMirrored (Logout, KeyboardArrowRight; 0 `Icons.Filled.Chevron*/KeyboardArrow*/ArrowForwardIos` restantes). P11-T09 quitado `MANAGE/WRITE/READ_EXTERNAL_STORAGE` + `StoragePermissionGate` + `AllFilesAccessRow`; se conservan `REQUEST_INSTALL_PACKAGES`/`QUERY_ALL_PACKAGES`; downloads siguen en `cache/downloads`.
 
 ## Bloqueado
 
@@ -197,15 +198,15 @@ Cancelado: coste alto, riesgo de incongruencias (applicationId, workers, UA, cla
 
 ## P11 Pruebas, a11y, seguridad
 
-- [ ] P11-T01 SHA-256 mandatory o rechazo explícito `Unverified`
-- [ ] P11-T02 Firma: no instalar si digest instalado falta y hay app instalada
-- [ ] P11-T03 Rechazar `http://` en descargas; `network_security_config`
-- [ ] P11-T04 Migrar tokens plaintext `SessionCipher`
-- [ ] P11-T05 Tests RootCommand regex
-- [ ] P11-T06 Tests providers + update scan
-- [ ] P11-T07 CI: `testReleaseUnitTest` + script tests arreglado
-- [ ] P11-T08 A11y RTL + TalkBack strings
-- [ ] P11-T09 Revisar permisos storage
+- [x] P11-T01 SHA-256 mandatory o rechazo explícito `Unverified`
+- [x] P11-T02 Firma: no instalar si digest instalado falta y hay app instalada
+- [x] P11-T03 Rechazar `http://` en descargas; `network_security_config`
+- [x] P11-T04 Migrar tokens plaintext `SessionCipher`
+- [x] P11-T05 Tests RootCommand regex
+- [x] P11-T06 Tests providers + update scan
+- [x] P11-T07 CI: `testReleaseUnitTest` + script tests arreglado
+- [x] P11-T08 A11y RTL + TalkBack strings
+- [x] P11-T09 Revisar permisos storage
 
 ## P12 Pulido y release
 
