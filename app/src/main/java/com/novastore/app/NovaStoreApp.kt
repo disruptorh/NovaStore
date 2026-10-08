@@ -10,6 +10,7 @@ import androidx.work.Configuration
 import com.novastore.app.core.common.NotificationChannelIds
 import com.novastore.app.core.datastore.SettingsDataStore
 import com.novastore.app.core.downloader.api.DownloadRequester
+import com.novastore.app.data.repository.SessionMigrations
 import com.novastore.app.domain.repository.AccountRepository
 import com.novastore.app.work.WorkScheduler
 import coil.ImageLoader
@@ -25,6 +26,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltAndroidApp
 class NovaStoreApp : Application(), Configuration.Provider, ImageLoaderFactory {
@@ -52,6 +54,9 @@ class NovaStoreApp : Application(), Configuration.Provider, ImageLoaderFactory {
 
     @Inject
     lateinit var updateNotifier: com.novastore.app.work.UpdateNotifier
+
+    @Inject
+    lateinit var sessionMigrations: SessionMigrations
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -100,7 +105,11 @@ class NovaStoreApp : Application(), Configuration.Provider, ImageLoaderFactory {
         // Schedule the periodic update scan according to user settings.
         appScope.launch { workScheduler.schedulePeriodicScan() }
         // Restore the persisted Google Play session (if any) in the background.
-        appScope.launch { accountRepository.start() }
+        // Legacy plaintext sessions are re-encrypted first (P11-T04).
+        appScope.launch {
+            runCatching { withContext(Dispatchers.IO) { sessionMigrations.run() } }
+            accountRepository.start()
+        }
         // Housekeeping: auto-clean completed downloads past their age.
         appScope.launch {
             runCatching {

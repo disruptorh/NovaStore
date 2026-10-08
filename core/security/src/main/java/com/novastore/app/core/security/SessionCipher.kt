@@ -19,12 +19,13 @@ import kotlinx.coroutines.withContext
  *
  * The serialized document is prefixed with [PREFIX] so a value written
  * before this cipher existed (plaintext) is still readable — [decrypt]
- * returns it unchanged, migrating it to ciphertext on the next write.
+ * returns it unchanged, and [migrate] re-encrypts it during the one-pass
+ * migration on app start.
  * A value that carries the prefix but fails authentication (tampered or
  * key lost) returns null, and callers drop the session rather than use it.
  */
 @Singleton
-class SessionCipher @Inject constructor(
+open class SessionCipher @Inject constructor(
     private val dispatcherProvider: DispatcherProvider,
 ) {
 
@@ -62,8 +63,19 @@ class SessionCipher @Inject constructor(
             String(cipher.doFinal(body), Charsets.UTF_8)
         }.getOrNull()
     }
+    /**
+     * P11-T04: re-encrypts a legacy plaintext value. Returns the ciphertext
+     * to persist, or null when the value is already encrypted or absent —
+     * callers write back only on a non-null result, so an already-encrypted
+     * blob is never double-wrapped.
+     */
+    suspend fun migrate(stored: String?): String? {
+        if (stored == null || stored.startsWith(PREFIX)) return null
+        return encrypt(stored)
+    }
 
-    private fun secretKey(): SecretKey {
+    /** Overridable so the pipeline is unit-testable without the Android Keystore. */
+    protected open fun secretKey(): SecretKey {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
         (keyStore.getEntry(KEY_ALIAS, null) as? KeyStore.SecretKeyEntry)?.let { return it.secretKey }
 

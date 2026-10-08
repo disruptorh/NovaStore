@@ -206,13 +206,6 @@ fun settingsItems(): List<SettingsItem> = listOf(
         SettingsSectionKey.STORAGE,
     ),
     SettingsItem(
-        "all_files",
-        stringResource(UiR.string.settings_all_files),
-        stringResource(UiR.string.settings_all_files_desc),
-        listOf("storage", "permission", "manage", "shared"),
-        SettingsSectionKey.STORAGE,
-    ),
-    SettingsItem(
         "clear_cache",
         stringResource(UiR.string.settings_clear_cache),
         stringResource(UiR.string.settings_clear_cache_desc),

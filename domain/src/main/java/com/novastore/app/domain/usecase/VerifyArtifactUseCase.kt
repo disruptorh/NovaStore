@@ -22,6 +22,8 @@ import javax.inject.Inject
 data class VerifiedPackage(
     val plan: PackageInstallationPlan,
     val sha256: String?,
+    /** Whether [sha256] was offered by the repository (or computed locally). */
+    val checksumFromSource: Boolean = false,
 )
 
 /**
@@ -71,6 +73,7 @@ class VerifyArtifactUseCase @Inject constructor(
                             artifacts = buildArtifacts(version, file, result.sha256),
                         ),
                         sha256 = result.sha256,
+                        checksumFromSource = result.checksumFromSource,
                     ),
                 )
             }

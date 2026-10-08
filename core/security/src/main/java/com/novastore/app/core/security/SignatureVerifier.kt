@@ -31,7 +31,7 @@ class SignatureVerifier @Inject constructor(
                 PackageManager.GET_SIGNATURES
             }
             val info = context.packageManager.getPackageInfo(packageName, flags)
-            extractDigest(info)
+            signerDigests(info)?.firstOrNull()
         } catch (_: PackageManager.NameNotFoundException) {
             null
         } catch (_: Exception) {
@@ -49,18 +49,42 @@ class SignatureVerifier @Inject constructor(
         return expected.equals(actual, ignoreCase = true)
     }
 
-    /**
-     * Digest of the certificate the package is currently signed with, in the
+    /** Digest of the certificate the package is currently signed with, in the
      * same form F-Droid indexes publish (lowercase hex SHA-256 of the DER
-     * certificate). [info] must have been fetched with [SIGNING_FLAGS].
+     * certificate). [info] must have been fetched with [SIGNING_FLAGS]. */
+    fun digestOf(info: PackageInfo): String? = signerDigests(info)?.firstOrNull()
+
+    /**
+     * Whether ANY signer of the archive matches [expected] — an upgrade is
+     * accepted as soon as one certificate in `apkContentsSigners` (or the
+     * legacy `signatures` array) matches the installed certificate, so a
+     * key-rotated app whose old key is in the history still verifies and the
+     * comparison never collapses to "first signer only" (P11-T02).
+     *
+     * Null-safe: when [expected] is null (nothing installed to compare
+     * against) or [info] carries no readable certificate, the result is null
+     * and the caller decides the fallback — never a silent privileged update.
      */
-    fun digestOf(info: PackageInfo): String? = try {
-        extractDigest(info)
-    } catch (_: Exception) {
-        null
+    fun anySignerMatches(expected: String?, info: PackageInfo): Boolean? {
+        if (expected == null) return null
+        val digests = signerDigests(info) ?: return null
+        return digests.any { it.equals(expected, ignoreCase = true) }
     }
 
-    private fun extractDigest(info: PackageInfo): String? {
+    /** Whether a package with this name is currently installed. */
+    suspend fun isInstalled(packageName: String): Boolean = withContext(dispatcherProvider.io) {
+        try {
+            context.packageManager.getPackageInfo(packageName, 0)
+            true
+        } catch (_: PackageManager.NameNotFoundException) {
+            false
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    /** All certificate digests of the archive, in signing order. */
+    private fun signerDigests(info: PackageInfo): List<String>? = try {
         val signatures: Array<out android.content.pm.Signature>? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             val signingInfo = info.signingInfo ?: return null
             // apkContentsSigners is the current signer, also after key rotation;
@@ -70,9 +94,9 @@ class SignatureVerifier @Inject constructor(
             @Suppress("DEPRECATION")
             info.signatures
         }
-        val first = signatures?.firstOrNull() ?: return null
-        val digest = MessageDigest.getInstance("SHA-256").digest(first.toByteArray())
-        return digest.joinToString("") { "%02x".format(it) }
+        signatures?.map { first -> MessageDigest.getInstance("SHA-256").digest(first.toByteArray()).joinToString("") { "%02x".format(it) } }
+    } catch (_: Exception) {
+        null
     }
 
     fun certificateInfo(digest: String): CertificateInfo = CertificateInfo(digest)

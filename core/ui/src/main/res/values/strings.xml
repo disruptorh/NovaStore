@@ -87,10 +87,6 @@
     <string name="details_busy">Downloading and verifying…</string>
     <string name="details_progress_downloading">Downloading… %1$d%% · %2$s / %3$s</string>
     <string name="details_progress_bytes">Downloading… %1$s</string>
-    <string name="storage_permission_title">Access to device storage</string>
-    <string name="storage_permission_text">Nova Store asks for storage access once so downloads, saved APK files and future OBB expansion files work out of the box. Nothing is read without you starting a download.</string>
-    <string name="storage_permission_allow">Allow</string>
-    <string name="storage_permission_later">Later</string>
     <string name="install_banner_text">Allow Nova Store to install apps to update them</string>
     <string name="install_banner_allow">Allow</string>
     <string name="details_screenshots">Photos</string>
@@ -352,10 +348,6 @@
     <string name="settings_autoclean_desc">Delete finished download files after the chosen number of days</string>
     <string name="settings_autoclean_off">Off</string>
     <string name="settings_autoclean_days_fmt">%1$d days</string>
-    <string name="settings_all_files">All files access</string>
-    <string name="settings_all_files_desc">Lets Nova Store manage APK files in shared storage</string>
-    <string name="settings_all_files_granted">Granted</string>
-    <string name="settings_all_files_denied">Not granted</string>
     <string name="settings_appearance">Appearance</string>
     <string name="settings_theme">Theme</string>
     <string name="theme_system">Follow system</string>

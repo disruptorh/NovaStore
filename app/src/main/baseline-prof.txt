@@ -11,5 +11,4 @@ HSPLcom/novastore/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
 HSPLcom/novastore/app/MainActivity;->onNewIntent(Landroid/content/Intent;)V
 HSPLcom/novastore/app/MainActivity;->onResume()V
 Lcom/novastore/app/ui/NovaStoreRoot;
-Lcom/novastore/app/ui/StoragePermissionGate;
 Lcom/novastore/app/ui/InstallPermissionBanner;

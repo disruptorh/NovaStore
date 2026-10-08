@@ -113,6 +113,7 @@ Without a key, the build is signed with the local debug key.
 
 ### CI and releases
 [GitHub Actions](.github/workflows/build.yml) builds the release APK and runs the unit tests on every push.
+Instrumented tests are **not** required in CI (there is no emulator runner); run `./gradlew connectedAndroidTest` locally on a device or emulator instead.
 Each build's APK is available as a workflow artifact.
 Pushing a `v*` tag publishes a GitHub Release with the APK and `SHA256SUMS.txt`.
 

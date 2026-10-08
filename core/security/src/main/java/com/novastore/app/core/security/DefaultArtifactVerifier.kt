@@ -38,10 +38,12 @@ class DefaultArtifactVerifier @Inject constructor(
             return@withContext VerificationResult.Invalid(NovaError.InvalidPackage)
         }
 
-        // 3. SHA-256 against source-provided checksum
-        if (expectedSha256 != null && HashVerifier.isValidSha256Hex(expectedSha256)) {
+        // 3. SHA-256 against source-provided checksum. A missing or malformed
+        //    source checksum is not a failure, but it marks the artifact as
+        //    not checksum-from-source: it may still be installed manually.
+        if (sourceProvidingChecksum(expectedSha256)) {
             val actual = hashVerifier.sha256(file)
-            if (!actual.equals(expectedSha256, ignoreCase = true)) {
+            if (!checksumStillMatches(expectedSha256, actual)) {
                 return@withContext VerificationResult.Invalid(NovaError.ChecksumMismatch)
             }
         }
@@ -70,8 +72,18 @@ class DefaultArtifactVerifier @Inject constructor(
             ?: return@withContext VerificationResult.Invalid(NovaError.UnsignedPackage)
 
         // 6. Signing certificate compatibility with the installed version.
-        if (installedCertDigest != null &&
-            signatureVerifier.matches(installedCertDigest, archiveDigest) == false
+        //    An installed app is never upgraded "sight unseen": when we cannot
+        //    establish its current certificate, installation is blocked
+        //    (never skipped). When a certificate IS known, any of the archive
+        //    signers may match (key rotation), not just the first one.
+        val installedDigest = when {
+            installedCertDigest != null -> installedCertDigest
+            signatureVerifier.isInstalled(packageName) ->
+                signatureVerifier.installedCertDigest(packageName)
+            else -> null
+        }
+        if (installedDigest != null &&
+            signatureVerifier.anySignerMatches(installedDigest, parsed.signingInfo) != true
         ) {
             return@withContext VerificationResult.Invalid(NovaError.SignatureMismatch)
         }
@@ -81,10 +93,26 @@ class DefaultArtifactVerifier @Inject constructor(
             versionCode = parsed.versionCode,
             sha256 = expectedSha256 ?: hashVerifier.sha256(file),
             certificate = CertificateInfo(archiveDigest),
+            checksumFromSource = sourceProvidingChecksum(expectedSha256),
         )
     }
 
     companion object {
         private const val MIN_APK_BYTES = 4096L
+
+        /**
+         * True when the repository offered a well-formed SHA-256 for this
+         * release (so a computed/local hash is not silently trusted as the
+         * source's). Exposed as pure for direct unit-testing.
+         */
+        internal fun sourceProvidingChecksum(expectedSha256: String?): Boolean =
+            expectedSha256 != null && HashVerifier.isValidSha256Hex(expectedSha256)
+
+        /**
+         * Case-insensitive equality of the computed archive hash with the
+         * source-provided checksum. A mismatch is [NovaError.ChecksumMismatch].
+         */
+        internal fun checksumStillMatches(expectedSha256: String?, actual: String): Boolean =
+            expectedSha256 != null && expectedSha256.equals(actual, ignoreCase = true)
     }
 }

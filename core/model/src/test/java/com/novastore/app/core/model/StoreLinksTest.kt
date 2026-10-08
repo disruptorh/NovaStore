@@ -44,4 +44,18 @@ class StoreLinksTest {
         assertEquals(app("network.loki.messenger"), StoreLinks.parse("network.loki.messenger"))
         assertEquals(StoreLink.Search("Hello world"), StoreLinks.parse("Hello world"))
     }
+
+    @Test
+    fun httpDeepLinksAreUpgradedToHttps() {
+        // P11-T03: a cleartext store link still resolves the app...
+        assertEquals(
+            app("org.telegram.messenger"),
+            StoreLinks.parse("http://play.google.com/store/apps/details?id=org.telegram.messenger"),
+        )
+        // ...and the URL handed to the fetcher is upgraded, never cleartext.
+        assertEquals(
+            "https://f-droid.org/en/packages/org.fdroid.fdroid/",
+            StoreLinks.extractUrl("http://f-droid.org/en/packages/org.fdroid.fdroid/"),
+        )
+    }
 }

@@ -10,10 +10,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material3.AlertDialog
@@ -113,7 +113,7 @@ internal fun PrivacySection(
         if (signedIn && show("sign_out")) {
             RowDivider()
             SourceNavRow(
-                icon = Icons.Filled.Logout,
+                icon = Icons.AutoMirrored.Filled.Logout,
                 label = stringResource(UiR.string.account_sign_out),
                 description = stringResource(UiR.string.settings_sign_out_desc),
                 expanded = false,

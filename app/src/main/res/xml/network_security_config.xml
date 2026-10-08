@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  P11-T03: Nova Store only talks HTTPS. Cleartext is disabled globally and
+  no domain overrides re-enable it, so a http:// repository or deep link can
+  never be reached; such URLs are refused by DownloadEngine as well.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

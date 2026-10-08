@@ -119,8 +119,6 @@ fun NovaStoreRoot(
     val accentPalette by rootViewModel.accentPalette.collectAsStateWithLifecycle()
 
     NovaTheme(mode = themeMode, accent = accentPalette) {
-        // First-launch storage access request (asked once per install).
-        StoragePermissionGate()
         val navController = rememberNavController()
         val backStackEntry by navController.currentBackStackEntryAsState()
         val currentDestination = backStackEntry?.destination

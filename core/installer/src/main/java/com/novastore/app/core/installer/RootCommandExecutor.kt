@@ -35,8 +35,6 @@ class RootCommandExecutor @Inject constructor(
         command.arguments
             .filter { it.startsWith("/") }
             .forEach { path ->
-                val file = File(path)
-                val canonical = try { file.canonicalPath } catch (_: Exception) { path }
                 val allowedRoot = try {
                     File(context.cacheDir, "downloads").canonicalPath
                 } catch (_: Exception) {
@@ -46,7 +44,7 @@ class RootCommandExecutor @Inject constructor(
                         stderr = "Command rejected: unable to resolve private cache directory",
                     )
                 }
-                if (!canonical.startsWith(allowedRoot)) {
+                if (!isPathInsideCache(path, allowedRoot)) {
                     return@withContext RootCommandResult(
                         exitCode = null,
                         stdout = "",
@@ -99,6 +97,24 @@ class RootCommandExecutor @Inject constructor(
             )
         } finally {
             process?.destroyForcibly()
+        }
+    }
+
+    companion object {
+        /**
+         * True when [path]'s canonical form lives inside [allowedRootCanonical]
+         * (which is already canonical). Symlinks and `..` are resolved, and a
+         * path that cannot be canonicalized is compared verbatim — so it is
+         * refused. The separator boundary stops `/downloads-evil` matching
+         * `/downloads`. Pure — unit-tested without Android.
+         */
+        internal fun isPathInsideCache(path: String, allowedRootCanonical: String): Boolean {
+            val canonical = try {
+                File(path).canonicalPath
+            } catch (_: Exception) {
+                path
+            }
+            return canonical.startsWith(allowedRootCanonical + File.separator)
         }
     }
 }

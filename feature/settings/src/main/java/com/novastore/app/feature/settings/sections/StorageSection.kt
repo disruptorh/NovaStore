@@ -1,12 +1,5 @@
 package com.novastore.app.feature.settings.sections
 
-import android.content.Intent
-import android.net.Uri
-import android.os.Build
-import android.os.Environment
-import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,7 +15,6 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.DeleteSweep
-import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -36,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -57,10 +48,6 @@ internal fun StorageSection(
     SettingsSection(title = stringResource(UiR.string.settings_storage_cache_section)) {
         if (show("autoclean")) {
             AutoCleanDaysRow(days = autoCleanDays, onSelect = viewModel::setDownloadsAutoCleanDays)
-        }
-        if (show("all_files")) {
-            RowDivider()
-            AllFilesAccessRow()
         }
         if (show("clear_cache")) {
             RowDivider()
@@ -208,84 +195,3 @@ internal fun autoCleanDaysLabel(days: Int): String =
     } else {
         stringResource(UiR.string.settings_autoclean_days_fmt, days)
     }
-
-/** True when the system "All files access" toggle is on for Nova Store (API 30+). */
-private fun allFilesAccessGranted(): Boolean =
-    Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Environment.isExternalStorageManager()
-
-/**
- * Informational row for the MANAGE_EXTERNAL_STORAGE permission: the system
- * owns the state — tapping opens the system toggle, returning refreshes it.
- */
-@Composable
-internal fun AllFilesAccessRow() {
-    val context = LocalContext.current
-    var allFilesGranted by remember { mutableStateOf(allFilesAccessGranted()) }
-    val launcher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult(),
-    ) {
-        allFilesGranted = allFilesAccessGranted()
-    }
-    Surface(
-        onClick = {
-            val packageUri = Uri.parse("package:${context.packageName}")
-            // NOTE: Settings.ACTION_MANAGE_APP_PERMISSION is NOT part of the
-            // public SDK (system API) — the public per-app all-files screen is
-            // ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION (API 30+).
-            runCatching {
-                launcher.launch(Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, packageUri))
-            }.onFailure {
-                runCatching {
-                    launcher.launch(Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION, packageUri))
-                }
-            }
-        },
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        shape = RoundedCornerShape(14.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Icon(
-                Icons.Filled.Storage,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp),
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(UiR.string.settings_all_files),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = stringResource(UiR.string.settings_all_files_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            Text(
-                text = stringResource(
-                    if (allFilesGranted) {
-                        UiR.string.settings_all_files_granted
-                    } else {
-                        UiR.string.settings_all_files_denied
-                    },
-                ),
-                style = MaterialTheme.typography.labelMedium,
-                color = if (allFilesGranted) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-                maxLines = 1,
-            )
-        }
-    }
-}

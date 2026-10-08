@@ -87,10 +87,6 @@
     <string name="details_busy">Téléchargement et vérification…</string>
     <string name="details_progress_downloading">Téléchargement… %1$d%% · %2$s / %3$s</string>
     <string name="details_progress_bytes">Téléchargement… %1$s</string>
-    <string name="storage_permission_title">Accès au stockage</string>
-    <string name="storage_permission_text">Nova Store demande l’accès au stockage une seule fois pour que les téléchargements, les APK enregistrés et les futurs fichiers OBB fonctionnent immédiatement. Rien n’est lu sans que vous lanciez un téléchargement.</string>
-    <string name="storage_permission_allow">Autoriser</string>
-    <string name="storage_permission_later">Plus tard</string>
     <string name="install_banner_text">Autorisez Nova Store à installer des applications pour les mettre à jour</string>
     <string name="install_banner_allow">Autoriser</string>
     <string name="details_screenshots">Photos</string>
@@ -352,10 +348,6 @@
     <string name="settings_autoclean_desc">Supprimer les téléchargements terminés après le nombre de jours choisi</string>
     <string name="settings_autoclean_off">Désactivé</string>
     <string name="settings_autoclean_days_fmt">%1$d jours</string>
-    <string name="settings_all_files">Accès à tous les fichiers</string>
-    <string name="settings_all_files_desc">Permet à Nova Store de gérer les fichiers APK du stockage partagé</string>
-    <string name="settings_all_files_granted">Accordé</string>
-    <string name="settings_all_files_denied">Non accordé</string>
     <string name="settings_appearance">Apparence</string>
     <string name="settings_theme">Thème</string>
     <string name="theme_system">Selon le système</string>

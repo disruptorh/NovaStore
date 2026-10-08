@@ -87,10 +87,6 @@
     <string name="details_busy">Загрузка и проверка…</string>
     <string name="details_progress_downloading">Загрузка… %1$d%% · %2$s / %3$s</string>
     <string name="details_progress_bytes">Загрузка… %1$s</string>
-    <string name="storage_permission_title">Доступ к памяти устройства</string>
-    <string name="storage_permission_text">Nova Store один раз запрашивает доступ к файлам, чтобы загрузки, сохранение APK и будущие OBB-файлы расширений работали сразу. Ничего не читается без вашего действия.</string>
-    <string name="storage_permission_allow">Разрешить</string>
-    <string name="storage_permission_later">Позже</string>
     <string name="install_banner_text">Разрешите Nova Store устанавливать приложения, чтобы обновлять их</string>
     <string name="install_banner_allow">Разрешить</string>
     <string name="details_screenshots">Фотографии</string>
@@ -352,10 +348,6 @@
     <string name="settings_autoclean_desc">Удалять завершённые загрузки через указанное число дней</string>
     <string name="settings_autoclean_off">Выкл.</string>
     <string name="settings_autoclean_days_fmt">%1$d дн.</string>
-    <string name="settings_all_files">Доступ ко всем файлам</string>
-    <string name="settings_all_files_desc">Позволяет Nova Store управлять APK-файлами в общем хранилище</string>
-    <string name="settings_all_files_granted">Разрешён</string>
-    <string name="settings_all_files_denied">Не разрешён</string>
     <string name="settings_appearance">Оформление</string>
     <string name="settings_theme">Тема</string>
     <string name="theme_system">Как в системе</string>

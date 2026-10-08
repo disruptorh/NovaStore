@@ -10,6 +10,7 @@ import com.novastore.app.core.common.DispatcherProvider
 import java.security.MessageDigest
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -42,6 +43,35 @@ class SignatureVerifierTest {
     fun `digest is null when the archive carries no signature`() {
         assertNull(verifier.digestOf(PackageInfo()))
         assertNull(verifier.digestOf(PackageInfo().apply { signingInfo = SigningInfo() }))
+    }
+
+    @Test
+    @Config(sdk = [Build.VERSION_CODES.O_MR1])
+    fun `anySignerMatches compares every signer, not just the first`() {
+        val first = ByteArray(48) { (it * 3).toByte() }
+        val second = ByteArray(48) { (it * 3 + 1).toByte() }
+        @Suppress("DEPRECATION")
+        val info = PackageInfo().apply { signatures = arrayOf(Signature(first), Signature(second)) }
+
+        // digestOf pins the "current" signer (first), anySignerMatches accepts
+        // a match on ANY certificate in the archive (key rotation).
+        assertEquals(sha256Hex(first), verifier.digestOf(info))
+        assertEquals(true, verifier.anySignerMatches(sha256Hex(first), info))
+        assertEquals(true, verifier.anySignerMatches(sha256Hex(second), info))
+        assertEquals(false, verifier.anySignerMatches(sha256Hex(ByteArray(48) { (it * 5).toByte() }), info))
+    }
+
+    @Test
+    fun `anySignerMatches is null safe`() {
+        assertNull(verifier.anySignerMatches(null, PackageInfo()))
+        assertNull(verifier.anySignerMatches("aabb", PackageInfo()))
+    }
+
+    @Test
+    fun `isInstalled is false for packages the system does not know`() {
+        runTest {
+            assertFalse(verifier.isInstalled("com.example.definitely.not.installed"))
+        }
     }
 
     @Test

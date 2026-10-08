@@ -11,6 +11,13 @@ sealed class VerificationResult {
         val versionCode: Long,
         val sha256: String?,
         val certificate: CertificateInfo?,
+        /**
+         * True when [sha256] is the checksum the repository offered for this
+         * release. False when it had to be computed locally; such artifacts
+         * may still be installed manually, but never by the automatic
+         * update-all pipeline (P11-T01).
+         */
+        val checksumFromSource: Boolean = false,
     ) : VerificationResult()
 
     data class Invalid(

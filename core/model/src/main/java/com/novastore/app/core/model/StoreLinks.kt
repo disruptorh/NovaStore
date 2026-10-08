@@ -35,13 +35,23 @@ object StoreLinks {
             return StoreLink.App(text)
         }
         val url = URL_IN_TEXT.find(text)?.value?.trimEnd('.', ',', ')', ']', '"', '\'') ?: text
-        parseUrl(url)?.let { return it }
+        parseUrl(upgradeToHttps(url))?.let { return it }
         return StoreLink.Search(text.take(120))
     }
 
     /** First URL inside [raw] (share sheets add titles around it). */
     fun extractUrl(raw: String?): String? =
-        URL_IN_TEXT.find(raw.orEmpty())?.value?.trimEnd('.', ',', ')', ']', '"', '\'')
+        URL_IN_TEXT.find(raw.orEmpty())?.value
+            ?.trimEnd('.', ',', ')', ']', '"', '\'')
+            ?.let(::upgradeToHttps)
+
+    /** P11-T03: a deep link is never followed over cleartext. */
+    private fun upgradeToHttps(url: String): String =
+        if (url.startsWith("http://", ignoreCase = true)) {
+            "https://" + url.substring("http://".length)
+        } else {
+            url
+        }
 
     private fun parseUrl(url: String, depth: Int = 0): StoreLink? {
         val uri = runCatching { URI(url.replace(" ", "%20")) }.getOrNull() ?: return null

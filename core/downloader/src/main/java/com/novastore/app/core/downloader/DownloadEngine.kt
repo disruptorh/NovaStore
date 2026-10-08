@@ -130,6 +130,13 @@ class DownloadEngine @Inject constructor(
                 updatedAt = now(),
             ),
         )
+        // HTTPS only (P11-T03): a cleartext URL never enters the queue.
+        if (!isSecureDownloadUrl(request.url) ||
+            request.splits.any { !isSecureDownloadUrl(it.url) }
+        ) {
+            markFailed(id, INSECURE_URL_MESSAGE)
+            return@withContext id
+        }
         kickQueue()
         id
     }
@@ -324,10 +331,16 @@ class DownloadEngine @Inject constructor(
 
     private suspend fun executeDownload(taskId: Long) {
         val entity = getEntity(taskId) ?: return
+        val splits = splitsByTask[taskKey(entity.packageName, entity.versionCode)].orEmpty()
+        // Defense in depth (P11-T03): a row that reached the worker with a
+        // cleartext URL (e.g. resumed after reboot) fails instead of fetching.
+        if (!isSecureDownloadUrl(entity.url) || splits.any { !isSecureDownloadUrl(it.url) }) {
+            markFailed(taskId, INSECURE_URL_MESSAGE)
+            return
+        }
         downloadDao.updateState(taskId, STATE_DOWNLOADING, now())
         control[taskId] = Control.RUNNING
 
-        val splits = splitsByTask[taskKey(entity.packageName, entity.versionCode)].orEmpty()
         val splitsTotal = splits.sumOf { it.size ?: 0L }
 
         val finalFile = File(entity.localPath)
