@@ -104,7 +104,6 @@ import com.novastore.app.core.ui.components.NovaRatingRow
 import com.novastore.app.core.ui.components.ShimmerBox
 import com.novastore.app.core.ui.components.SourceBadge
 import com.novastore.app.core.ui.components.novaAccentBrush
-import com.novastore.app.core.ui.components.SectionTitle
 import com.novastore.app.core.ui.theme.OnEmerald
 
 @OptIn(ExperimentalMaterial3Api::class)

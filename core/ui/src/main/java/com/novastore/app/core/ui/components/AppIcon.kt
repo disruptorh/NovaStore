@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,6 +23,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+
+/**
+ * Squircle corner rule for app icons (radius ≈ 31% of the icon size).
+ * A single derived shape replaces the old fixed 16/18/20dp corners so no ad
+ * hoc radii drift. Icons are pictures rather than surfaces, so they keep
+ * this rule outside the chip/card/sheet tokens.
+ */
+fun appIconSquircle(size: Dp): RoundedCornerShape = RoundedCornerShape(size / 3.2f)
 
 /**
  * Application icon with a fallback chain: [iconUrl] → [fallbackIconUrl] →

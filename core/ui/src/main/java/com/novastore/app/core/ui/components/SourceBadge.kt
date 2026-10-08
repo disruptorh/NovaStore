@@ -2,7 +2,6 @@ package com.novastore.app.core.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -14,6 +13,7 @@ import com.novastore.app.core.model.SOURCE_FDROID
 import com.novastore.app.core.model.SOURCE_GITHUB
 import com.novastore.app.core.model.SOURCE_GITLAB
 import com.novastore.app.core.model.SOURCE_PLAY
+import com.novastore.app.core.ui.theme.NovaShapes
 
 /**
  * Small chip identifying where an app comes from.
@@ -65,7 +65,7 @@ fun SourceBadge(
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         modifier = modifier
-            .background(container, RoundedCornerShape(8.dp))
+            .background(container, NovaShapes.Chip)
             .padding(horizontal = if (compact) 6.dp else 8.dp, vertical = 3.dp),
     )
 }

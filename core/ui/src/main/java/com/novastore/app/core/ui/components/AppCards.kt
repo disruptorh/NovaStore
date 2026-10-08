@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -21,11 +19,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.novastore.app.core.model.RemoteApp
+import com.novastore.app.core.ui.theme.NovaElevation
+import com.novastore.app.core.ui.theme.NovaShapes
+import com.novastore.app.core.ui.theme.NovaSpacing
 import com.novastore.app.core.ui.theme.OnEmerald
 
 /**
@@ -42,10 +42,10 @@ fun AppCardLarge(
     Box(
         modifier = modifier
             .width(width)
-            .clip(RoundedCornerShape(24.dp))
+            .clip(NovaShapes.Sheet)
             .background(novaAccentBrush())
             .clickable(onClick = onClick)
-            .padding(16.dp),
+            .padding(NovaSpacing.LG),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             AppIcon(
@@ -53,11 +53,11 @@ fun AppCardLarge(
                 appName = app.name,
                 iconUrl = app.iconUrl,
                 size = 64.dp,
-                shape = RoundedCornerShape(18.dp),
+                shape = appIconSquircle(64.dp),
             )
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(NovaSpacing.XS),
             ) {
                 Text(
                     text = app.name,
@@ -99,14 +99,14 @@ fun AppCardRow(
     Surface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = NovaShapes.Card,
         color = MaterialTheme.colorScheme.surfaceContainer,
-        tonalElevation = 0.dp,
+        tonalElevation = NovaElevation.CARDS,
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = NovaSpacing.MD),
             verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(NovaSpacing.MD),
         ) {
             AppIcon(
                 packageName = app.packageName,
@@ -114,7 +114,7 @@ fun AppCardRow(
                 iconUrl = app.iconUrl,
                 fallbackIconUrl = app.altIconUrl,
                 size = 60.dp,
-                shape = RoundedCornerShape(16.dp),
+                shape = appIconSquircle(60.dp),
             )
             Column(
                 modifier = Modifier.weight(1f),
@@ -128,7 +128,7 @@ fun AppCardRow(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f),
                     )
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(NovaSpacing.SM))
                     SourceBadge(source = app.source, compact = true)
                 }
                 app.developer?.takeIf { it.isNotBlank() }?.let {
@@ -152,7 +152,7 @@ fun AppCardRow(
                 Spacer(Modifier.height(2.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(NovaSpacing.SM),
                 ) {
                     val rating = app.rating
                     if (rating != null && rating > 0f) {
@@ -189,54 +189,6 @@ fun AppCardRow(
 }
 
 /**
- * Legacy grid cell kept for compatibility: surface-backed card. The icon is
- * clamped to the measured card width the same way as [AppGridCell].
- */
-@Composable
-fun AppCardGrid(
-    app: RemoteApp,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        onClick = onClick,
-        modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            // Clamp the 56dp icon to the measured card content width so
-            // narrow grid lanes never clip it (mirrors AppGridCell). Measured
-            // INSIDE the padded column: maxWidth is already icon-available.
-            BoxWithConstraints {
-                val preferredIconSize = 56.dp
-                val available = maxWidth
-                val effectiveIconSize =
-                    if (available < preferredIconSize) available else preferredIconSize
-                AppIcon(
-                    packageName = app.packageName,
-                    appName = app.name,
-                    iconUrl = app.iconUrl,
-                    size = effectiveIconSize,
-                    shape = RoundedCornerShape(effectiveIconSize / 3.5f),
-                )
-            }
-            Text(
-                text = app.name,
-                style = MaterialTheme.typography.titleSmall,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                minLines = 2,
-            )
-            NovaRatingRow(value = app.rating, starSize = 11.dp)
-        }
-    }
-}
-
-/**
  * Play-Store style grid cell: transparent background, medium icon on top,
  * name underneath, rating row below. No card surface behind the icon —
  * clean rows of icons like the real stores use. The icon is clamped to the
@@ -249,20 +201,20 @@ fun AppGridCell(
     modifier: Modifier = Modifier,
     iconSize: Dp = 64.dp,
     columns: Int = 3,
-    spacing: Dp = 12.dp,
+    spacing: Dp = NovaSpacing.MD,
 ) {
     // Lane width from the screen width (16dp padding on both sides) — no
     // BoxWithConstraints/SubcomposeLayout per cell: those were measured
     // twice per cell on every new row during a fling (main source of jank).
     val screenWidth = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp
-    val lane = (screenWidth - 32.dp - spacing * (columns - 1)) / columns.coerceAtLeast(1)
-    val effectiveIconSize = minOf(iconSize, lane - 12.dp).coerceAtLeast(32.dp)
+    val lane = (screenWidth - NovaSpacing.XXL - spacing * (columns - 1)) / columns.coerceAtLeast(1)
+    val effectiveIconSize = minOf(iconSize, lane - NovaSpacing.MD).coerceAtLeast(NovaSpacing.XXL)
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(NovaShapes.Card)
             .clickable(onClick = onClick)
-            .padding(horizontal = 6.dp, vertical = 8.dp),
+            .padding(horizontal = 6.dp, vertical = NovaSpacing.SM),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         AppIcon(
@@ -270,9 +222,9 @@ fun AppGridCell(
             appName = app.name,
             iconUrl = app.iconUrl,
             size = effectiveIconSize,
-            shape = RoundedCornerShape(effectiveIconSize / 3.2f),
+            shape = appIconSquircle(effectiveIconSize),
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(NovaSpacing.SM))
         Text(
             text = app.name,
             style = MaterialTheme.typography.bodyMedium,
@@ -299,7 +251,7 @@ fun CategoryChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val shape = RoundedCornerShape(50)
+    val shape = NovaShapes.Chip
     Box(
         modifier = modifier
             .clip(shape)
@@ -311,7 +263,7 @@ fun CategoryChip(
                 },
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .padding(horizontal = NovaSpacing.LG, vertical = 10.dp),
     ) {
         Text(
             text = name,
@@ -321,46 +273,3 @@ fun CategoryChip(
         )
     }
 }
-
-/** Convenience: section title row with optional "See all" link. */
-@Composable
-fun SectionTitle(
-    title: String,
-    modifier: Modifier = Modifier,
-    onSeeAll: (() -> Unit)? = null,
-) {
-    Row(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.weight(1f),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        if (onSeeAll != null) {
-            SeeAllLink(onClick = onSeeAll)
-        }
-    }
-}
-
-/** Localized "See all" pill-link used inside [SectionTitle]. */
-@Composable
-fun SeeAllLink(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Text(
-        text = androidx.compose.ui.res.stringResource(
-            com.novastore.app.core.ui.R.string.action_see_all,
-        ),
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 6.dp),
-    )
-}
-
-/** Utility for cards that need a fixed color source. */
-internal val CardFallbackColor: Color = Color(0xFF1D2127)

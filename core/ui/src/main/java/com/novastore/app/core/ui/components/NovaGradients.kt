@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -24,6 +23,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.novastore.app.core.ui.theme.LocalNovaAccent
+import com.novastore.app.core.ui.theme.NovaShapes
+import com.novastore.app.core.ui.theme.NovaSpacing
 import com.novastore.app.core.ui.theme.OnEmerald
 
 /**
@@ -83,7 +84,7 @@ fun NovaGradientButton(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier.height(52.dp),
-        shape = RoundedCornerShape(20.dp),
+        shape = NovaShapes.Card,
         contentPadding = PaddingValues(0.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Transparent,
@@ -102,7 +103,7 @@ fun NovaGradientButton(
                             MaterialTheme.colorScheme.surfaceContainerHigh,
                         ),
                     ),
-                    RoundedCornerShape(20.dp),
+                    NovaShapes.Card,
                 )
                 .padding(horizontal = 20.dp, vertical = 14.dp),
             horizontalArrangement = Arrangement.Center,
@@ -114,7 +115,7 @@ fun NovaGradientButton(
                     strokeWidth = 2.5.dp,
                     color = if (enabled) OnEmerald else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(NovaSpacing.MD))
             } else if (leadingIcon != null) {
                 leadingIcon()
                 Spacer(Modifier.width(10.dp))

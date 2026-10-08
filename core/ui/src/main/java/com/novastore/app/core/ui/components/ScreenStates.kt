@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -23,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.novastore.app.core.ui.theme.NovaShapes
+import com.novastore.app.core.ui.theme.NovaSpacing
 
 /**
  * Full-screen loading indicator with an optional label, centered in a soft
@@ -85,7 +86,7 @@ fun EmptyState(
                 .size(88.dp)
                 .background(
                     MaterialTheme.colorScheme.surfaceContainerHigh,
-                    RoundedCornerShape(28.dp),
+                    NovaShapes.Sheet,
                 ),
             contentAlignment = Alignment.Center,
         ) {
@@ -103,7 +104,7 @@ fun EmptyState(
             textAlign = TextAlign.Center,
         )
         if (description != null) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(NovaSpacing.SM))
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodyMedium,
@@ -112,10 +113,10 @@ fun EmptyState(
             )
         }
         if (actionLabel != null && onAction != null) {
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(NovaSpacing.XL))
             OutlinedButton(
                 onClick = onAction,
-                shape = RoundedCornerShape(18.dp),
+                shape = NovaShapes.Card,
             ) {
                 Text(actionLabel)
             }
@@ -148,7 +149,7 @@ fun ErrorState(
                 .size(88.dp)
                 .background(
                     MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f),
-                    RoundedCornerShape(28.dp),
+                    NovaShapes.Sheet,
                 ),
             contentAlignment = Alignment.Center,
         ) {
@@ -165,7 +166,7 @@ fun ErrorState(
             color = MaterialTheme.colorScheme.error,
             textAlign = TextAlign.Center,
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(NovaSpacing.SM))
         Text(
             text = description,
             style = MaterialTheme.typography.bodyMedium,
@@ -173,19 +174,19 @@ fun ErrorState(
             textAlign = TextAlign.Center,
         )
         if (retryLabel != null && onRetry != null) {
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(NovaSpacing.XL))
             Button(
                 onClick = onRetry,
-                shape = RoundedCornerShape(18.dp),
+                shape = NovaShapes.Card,
             ) {
                 Text(retryLabel)
             }
         }
         if (secondaryLabel != null && onSecondary != null) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(NovaSpacing.SM))
             OutlinedButton(
                 onClick = onSecondary,
-                shape = RoundedCornerShape(18.dp),
+                shape = NovaShapes.Card,
             ) {
                 Text(secondaryLabel)
             }
