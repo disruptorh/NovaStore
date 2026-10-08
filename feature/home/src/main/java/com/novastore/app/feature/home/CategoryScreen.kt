@@ -3,10 +3,14 @@ package com.novastore.app.feature.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -15,7 +19,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,6 +50,8 @@ import com.novastore.app.core.ui.components.AppCardRow
 import com.novastore.app.core.ui.components.AppGridCell
 import com.novastore.app.core.ui.components.EmptyState
 import com.novastore.app.core.ui.components.NovaCategories
+import com.novastore.app.core.ui.components.ShimmerBox
+import com.novastore.app.core.ui.theme.NovaSpacing
 
 /** "See all" page of one category: every app, vertical scrolling, user's grid prefs. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -99,7 +104,19 @@ fun CategoryScreen(
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize().background(MaterialTheme.colorScheme.background)) {
             when {
-                state.loading && state.apps.isEmpty() -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                // Skeleton grid — never a spinner: the shape of what is coming.
+                state.loading && state.apps.isEmpty() -> Column(
+                    modifier = Modifier.padding(NovaSpacing.LG),
+                    verticalArrangement = Arrangement.spacedBy(NovaSpacing.MD),
+                ) {
+                    repeat(2) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(NovaSpacing.MD)) {
+                            repeat(state.columns) {
+                                ShimmerBox(modifier = Modifier.weight(1f).height(150.dp), cornerRadius = 20.dp)
+                            }
+                        }
+                    }
+                }
                 state.apps.isEmpty() -> Box(Modifier.align(Alignment.Center)) {
                     EmptyState(
                         icon = Icons.Filled.Apps,
@@ -134,7 +151,10 @@ fun CategoryScreen(
                         if (state.loading) {
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                                    CircularProgressIndicator()
+                                    ShimmerBox(
+                                        modifier = Modifier.size(width = 140.dp, height = 40.dp),
+                                        cornerRadius = 20.dp,
+                                    )
                                 }
                             }
                         }

@@ -1,5 +1,6 @@
 package com.novastore.app.core.ui.theme
 
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 /**
@@ -174,3 +175,34 @@ object AccentPalettes {
         com.novastore.app.core.model.AccentPalette.DYNAMIC -> NOVA
     }
 }
+
+// ----------------------------------------------------------------------
+// Brand decorative gradients
+//
+// Decorative-only brand accents (wordmark, quick tiles, hero cards). They
+// carry no semantic meaning, are never used for body text on a colored
+// background without a contrast check, and are shared by feature modules
+// so no screen re-declares its own copy of the brand hex values.
+// ----------------------------------------------------------------------
+
+/** Brand indigo — decorative gradient start (wordmark, tiles, hero dots). */
+val BrandIndigo = Color(0xFF6965F1)
+
+/** Brand violet — decorative gradient end, paired with [BrandIndigo]. */
+val BrandViolet = Color(0xFFA556F7)
+
+/** Brand gradient of the "Nova Store" wordmark: indigo → violet. */
+val NovaTitleBrush: Brush = Brush.linearGradient(colors = listOf(BrandIndigo, BrandViolet))
+
+/** "Everything is up to date" — calm green instead of the call-to-action gradient. */
+val UpToDateBrush: Brush = Brush.linearGradient(colors = listOf(Color(0xFF12B886), Color(0xFF0CA678), Color(0xFF15AABF)))
+
+/** Decorative brand gradients for hero/shelf cards, cycled per page. */
+val HeroGradients: List<List<Color>> = listOf(
+    listOf(Color(0xFF6965F1), Color(0xFFA556F7)),
+    listOf(Color(0xFF3B5BDB), Color(0xFF6965F1)),
+    listOf(Color(0xFFA556F7), Color(0xFFE64980)),
+    listOf(Color(0xFF0CA678), Color(0xFF3B5BDB)),
+    listOf(Color(0xFFF76707), Color(0xFFE64980)),
+    listOf(Color(0xFF1C7ED6), Color(0xFF15AABF)),
+)
