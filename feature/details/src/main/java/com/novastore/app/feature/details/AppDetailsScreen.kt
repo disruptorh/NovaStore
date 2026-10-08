@@ -3,6 +3,7 @@ package com.novastore.app.feature.details
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,6 +43,7 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ThumbUpAlt
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -550,8 +552,32 @@ private fun DetailsContent(
                 title = stringResource(UiR.string.details_versions),
             ) {
                 val best = state.bestVersion
+                val preferred = state.preferredSource?.takeIf { it in state.sources }
+                if (state.sources.size > 1) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.horizontalScroll(rememberScrollState()),
+                    ) {
+                        state.sources.forEach { source ->
+                            FilterChip(
+                                selected = source == preferred,
+                                onClick = {
+                                    viewModel.onSelectSource(if (source == preferred) null else source)
+                                },
+                                label = {
+                                    Text(
+                                        sourceLabel(source, state.sourceNames),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                },
+                            )
+                        }
+                    }
+                }
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     details.versions
+                        .filter { preferred == null || it.source == preferred }
                         .sortedByDescending { it.versionCode }
                         .take(8)
                         .forEach { version ->
@@ -1221,6 +1247,14 @@ internal fun SectionCard(
         }
     }
     Spacer(Modifier.height(12.dp))
+}
+
+/** Readable name of a catalog source id (repository id, "play", provider). */
+private fun sourceLabel(source: String, names: Map<String, String>): String = when (source.lowercase()) {
+    "play" -> "Google Play"
+    "github" -> "GitHub"
+    "gitlab" -> "GitLab"
+    else -> names[source] ?: source.replaceFirstChar { it.uppercase() }
 }
 
 /** Compact single-line version row: name · size · date, download icon. */

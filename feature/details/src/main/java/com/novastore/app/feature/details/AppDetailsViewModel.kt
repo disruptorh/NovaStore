@@ -82,6 +82,12 @@ data class AppDetailsUiState(
     val reviewsLoading: Boolean = false,
     /** What the list showed for this app — instant header while loading. */
     val preview: com.novastore.app.core.model.RemoteApp? = null,
+    /** The repository/Play source the user picked for this app (P06-T06). */
+    val preferredSource: String? = null,
+    /** Distinct sources (repository ids, "play", provider names) of the cached versions. */
+    val sources: List<String> = emptyList(),
+    /** source id → human name (from the repositories table). */
+    val sourceNames: Map<String, String> = emptyMap(),
 ) {
     val isInstalled: Boolean get() = installed != null
     val updateAvailable: Boolean get() = action == DetailsAction.UPDATE
@@ -100,6 +106,7 @@ class AppDetailsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val settingsDataStore: com.novastore.app.core.datastore.SettingsDataStore,
     private val catalogRepository: com.novastore.app.domain.repository.CatalogRepository,
+    private val repositoriesRepository: com.novastore.app.domain.repository.RepositoriesRepository,
     downloadQueue: GetDownloadQueueUseCase,
 ) : ViewModel() {
 
@@ -164,8 +171,21 @@ class AppDetailsViewModel @Inject constructor(
                 )
             }
             val installed = installedAppsRepository.refresh(pkg)
+            val preferred = settingsDataStore.preferredSources.first()[pkg]
+            val sourceNames = runCatching { repositoriesRepository.observe().first() }
+                .getOrDefault(emptyList())
+                .associate { it.repositoryId to it.name }
+            state.update { it.copy(preferredSource = preferred, sourceNames = sourceNames) }
             when (val result = getAppDetails(pkg)) {
-                is AppResult.Success -> state.update { resolve(it.copy(details = result.value, installed = installed)) }
+                is AppResult.Success -> state.update {
+                    resolve(
+                        it.copy(
+                            details = result.value,
+                            installed = installed,
+                            sources = (result.value?.versions ?: emptyList()).map { v -> v.source }.distinct().sorted(),
+                        ),
+                    )
+                }
                 is AppResult.Failure -> state.update { it.copy(installed = installed, error = result.error.userMessage, errorRes = null) }
             }
             state.update { it.copy(loading = false) }
@@ -283,7 +303,7 @@ class AppDetailsViewModel @Inject constructor(
         // Paid Play builds can not be delivered without a purchase — they
         // never become the install target while anything free exists.
         val deliverable = installable.filterNot { it.isPaid }
-        val best = pickBest(deliverable, installed)
+        val best = pickBestVersion(deliverable, installed, ui.preferredSource)
         val paidOnly = best == null && installable.any { it.isPaid }
 
         // Same version NAME = same release, whatever the codes say (device
@@ -310,25 +330,6 @@ class AppDetailsViewModel @Inject constructor(
         return ui.copy(bestVersion = effectiveBest ?: best, action = action, unavailableReason = reason)
     }
 
-    /**
-     * Version choice by signing key: Android only accepts an update signed
-     * like the installed app. Repository builds with a matching signer win;
-     * otherwise Google Play's own build (the developer's key); then any other
-     * source. For fresh installs: repository → Play → releases.
-     */
-    private fun pickBest(installable: List<AppVersion>, installed: InstalledApp?): AppVersion? {
-        val signer = installed?.signingCertDigest
-        val verified = installable.filter { it.signer != null && (signer == null || it.signer.equals(signer, ignoreCase = true)) }
-        val play = installable.filter { it.source == com.novastore.app.core.model.SOURCE_PLAY }
-        val rest = installable.filter { it.signer == null && it.source != com.novastore.app.core.model.SOURCE_PLAY }
-        val groups = if (installed != null && signer != null) {
-            listOf(installable.filter { it.signer != null && it.signer.equals(signer, ignoreCase = true) }, play, rest)
-        } else {
-            listOf(verified, play, rest)
-        }
-        return groups.firstOrNull { it.isNotEmpty() }?.maxByOrNull { it.versionCode }
-    }
-
     private fun isNewerThanInstalled(version: AppVersion, installed: InstalledApp): Boolean =
         version.versionCode > installed.versionCode
 
@@ -337,6 +338,18 @@ class AppDetailsViewModel @Inject constructor(
 
     fun dismissNotice() {
         state.update { it.copy(notice = null) }
+    }
+
+    /**
+     * P06-T06: user picked a source for this app (chip tap). Persisted for
+     * updates too (updates already short-circuit on [SettingsDataStore.preferredSources]).
+     */
+    fun onSelectSource(source: String?) {
+        val pkg = packageName ?: return
+        viewModelScope.launch {
+            settingsDataStore.setPreferredSource(pkg, source ?: "")
+            state.update { ui -> resolve(ui.copy(preferredSource = source)) }
+        }
     }
 
     fun dismissError() {
@@ -388,4 +401,38 @@ class AppDetailsViewModel @Inject constructor(
             state.update { it.copy(installed = installed).let(::resolve) }
         }
     }
+}
+
+/**
+ * Version choice by signing key: Android only accepts an update signed
+ * like the installed app. Repository builds with a matching signer win;
+ * otherwise Google Play's own build (the developer's key); then any other
+ * source. For fresh installs: repository → Play → releases. A [preferred]
+ * source (P06-T06) always wins when it offers an installable version.
+ *
+ * Test seam of the details layer (unit-tested in PickBestPreferredSourceTest).
+ */
+fun pickBestVersion(
+    installable: List<AppVersion>,
+    installed: InstalledApp?,
+    preferred: String? = null,
+): AppVersion? {
+    val fromPreferred = if (!preferred.isNullOrBlank()) {
+        installable.filter { it.source == preferred }
+    } else {
+        emptyList()
+    }
+    if (fromPreferred.isNotEmpty()) {
+        return fromPreferred.maxByOrNull { it.versionCode }
+    }
+    val signer = installed?.signingCertDigest
+    val verified = installable.filter { it.signer != null && (signer == null || it.signer.equals(signer, ignoreCase = true)) }
+    val play = installable.filter { it.source == com.novastore.app.core.model.SOURCE_PLAY }
+    val rest = installable.filter { it.signer == null && it.source != com.novastore.app.core.model.SOURCE_PLAY }
+    val groups = if (installed != null && signer != null) {
+        listOf(installable.filter { it.signer != null && it.signer.equals(signer, ignoreCase = true) }, play, rest)
+    } else {
+        listOf(verified, play, rest)
+    }
+    return groups.firstOrNull { it.isNotEmpty() }?.maxByOrNull { it.versionCode }
 }
