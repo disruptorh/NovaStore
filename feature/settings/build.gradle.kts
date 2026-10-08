@@ -26,6 +26,7 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:installer"))
     implementation(project(":core:datastore"))
+    implementation(project(":core:downloader"))
 
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)

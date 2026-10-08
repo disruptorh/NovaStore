@@ -1,8 +1,10 @@
 package com.novastore.app.feature.settings
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.novastore.app.core.datastore.SettingsDataStore
+import com.novastore.app.core.downloader.api.DownloadRequester
 import com.novastore.app.core.installer.RootAccessProvider
 import com.novastore.app.core.model.DeviceProfile
 import com.novastore.app.core.model.RootAccessState
@@ -23,13 +25,16 @@ import com.novastore.app.domain.source.SourcePreview
 import com.novastore.app.domain.usecase.ListDeviceProfilesUseCase
 import com.novastore.app.domain.usecase.PreviewSourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
 data class SettingsUiState(
@@ -76,7 +81,9 @@ class SettingsViewModel @Inject constructor(
     private val settingsDataStore: SettingsDataStore,
     private val listDeviceProfiles: ListDeviceProfilesUseCase,
     private val previewSource: PreviewSourceUseCase,
-    accountRepository: AccountRepository,
+    private val accountRepository: AccountRepository,
+    private val downloadRequester: DownloadRequester,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val rootState = MutableStateFlow(RootAccessState.UNAVAILABLE)
@@ -254,6 +261,52 @@ class SettingsViewModel @Inject constructor(
 
     fun setDownloadsAutoCleanDays(days: Int) {
         viewModelScope.launch { settingsDataStore.setDownloadsAutoCleanDays(days) }
+    }
+
+    // ------------------------------------------------------------------
+    // P09-T04: destructive housekeeping (each call is gated by a dialog)
+    // ------------------------------------------------------------------
+
+    /** Factory reset: restores every preference to its DataStore default. */
+    fun resetSettings() {
+        viewModelScope.launch {
+            settingsDataStore.resetAll()
+            // APP_LANGUAGE was cleared → back to "follow the system".
+            androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(
+                androidx.core.os.LocaleListCompat.getEmptyLocaleList(),
+            )
+            notice.value = "Settings reset to factory defaults."
+        }
+    }
+
+    /** Deletes Nova Store's temporary files (keeps the downloads folder). */
+    fun clearCache() {
+        viewModelScope.launch {
+            val cleared = withContext(Dispatchers.IO) {
+                (context.cacheDir.listFiles() ?: emptyArray()).count { file ->
+                    file.name != "downloads" && file.deleteRecursively()
+                }
+            }
+            notice.value = if (cleared == 0) "The cache is already empty." else "Cache cleared ($cleared file(s))."
+        }
+    }
+
+    /** Removes completed and failed/cancelled downloads, rows and files. */
+    fun clearDownloads() {
+        viewModelScope.launch {
+            val removed = withContext(Dispatchers.IO) {
+                downloadRequester.clearCompleted() + downloadRequester.clearFinished()
+            }
+            notice.value = if (removed == 0) "There are no finished downloads to clear." else "Removed $removed download(s)."
+        }
+    }
+
+    /** Ends the Google Play session (the account screen is the other entry point). */
+    fun signOutPlay() {
+        viewModelScope.launch {
+            accountRepository.signOut()
+            notice.value = "Signed out of Google Play."
+        }
     }
 
     // ------------------------------------------------------------------

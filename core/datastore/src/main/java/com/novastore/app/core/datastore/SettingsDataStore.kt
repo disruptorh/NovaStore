@@ -115,6 +115,58 @@ class SettingsDataStore @Inject constructor(
         val DOWNLOADS_AUTO_CLEAN_DAYS = intPreferencesKey("downloads_auto_clean_days")
     }
 
+    /**
+     * Every *setting* key, used by [resetAll]. User data and sessions live in
+     * separate keys and are deliberately NOT listed here so a factory reset
+     * restores preferences but never drops favorites, ignored/notified
+     * updates, per-app preferred sources, accounts or the scan timestamp.
+     */
+    private val resetKeys: List<Preferences.Key<*>> = listOf(
+        Keys.AUTOMATIC_UPDATES,
+        Keys.WIFI_ONLY,
+        Keys.CHARGING_ONLY,
+        Keys.BATTERY_THRESHOLD,
+        Keys.SCHEDULE,
+        Keys.CONFIRM_BEFORE_INSTALL,
+        Keys.ALLOW_DOWNGRADE,
+        Keys.INSTALLATION_MODE,
+        Keys.MOBILE_DATA_ALLOWED,
+        Keys.DOWNLOAD_WHILE_CHARGING,
+        Keys.MAX_CONCURRENT_DOWNLOADS,
+        Keys.NOTIFICATIONS_ENABLED,
+        Keys.ANONYMOUS_MODE,
+        Keys.PLAY_UPDATES_ENABLED,
+        Keys.PLAY_DEVICE_PROFILE,
+        Keys.TOKEN_DISPENSER_URL,
+        Keys.ANONYMOUS_PLAY_ENABLED,
+        Keys.APP_THEME,
+        Keys.ACCENT_PALETTE,
+        Keys.APP_LANGUAGE,
+        Keys.HOME_GRID_COLUMNS,
+        Keys.HOME_ICON_SIZE,
+        Keys.HOME_LAYOUT_STYLE,
+        Keys.HOME_SEARCH_PINNED,
+        Keys.PLAY_WEB_CATALOG_ENABLED,
+        Keys.GITHUB_CATALOG_ENABLED,
+        Keys.GITLAB_CATALOG_ENABLED,
+        Keys.SEARCH_LIST_STYLE,
+        Keys.CATEGORY_LIST_MODE,
+        Keys.SEARCH_SORT,
+        Keys.DOWNLOADS_AUTO_CLEAN_DAYS,
+    )
+
+    /**
+     * Factory reset (P09-T03): removes every preference in [resetKeys] so each
+     * flow falls back to its documented default. Preferred sources, favorites,
+     * ignored/notified updates, Play sessions and the last scan timestamp are
+     * kept.
+     */
+    suspend fun resetAll() = withContext(dispatcherProvider.io) {
+        context.settingsDataStore.edit { prefs ->
+            resetKeys.forEach { prefs.remove(it) }
+        }
+    }
+
     /** Completed-download auto-cleanup age in days (0 = off). */
     val downloadsAutoCleanDays: Flow<Int> = context.settingsDataStore.data.map { prefs ->
         (prefs[Keys.DOWNLOADS_AUTO_CLEAN_DAYS] ?: 0).coerceIn(0, 30)
