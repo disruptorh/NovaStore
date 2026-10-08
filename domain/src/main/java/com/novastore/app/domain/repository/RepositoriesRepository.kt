@@ -1,6 +1,7 @@
 package com.novastore.app.domain.repository
 
 import com.novastore.app.core.common.AppResult
+import com.novastore.app.core.model.ImportReport
 import com.novastore.app.core.model.ProviderType
 import com.novastore.app.core.model.RepositoryConfig
 import kotlinx.coroutines.flow.Flow
@@ -64,4 +65,14 @@ interface RepositoriesRepository {
 
     /** Repository id → priority (lower wins) for choosing between duplicates. */
     suspend fun priorities(): Map<String, Int>
+
+    /** Serializes the source list as the versioned backup JSON (P06-T05). */
+    suspend fun exportSources(): AppResult<String>
+
+    /**
+     * Imports a source backup. Merges by URL: rows already present are only
+     * re-enabled/re-prioritized; built-ins missing from the file are never
+     * deleted. Non-https URLs are rejected per entry.
+     */
+    suspend fun importSources(json: String): AppResult<ImportReport>
 }

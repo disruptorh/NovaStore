@@ -8,6 +8,7 @@ import com.novastore.app.core.database.entity.AppVersionEntity
 import com.novastore.app.core.database.entity.RemoteAppEntity
 import com.novastore.app.core.database.entity.RepositoryEntity
 import com.novastore.app.core.model.ArtifactType
+import com.novastore.app.core.model.ImportReport
 import com.novastore.app.core.model.NovaError
 import com.novastore.app.core.model.ProviderType
 import com.novastore.app.core.model.RepositoryConfig
@@ -80,6 +81,71 @@ class RepositoriesRepositoryImpl @Inject constructor(
     override suspend fun priorities(): Map<String, Int> {
         ensureBuiltIns()
         return repositoryDao.all().associate { it.repositoryId to it.priority }
+    }
+
+    override suspend fun exportSources(): AppResult<String> {
+        ensureBuiltIns()
+        return AppResult.success(SourceBackup(repositoryDao.all().map { it.toBackupEntry() }).toJson())
+    }
+
+    override suspend fun importSources(json: String): AppResult<ImportReport> {
+        ensureBuiltIns()
+        val entries = when (val parsed = parseSourceBackup(json)) {
+            is AppResult.Failure -> return AppResult.failure(parsed.error)
+            is AppResult.Success -> parsed.value.sources
+        }
+        var added = 0
+        var updated = 0
+        var rejected = 0
+        entries.forEach { entry ->
+            val normalized = when (entry.providerType) {
+                ProviderType.FDROID_INDEX ->
+                    FdroidIndexClient.normalizeRepoUrl(entry.url).takeIf { it.startsWith("https://") }
+                else -> SourceUrls.normalizeSourceUrl(entry.url.ifBlank { "" })
+            }
+            if (normalized == null || !normalized.startsWith("https://")) {
+                rejected++
+                return@forEach
+            }
+            val existing = repositoryDao.all().firstOrNull {
+                (it.metadataUrl.ifBlank { it.baseUrl }).equals(normalized, ignoreCase = true)
+            }
+            if (existing == null) {
+                repositoryDao.upsert(
+                    RepositoryEntity(
+                        repositoryId = "custom-" + sha256(normalized.lowercase()).take(12),
+                        name = entry.name.ifBlank { providerDefaultName(entry.providerType, normalized) },
+                        baseUrl = normalized,
+                        metadataUrl = if (entry.providerType == ProviderType.FDROID_INDEX) {
+                            "$normalized/index-v2.json"
+                        } else {
+                            normalized
+                        },
+                        trust = SourceTrust.UNKNOWN.name,
+                        enabled = entry.enabled,
+                        isBuiltIn = false,
+                        lastRefreshAt = null,
+                        lastRefreshError = null,
+                        priority = entry.priority,
+                        providerType = entry.providerType.name,
+                        extraJson = entry.extraJson,
+                    ),
+                )
+                added++
+            } else {
+                // Merge by URL: apply the file's enabled state and priority,
+                // but never clobber local name/type/extras or built-in status.
+                repositoryDao.upsert(
+                    existing.copy(
+                        enabled = entry.enabled,
+                        priority = entry.priority,
+                        isBuiltIn = existing.isBuiltIn,
+                    ),
+                )
+                updated++
+            }
+        }
+        return AppResult.success(ImportReport(added = added, updated = updated, rejected = rejected))
     }
 
     override suspend fun add(

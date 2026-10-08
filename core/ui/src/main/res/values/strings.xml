@@ -299,6 +299,8 @@
     <string name="provider_gitlab">GitLab</string>
     <string name="provider_html_regex">HTML page</string>
     <string name="settings_refresh_all">Refresh all</string>
+    <string name="settings_repos_export">Export</string>
+    <string name="settings_repos_import">Import</string>
     <string name="settings_repo_name">Name</string>
     <string name="settings_repo_url">Repository URL</string>
     <string name="settings_repo_hint">F-Droid repo link; ?fingerprint=… and fdroidrepos:// links work too</string>

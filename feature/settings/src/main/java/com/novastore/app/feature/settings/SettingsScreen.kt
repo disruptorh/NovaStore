@@ -41,6 +41,8 @@ import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
@@ -74,6 +76,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -89,6 +92,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.novastore.app.core.common.AppResult
 import com.novastore.app.core.model.AccentPalette
 import com.novastore.app.core.model.AppLanguage
 import com.novastore.app.core.model.DeviceProfile
@@ -99,6 +103,9 @@ import com.novastore.app.core.model.RootAccessState
 import com.novastore.app.core.model.ThemeMode
 import com.novastore.app.core.model.UpdateSchedule
 import com.novastore.app.core.ui.R as UiR
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.novastore.app.core.ui.components.SourceBadge
 import com.novastore.app.core.ui.theme.AccentPalettes
 import com.novastore.app.core.ui.theme.OnEmerald
@@ -125,6 +132,52 @@ fun SettingsScreen(
     var showSessionProvider by remember { mutableStateOf(false) }
     var fdroidExpanded by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val resolver = context.contentResolver
+
+    // P06-T05: source backup export/import (SAF, user-picked file).
+    val exportSourcesLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json"),
+    ) { uri ->
+        if (uri != null) {
+            scope.launch {
+                when (val result = viewModel.exportSources()) {
+                    is AppResult.Failure -> viewModel.noticeFailure(result.error.userMessage)
+                    is AppResult.Success -> {
+                        withContext(Dispatchers.IO) {
+                            runCatching {
+                                resolver.openOutputStream(uri, "wt")?.use { it.write(result.value.toByteArray()) }
+                            }.getOrElse { throwable ->
+                                throwable.printStackTrace()
+                            }
+                        }
+                        viewModel.onSourcesExported()
+                    }
+                }
+            }
+        }
+    }
+    val importSourcesLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri != null) {
+            scope.launch {
+                val text = withContext(Dispatchers.IO) {
+                    runCatching {
+                        resolver.openInputStream(uri)?.use { it.bufferedReader().readText() }
+                    }.getOrNull()
+                }
+                if (text == null) {
+                    viewModel.noticeFailure("Could not read the backup file.")
+                } else {
+                    when (val result = viewModel.importSources(text)) {
+                        is AppResult.Failure -> viewModel.noticeFailure(result.error.userMessage)
+                        is AppResult.Success -> viewModel.onSourcesImported(result.value)
+                    }
+                }
+            }
+        }
+    }
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
@@ -315,6 +368,8 @@ fun SettingsScreen(
                         onReorder = { viewModel.reorderRepositories(it) },
                         onAdd = { showAddRepository = true },
                         onRefreshAll = { viewModel.refreshRepositories() },
+                        onExport = { exportSourcesLauncher.launch("nova-store-sources.json") },
+                        onImport = { importSourcesLauncher.launch(arrayOf("application/json", "text/*")) },
                     )
                 }
                 RowDivider()
@@ -1205,6 +1260,8 @@ private fun RepositoriesManager(
     onReorder: (List<String>) -> Unit,
     onAdd: () -> Unit,
     onRefreshAll: () -> Unit,
+    onExport: () -> Unit,
+    onImport: () -> Unit,
 ) {
     var pendingRemove by remember { mutableStateOf<RepositoryConfig?>(null) }
 
@@ -1252,6 +1309,16 @@ private fun RepositoriesManager(
                 Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
                 Text(stringResource(UiR.string.settings_refresh_all))
+            }
+            TextButton(onClick = onExport, enabled = !state.busy) {
+                Icon(Icons.Filled.Upload, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(UiR.string.settings_repos_export))
+            }
+            TextButton(onClick = onImport, enabled = !state.busy) {
+                Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(UiR.string.settings_repos_import))
             }
         }
     }

@@ -9,6 +9,7 @@ import com.novastore.app.core.model.RootAccessState
 import com.novastore.app.core.common.AppResult
 import com.novastore.app.core.model.AccentPalette
 import com.novastore.app.core.model.AppLanguage
+import com.novastore.app.core.model.ImportReport
 import com.novastore.app.core.model.ProviderType
 import com.novastore.app.core.model.RepositoryConfig
 import com.novastore.app.core.model.RootAccessResult
@@ -327,6 +328,25 @@ class SettingsViewModel @Inject constructor(
 
     fun reorderRepositories(idsInOrder: List<String>) {
         viewModelScope.launch { repositoriesRepository.reorder(idsInOrder) }
+    }
+
+    /** P06-T05: serializes sources; the caller writes it to a user-picked file. */
+    suspend fun exportSources(): AppResult<String> = repositoriesRepository.exportSources()
+
+    /** P06-T05: parses and merges a source backup file. */
+    suspend fun importSources(json: String): AppResult<ImportReport> =
+        repositoriesRepository.importSources(json)
+
+    fun noticeFailure(message: String) {
+        error.value = message
+    }
+
+    fun onSourcesExported() {
+        notice.value = "Sources exported."
+    }
+
+    fun onSourcesImported(report: ImportReport) {
+        notice.value = "Import: ${report.added} added, ${report.updated} updated, ${report.rejected} rejected."
     }
 
     /** P06-T02: probes the source form through the provider — writes nothing. */

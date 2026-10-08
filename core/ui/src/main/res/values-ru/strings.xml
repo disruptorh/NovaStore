@@ -299,6 +299,8 @@
     <string name="provider_gitlab">GitLab</string>
     <string name="provider_html_regex">HTML-страница</string>
     <string name="settings_refresh_all">Обновить все</string>
+    <string name="settings_repos_export">Экспорт</string>
+    <string name="settings_repos_import">Импорт</string>
     <string name="settings_repo_name">Название</string>
     <string name="settings_repo_url">URL репозитория</string>
     <string name="settings_repo_hint">Ссылка на F-Droid-репозиторий; работают ?fingerprint=… и fdroidrepos://</string>
