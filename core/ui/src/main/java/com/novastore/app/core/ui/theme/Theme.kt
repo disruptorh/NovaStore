@@ -106,7 +106,7 @@ private fun amoledScheme(accent: NovaAccent) = DarkColors.copy(
     outline = AmoledOutline,
     outlineVariant = AmoledOutlineVariant,
     primary = accent.primaryDark,
-    onPrimary = OnEmerald,
+    onPrimary = accent.onPrimaryDark,
     primaryContainer = accent.containerDark,
     onPrimaryContainer = accent.onContainerDark,
 )
@@ -116,19 +116,19 @@ data class NovaAccentColors(val start: Color, val end: Color)
 
 /** The active accent pair; NovaTheme overrides it per user preference. */
 val LocalNovaAccent = staticCompositionLocalOf {
-    NovaAccentColors(AccentPalettes.EMERALD.start, AccentPalettes.EMERALD.end)
+    NovaAccentColors(AccentPalettes.NOVA.start, AccentPalettes.NOVA.end)
 }
 
 /**
  * Nova Store theme — premium Material 3 with selectable theme mode
- * (system / light / dark / AMOLED), selectable accent palette and optional
- * dynamic color (Android 12+).
+ * (system / light / dark / AMOLED) and a reduced accent set. Choosing
+ * [AccentPalette.DYNAMIC] uses Android 12+ dynamic colors (falling back to
+ * the NOVA brand accent on older devices).
  */
 @Composable
 fun NovaTheme(
     mode: ThemeMode = ThemeMode.SYSTEM,
-    accent: AccentPalette = AccentPalette.EMERALD,
-    dynamicColor: Boolean = false,
+    accent: AccentPalette = AccentPalette.NOVA,
     content: @Composable () -> Unit,
 ) {
     val darkTheme = when (mode) {
@@ -139,7 +139,7 @@ fun NovaTheme(
     val palette = AccentPalettes.of(accent)
 
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        (accent == AccentPalette.DYNAMIC) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
@@ -148,14 +148,14 @@ fun NovaTheme(
 
         darkTheme -> DarkColors.copy(
             primary = palette.primaryDark,
-            onPrimary = OnEmerald,
+            onPrimary = palette.onPrimaryDark,
             primaryContainer = palette.containerDark,
             onPrimaryContainer = palette.onContainerDark,
         )
 
         else -> LightColors.copy(
             primary = palette.primaryLight,
-            onPrimary = OnEmerald,
+            onPrimary = palette.onPrimaryLight,
             primaryContainer = palette.containerLight,
             onPrimaryContainer = palette.onContainerLight,
         )
@@ -167,6 +167,7 @@ fun NovaTheme(
         MaterialTheme(
             colorScheme = colorScheme,
             typography = NovaTypography,
+            shapes = NovaMaterialShapes,
             content = content,
         )
     }

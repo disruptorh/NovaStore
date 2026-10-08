@@ -373,7 +373,7 @@ class SettingsDataStore @Inject constructor(
     }
 
     val accentPalette: Flow<AccentPalette> = context.settingsDataStore.data.map { prefs ->
-        enumOrDefault(prefs[Keys.ACCENT_PALETTE], AccentPalette.EMERALD)
+        enumOrDefault(prefs[Keys.ACCENT_PALETTE], AccentPalette.NOVA)
     }
 
     suspend fun setAccentPalette(palette: AccentPalette) {

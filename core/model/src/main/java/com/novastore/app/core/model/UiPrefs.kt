@@ -21,23 +21,29 @@ enum class ThemeMode {
     AMOLED,
 }
 
-/** Brand accent palette used for gradients, primary color and highlights. */
+/**
+ * Brand accent palette used for gradients, primary color and highlights.
+ * Reduced to the Nova signature accent plus three companions and the system
+ * dynamic option; every design must fit one of these.
+ */
 enum class AccentPalette {
-    EMERALD,
-    OCEAN,
-    VIOLET,
-    AMBER,
-    ROSE,
-    LIME,
+    /** Default Nova brand accent (indigo → violet). */
     NOVA,
-    SAPPHIRE,
-    SKY,
-    TEAL,
-    PINK,
-    CORAL,
-    CRIMSON,
-    GOLD,
+
+    /** Deep cyan / petrol. */
+    OCEAN,
+
+    /** Purple. */
+    VIOLET,
+
+    /** Warm amber. */
+    AMBER,
+
+    /** Neutral slate. */
     GRAPHITE,
+
+    /** Android 12+ dynamic colors from the wallpaper (NOVA fallback below S). */
+    DYNAMIC,
 }
 
 /** In-app language override (applied via per-app locales). */

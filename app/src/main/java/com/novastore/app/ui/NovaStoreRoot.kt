@@ -95,7 +95,7 @@ class NovaStoreRootViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ThemeMode.SYSTEM)
 
     val accentPalette = settingsDataStore.accentPalette
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AccentPalette.EMERALD)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AccentPalette.NOVA)
 }
 
 private const val ROUTE_SEARCH = "search"

@@ -122,14 +122,20 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 
 ## P07 Sistema de diseño
 
-- [ ] P07-T01 Tokens Spacing (4/8) Elevation Radius
-- [ ] P07-T02 Paleta: 1 acento + neutros + semánticos
-- [ ] P07-T03 `NovaShapes` + tipografía
-- [ ] P07-T04 Tema claro/oscuro/AMOLED/dynamic
-- [ ] P07-T05 Componentes: AppCard, Button, Chip, SearchBar, Dialog, Sheet, Empty/Error/Skeleton
-- [ ] P07-T06 Tokens de motion
-- [ ] P07-T07 Contraste WCAG AA documentado en tokens
-- [ ] P07-T08 Migrar `core/ui` off hex/dp crudos
+- [x] P07-T01 Tokens Spacing (4/8) Elevation Radius
+- [x] P07-T02 Paleta: 1 acento + neutros + semánticos
+- [x] P07-T03 `NovaShapes` + tipografía
+- [x] P07-T04 Tema claro/oscuro/AMOLED/dynamic
+- [x] P07-T05 Componentes: AppCard, Button, Chip, SearchBar, Dialog, Sheet, Empty/Error/Skeleton
+- [x] P07-T06 Tokens de motion
+- [x] P07-T07 Contraste WCAG AA documentado en tokens
+- [x] P07-T08 Migrar `core/ui` off hex/dp crudos
+- P07-T01/T03/T08 (nuevos `NovaSpacing` 4/8/12/16/24/32/48, `NovaShapes` Chip 8 / Card 12 / Sheet 28 + `NovaMaterialShapes` (slots M3), `NovaElevation` 0/2/6 en `core/ui/theme/{Spacing,Shape,Elevation}.kt`; `MaterialTheme(shapes=NovaMaterialShapes)` y `typography=NovaTypography` ya wired en `Theme.kt`. Migrados a tokens en `core/ui/components`: AppCards (paddings 16→LG, gaps 12→MD/8→SM/4→XS, corners de card 20→CARD, hero 24→SHEET, pill 50→CHIP, icon squircles 18/16/3.2f → regla única `appIconSquircle(size/3.2f)` en AppIcon.kt), ScreenStates (28→SHEET, 18→CARD, 8→SM, 24→XL), NovaGradients (corners botón 20→CARD, gap 12→MD), SourceBadge (8→CHIP). `AppCards.kt` conserva literales de dimensión sin token prescrito (272 hero width, iconos 64/60dp, gaps 14/6/2dp, starSize 12dp, chip vertical 10dp) — tamaños de icono/medidas, no espaciado de escala; el token set prescrito es cerrado y forzar 16/12 distorsionaría). `rg 'Color(0x' core/ui/components` = 0 (T08: se borró el último, `CardFallbackColor` muerto; NovaGradients ya es puro acento vía `LocalNovaAccent`)).
+- P07-T02 (enum `AccentPalette` recortado a 6: NOVA (default), OCEAN, VIOLET, AMBER, GRAPHITE, DYNAMIC; borradas EMERALD/ROSE/LIME/SAPPHIRE/SKY/TEAL/PINK/CORAL/CRIMSON/GOLD; `AccentPalettes` ahora solo las 5 + `of(DYNAMIC)=NOVA` como fallback. Defaults EMERALD→NOVA en `SettingsDataStore.accentPalette`, `SettingsViewModel`, `NovaStoreRootViewModel`, `NovaTheme`, `LocalNovaAccent`. Selector de Settings: ahora 6 swatches (5 gradientes + el sweep multi-accent para DYNAMIC); stale `EMERALD` guardado en DataStore cae por `enumOrDefault` → NOVA sin crash. Se quitó `Teal` muerto; KDoc del header documenta política de contraste y "no acento para error".)
+- P07-T04 (ThemeMode SYSTEM/LIGHT/DARK/AMOLED ya mapeaban claro/oscuro/negro; `AccentPalette.DYNAMIC` activa `dynamicLight/DarkColorScheme` en API 31+ (reemplaza el param `dynamicColor` inusado de `NovaTheme` — único caller `NovaStoreRoot`), con fallback NOVA < S; `themes.xml`/`values-night` `windowBackground` → `@android:color/transparent` (sin blanco hardcode; AMOLED puro en Compose).)
+- P07-T05 (borrados composables muertos verificados por rg: `AppCardGrid` (0 refs externas), `SectionTitle` + `SeeAllLink` (0 callers en features; HomeScreen trae su propio header local) e import stale de SectionTitle en HomeScreen. Resto de componentes `core/ui` verificados usados en features: NovaGradientButton (API estable, reusado en account/details/updates), AppCardLarge/Row/AppGridCell, NovaRating*, ShimmerBox, SourceBadge, NovaCategories, InstalledAppIcon, rememberQrScanner. `mv uses` internos ya migrados a tokens en T01.)
+- P07-T06 (`core/ui/theme/Motion.kt`: `NovaMotion.QUICK=120`, `MIDDLE=200`, `EMPHASIZED=400` ms + nota reduce-motion vía `MotionDurationScale`; transiciones nav las consume P08-T08.)
+- P07-T07 (pares primary/onPrimary corregidos: `NovaAccent` ganó `onPrimaryLight`/`onPrimaryDark` por paleta para que dark-mode (primary pálida) y OCEAN-light no rompan 4.5:1; `Theme.kt` copia `onPrimary = palette.onPrimary*` (amoledScheme también). Contraste calculado por luminancia: NOVA 5.3/5.9, OCEAN light 3.5→corregida con onPrimary `#00262E`, VIOLET 5.0+, AMBER 5.05+, GRAPHITE 7.5+; blancos sobre gradiente declarados patrón decorativo en el KDoc. Test de luminancia opcional según plan — no se agregó (core/ui sin JUnit).)
 
 ## P08 Rediseño pantallas
 

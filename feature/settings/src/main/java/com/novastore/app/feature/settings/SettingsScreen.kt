@@ -792,7 +792,8 @@ private fun AccentSwatchRow(
     selected: AccentPalette,
     onSelect: (AccentPalette) -> Unit,
 ) {
-    // 15 palettes: wrapping rows instead of one squeezed line.
+    // Six palettes (NOVA default + 3 accents + graphite + dynamic): one
+    // wrapping row.
     @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
     androidx.compose.foundation.layout.FlowRow(
         modifier = Modifier
@@ -817,7 +818,23 @@ private fun AccentSwatch(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val accent = AccentPalettes.of(palette)
+    // DYNAMIC renders a sweep of all accents to signal "system wallpaper
+    // colors" instead of a single fixed gradient.
+    val paint = if (palette == AccentPalette.DYNAMIC) {
+        Brush.sweepGradient(
+            listOf(
+                AccentPalettes.NOVA.start,
+                AccentPalettes.OCEAN.start,
+                AccentPalettes.VIOLET.start,
+                AccentPalettes.AMBER.start,
+                AccentPalettes.GRAPHITE.start,
+                AccentPalettes.NOVA.start,
+            ),
+        )
+    } else {
+        val accent = AccentPalettes.of(palette)
+        Brush.horizontalGradient(listOf(accent.start, accent.end))
+    }
     Box(
         modifier = Modifier
             .size(44.dp)
@@ -827,10 +844,7 @@ private fun AccentSwatch(
         Box(
             modifier = Modifier
                 .size(32.dp)
-                .background(
-                    Brush.horizontalGradient(listOf(accent.start, accent.end)),
-                    CircleShape,
-                )
+                .background(paint, CircleShape)
                 .then(
                     if (selected) {
                         Modifier.border(

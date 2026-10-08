@@ -64,7 +64,7 @@ data class SettingsUiState(
     val gitlabCatalogEnabled: Boolean = true,
     // --- Appearance ---
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
-    val accentPalette: AccentPalette = AccentPalette.EMERALD,
+    val accentPalette: AccentPalette = AccentPalette.NOVA,
     val appLanguage: AppLanguage = AppLanguage.SYSTEM,
 )
 
