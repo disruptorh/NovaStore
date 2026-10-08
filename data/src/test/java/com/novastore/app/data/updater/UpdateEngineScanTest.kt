@@ -86,14 +86,14 @@ class UpdateEngineScanTest {
         val app = installedApp(packageName = "com.example.app")
         val versions = mapOf(
             app.packageName to listOf(
-                version(app.packageName, 2, source = "apkpure"),
+                version(app.packageName, 2, source = "secondary"),
                 version(app.packageName, 3, source = "fdroid"),
             ),
         )
         val candidates = resolve(
             installed = listOf(app),
             versionsByPackage = versions,
-            priorities = mapOf("fdroid" to 10, "apkpure" to 50),
+            priorities = mapOf("fdroid" to 10, "secondary" to 50),
         )
         assertEquals(1, candidates.size)
         assertEquals("fdroid", candidates.single().source)
@@ -123,14 +123,14 @@ class UpdateEngineScanTest {
                 version(app.packageName, 2, source = "fdroid", signer = "other-BBBB"),
                 version(app.packageName, 3, source = "fdroid", signer = "installed-AAAA"),
                 // Unknown signer: allowed (verified after download).
-                version(app.packageName, 5, source = "apkpure", signer = null),
+                version(app.packageName, 5, source = "secondary", signer = null),
             ),
         )
         val candidates = resolve(installed = listOf(app), versionsByPackage = versions)
         // Foreign signature excluded; matching and unknown signers offered:
-        // the policy picks the highest versionCode (apkpure v5, unknown signer).
+        // the policy picks the highest versionCode (secondary v5, unknown signer).
         assertEquals(5, candidates.single().available.versionCode)
-        assertEquals("apkpure", candidates.single().source)
+        assertEquals("secondary", candidates.single().source)
 
         val foreignOnly = resolve(
             installed = listOf(app),
@@ -146,17 +146,17 @@ class UpdateEngineScanTest {
         val app = installedApp(packageName = "com.example.app")
         val versions = mapOf(
             app.packageName to listOf(
-                version(app.packageName, 2, source = "apkpure"),
+                version(app.packageName, 2, source = "secondary"),
                 version(app.packageName, 2, source = "fdroid"),
             ),
         )
         val candidates = resolve(
             installed = listOf(app),
             versionsByPackage = versions,
-            preferred = mapOf(app.packageName to "apkpure"),
-            priorities = mapOf("fdroid" to 10, "apkpure" to 50),
+            preferred = mapOf(app.packageName to "secondary"),
+            priorities = mapOf("fdroid" to 10, "secondary" to 50),
         )
-        assertEquals("apkpure", candidates.single().source)
+        assertEquals("secondary", candidates.single().source)
     }
 
     @Test
