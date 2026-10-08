@@ -65,7 +65,7 @@ class HtmlRegexSourceProvider @Inject constructor(
             SourcePreview(
                 appCountHint = urls.size,
                 sampleNames = urls.take(5),
-                warning = null,
+                warning = HTML_INTEGRITY_WARNING,
             ),
         )
     }
@@ -120,3 +120,11 @@ class HtmlRegexSourceProvider @Inject constructor(
         const val MATCH_TIMEOUT_MS = 2_000L
     }
 }
+
+/**
+ * P06-T08: a from-HTML source has no origin checksums by construction —
+ * hashes are computed after download and there is nothing to compare the
+ * local file against. Always shown in the add-source preview; never blocks.
+ */
+internal const val HTML_INTEGRITY_WARNING =
+    "This source provides no checksums: sha256 is computed after download and there is no origin digest to compare."

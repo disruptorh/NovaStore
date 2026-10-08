@@ -412,7 +412,7 @@ class AppDetailsViewModel @Inject constructor(
  *
  * Test seam of the details layer (unit-tested in PickBestPreferredSourceTest).
  */
-fun pickBestVersion(
+internal fun pickBestVersion(
     installable: List<AppVersion>,
     installed: InstalledApp?,
     preferred: String? = null,

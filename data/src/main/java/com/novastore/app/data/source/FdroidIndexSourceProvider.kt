@@ -45,11 +45,15 @@ class FdroidIndexSourceProvider @Inject constructor(
         val parsed = fdroidIndexClient.parseIndex(cache, fetched, listOf("en")).getOrNull()
             ?: return AppResult.Failure(NovaError.Repository("Could not parse the F-Droid index JSON."))
         val names = parsed.apps.mapNotNull { it.name }
+        val integrityNote = fdroidIntegrityWarning(
+            versionCount = parsed.versions.size,
+            hasAnySha256 = parsed.versions.any { !it.sha256.isNullOrBlank() },
+        )
         return AppResult.Success(
             SourcePreview(
                 appCountHint = names.size,
                 sampleNames = names.take(5),
-                warning = null,
+                warning = integrityNote,
             ),
         )
     }
@@ -62,3 +66,15 @@ class FdroidIndexSourceProvider @Inject constructor(
 
     override suspend fun refresh(): AppResult<Unit> = AppResult.Success(Unit)
 }
+
+/**
+ * P06-T08: an index that publishes versions but no sha256 hashes can only be
+ * verified locally after download — surface that in the add-source preview
+ * (never blocks adding). Null when the index is empty or carries hashes.
+ */
+internal fun fdroidIntegrityWarning(versionCount: Int, hasAnySha256: Boolean): String? =
+    if (versionCount > 0 && !hasAnySha256) {
+        "This index provides no sha256 hashes: integrity is verified locally after download."
+    } else {
+        null
+    }
