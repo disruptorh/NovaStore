@@ -9,7 +9,10 @@ import javax.inject.Singleton
 
 @Singleton
 class SourceRegistryImpl @Inject constructor(
-    private val providers: Set<AppSourceProvider>,
+    // Use-site @JvmSuppressWildcards: kotlin.collections.Set is covariant, so a plain
+    // Set<AppSourceProvider> would compile to Set<? extends ...>, which never matches
+    // Dagger's invariant Set multibinding key.
+    private val providers: @JvmSuppressWildcards Set<AppSourceProvider>,
 ) : SourceRegistry {
 
     private val registered = mutableMapOf<String, Pair<RepositoryConfig, AppSourceProvider>>()

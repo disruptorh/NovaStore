@@ -9,6 +9,11 @@ import com.novastore.app.data.repository.PlayStoreRepositoryImpl
 import com.novastore.app.data.repository.RepositoriesRepositoryImpl
 import com.novastore.app.data.repository.SettingsRepositoryImpl
 import com.novastore.app.data.repository.UpdatesRepositoryImpl
+import com.novastore.app.data.source.FdroidIndexSourceProvider
+import com.novastore.app.data.source.GiteaCompatibleSourceProvider
+import com.novastore.app.data.source.GitHubReleaseSourceProvider
+import com.novastore.app.data.source.HtmlRegexSourceProvider
+import com.novastore.app.data.source.SourceRegistryImpl
 import com.novastore.app.domain.repository.AccountRepository
 import com.novastore.app.domain.repository.CatalogRepository
 import com.novastore.app.domain.repository.DeviceProfileRepository
@@ -19,10 +24,12 @@ import com.novastore.app.domain.repository.RepositoriesRepository
 import com.novastore.app.domain.repository.SettingsRepository
 import com.novastore.app.domain.repository.UpdateHistoryRepository
 import com.novastore.app.domain.repository.UpdatesRepository
+import com.novastore.app.domain.source.AppSourceProvider
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoSet
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -63,4 +70,23 @@ abstract class DataModule {
 
     @Binds
     abstract fun bindPackageTrustRepository(impl: com.novastore.app.data.repository.PackageTrustRepositoryImpl): com.novastore.app.domain.repository.PackageTrustRepository
+
+    @Binds
+    abstract fun bindSourceRegistry(impl: SourceRegistryImpl): com.novastore.app.domain.source.SourceRegistry
+
+    @Binds
+    @IntoSet
+    abstract fun bindFdroidProvider(impl: FdroidIndexSourceProvider): AppSourceProvider
+
+    @Binds
+    @IntoSet
+    abstract fun bindPlayWebProvider(impl: HtmlRegexSourceProvider): AppSourceProvider
+
+    @Binds
+    @IntoSet
+    abstract fun bindGitHubProvider(impl: GitHubReleaseSourceProvider): AppSourceProvider
+
+    @Binds
+    @IntoSet
+    abstract fun bindGiteaProvider(impl: GiteaCompatibleSourceProvider): AppSourceProvider
 }
