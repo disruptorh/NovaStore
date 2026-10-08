@@ -6,7 +6,7 @@ Integridad de APK real, tests del motor/fuentes, a11y AA, CI que corre lo que di
 
 ## Prerrequisitos
 
-P05, P06, P10-T01 (strings). P02-T07 (script tests).
+P05, P06, P09. P02-T07 (script tests).
 
 ## Archivos afectados
 
@@ -51,7 +51,7 @@ P05, P06, P10-T01 (strings). P02-T07 (script tests).
 
 ### P11-T04 SessionCipher migrate
 
-**Qué:** `decrypt` si plaintext: encrypt+rewrite DataStore (Account + Play session). Una pasada en `NovaStoreApp`/`ArkivApp` onCreate IO.
+**Qué:** `decrypt` si plaintext: encrypt+rewrite DataStore (Account + Play session). Una pasada en `NovaStoreApp` onCreate IO.
 
 **Aceptación:** test cipher: plaintext in → ciphertext stored (robolectric o jvm si se abstrae).
 

@@ -156,5 +156,4 @@ Métricas actuales **no medidas** (no Macrobenchmark en repo). Proxy: APK 18 MB;
 - P05 debe **borrar** mirrors (clientes, merge, etapa MIRRORS, toggles, constants, tests de StoreLinks apkpure si se deja de parsear).
 - P04 debe **crear** la abstracción que la doc ya describe y no está en código.
 - P03 debe índices + paging + R8 no espera a identidad.
-- P10: `applicationId` ya es `com.novastore.fork` ≠ namespace; cambiar package otra vez rompe datos salvo migración explícita.
-- Identidad recomendada: **Arkiv** (ver plan 10).
+- Identidad: P10 omitido. `applicationId` `com.novastore.fork` y nombre NovaStore se conservan; no hay rename de package/clases/UA/iconos.

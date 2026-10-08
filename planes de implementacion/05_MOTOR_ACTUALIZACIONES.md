@@ -117,7 +117,7 @@ No consultar provider `enabled=false`. No GitHub global search.
 
 **Qué:** `WorkScheduler`: `setRequiresBatteryNotLow(true)` cuando threshold settings >0. Mapear `battery_threshold`. Periodic min interval 15 min (API WorkManager). `IMMEDIATELY` → 15 min no 1h si se quiere agresivo, **o** dejar 1h (batería). Prescrito: IMMEDIATELY = 15 min + network connected. `BootReceiver`: además de downloads, `workScheduler.schedulePeriodicScan()`. Opcional: settings toggle “ignorar optimización batería” que abre intent; no forzar el permiso.
 
-**Aceptación:** reboot (doc manual) re-registra unique work `nova_update_scan`. Unique name actualizar en P10.
+**Aceptación:** reboot (doc manual) re-registra unique work `nova_update_scan`. Unique name se mantiene (P10 omitido).
 
 **Verificación:** unit con WorkManager test artifact si se añade `work-testing`; o inspección código + compile.
 

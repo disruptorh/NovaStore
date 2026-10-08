@@ -39,12 +39,10 @@ El trabajo está **terminado** solo si se cumplen **todos** los puntos. El agent
 - [ ] Preferred source por app.
 - [ ] Dedup catálogo alineada con updates (prioridad → version).
 
-## E. Req 4 — Identidad
+## E. Req 4 — Identidad (P10 omitido)
 
-- [ ] Nombre visible **Arkiv** (o el de P10 si se cambió con nota).
-- [ ] `applicationId` **no** cambiado respecto `com.novastore.fork` salvo decisión documentada.
-- [ ] Iconos adaptive + monochrome.
-- [ ] README actualizado.
+- [ ] Nombre visible, iconos, User-Agent y clases `NovaStore*` **sin** renombrar.
+- [ ] `applicationId` sigue `com.novastore.fork`.
 
 ## F. Req 5 — Diseño
 

@@ -28,7 +28,7 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 - P04 completo (T08 validate+preview en los 4 providers con errores tipeados TLS/404/JSON inválido/regex 0 matches; T09 `docs/source-providers.md` citando solo clases reales; T10 `SourceUrls` de normalización/rechazo + tests registry/URL ≥8 green). Detalle en `04_CAPA_DE_FUENTES.md`.
 - P05-T06 (`CatalogDao.getVersionsFor` filtra por `source IN (repositories enabled)` — un repo disabled nunca genera candidato ni marca la app como gestionada; el pase Play lo respeta vía el mismo DAO; `getVersions(packageName)` de detalle/install queda intacto. Nota: las `getVersions(pkg)` de GitHub/Gitea/HTML siguen en stub (vuelven vivas en P06/P07 al materializar providers); el loop del pseudocódigo no consulta providers con `enabled=false`.)
 - P05-T07 (`SourceResolutionPolicy.select` reordenada a prioridad-first: preferida (caller) → menor priority → mayor versionCode → source id; 5 tests ≥4 casos y `docs/update-engine.md` documenta prioridad-first; comentario `RepositoryEntity` "lower wins" alineado)
-- P05-T09 (`WorkScheduler`: `setRequiresBatteryNotLow(threshold > 0)` y `IMMEDIATELY` → 15 min (mínimo WorkManager) con red; `BootReceiver` re-registra `nova_update_scan` tras reboot además de reencolar downloads; nombres únicos se revisitan en P10-T04)
+- P05-T09 (`WorkScheduler`: `setRequiresBatteryNotLow(threshold > 0)` y `IMMEDIATELY` → 15 min (mínimo WorkManager) con red; `BootReceiver` re-registra `nova_update_scan` tras reboot además de reencolar downloads; unique work ids se mantienen)
 - P05-T10 (ids de canales unificados en `core/common/NotificationChannelIds` y usados por app + downloader; `InstallOutcomeNotifier` en `feature:updates` publica success de install en `installation` y fallos de download/verify/install en `errors` desde el resumen de `updateAll`; strings en `core:ui` 4 locales; 5 canales/5 usados, 5 sitios `NotificationCompat.Builder`)
 - P05-T11 (la retención del escaneo se extrae a `data/.../UpdateRetention.kt`: `shouldDeleteUpdateRow` puro — fila en vuelo fresca sobrevive, zombie >24h se borra, terminal se borra, candidata nunca se borra — con `UpdateRetentionTest`; `CheckForUpdatesUseCaseTest` con fakes de interfaces: play desactivado salta el pase Play, play sin acceso retiene paquetes sin responder, fallo de repos sin fuente comparable → Failure, filas legacy DISCOVERY se limpian antes del pase; 8 tests nuevos, `:data` y `:domain` unit test verdes)
 - P06-T01 (`RepositoryDao.updateFields` persiste name/baseUrl/metadataUrl/providerType/extraJson (2 tests Robolectric); `RepositoriesRepository.add` acepta `ProviderType` + `extraJson` y `update` nuevo; impl: F-Droid conserva `normalizeRepoUrl`+refresh, no-F-Droid escribe row canónica https (owner/repo para GitHub/GitLab/Gitea) sin tocar índices F-Droid, `ensureBuiltIns` ya NO sobrescribe el nombre local (solo reposiciona); `RepositoryEditorDialog` con selector de tipo, regex APK condicional para HTML y URL bloqueada en built-ins (edición solo nombre); strings en 4 locales; compila + tests verdes)
@@ -177,21 +177,23 @@ Actualiza este archivo en el mismo commit que cierra la tarea.
 
 ## P09 Configuración
 
-- [ ] P09-T01 Reagrupar secciones requeridas
-- [ ] P09-T02 Búsqueda dentro de ajustes
-- [ ] P09-T03 Descripciones y defaults
-- [ ] P09-T04 Confirmación destructiva
-- [ ] P09-T05 Privacidad / backup / acerca de
-- [ ] P09-T06 Extraer SettingsScreen blob a archivos por sección
+- [x] P09-T01 Reagrupar secciones requeridas
+- [x] P09-T02 Búsqueda dentro de ajustes
+- [x] P09-T03 Descripciones y defaults
+- [x] P09-T04 Confirmación destructiva
+- [x] P09-T05 Privacidad / backup / acerca de
+- [x] P09-T06 Extraer SettingsScreen blob a archivos por sección
+- P09-T01 (blob 1910 L partido en `feature/settings/sections/` en el orden prescrito: Sources, Updates, DownloadsAndInstall, Appearance, Storage, Privacy, Backup, About; reorden absoluto del UI; **Advanced eliminado**: root install → Descargas e instalación, token dispenser/SessionProvider → Privacidad; rows/diálogos compartidos en `SettingsRows.kt`; `SettingsScreen.kt` = Scaffold + TopAppBar + search + lista de secciones → **250 L exactos**. Firma pública `SettingsScreen(onOpenAccount, onBack, viewModel = hiltViewModel())` intacta para NovaStoreRoot.)
+- P09-T02 (`SettingsSearch.kt`: 40+ items indexados `SettingsItem(id, title, description, keywords, section)` + matcher puro `settingsItemMatches(item, query)` case-insensitive sobre título+descripción+keywords; search field fijado bajo TopAppBar; secciones vacías ocultas en query; EmptyState si no hay match. "wifi" → fila Wi-Fi only. **`SettingsSearchTest` (6 tests) en `feature/settings`**: testReleaseUnitTest ahora ejecuta tests reales — cubre el requisito de prueba (sin infra Compose).)
+- P09-T03 (todo `SwitchRow`/`ToggleTile` con `title`+`description` — verificado por grep; About lista "valores de fábrica" verificados: auto-update off, wifi-only on, confirm-install on, play-source on, anonymous on; fila **Reset settings** con ventana de confirm → `SettingsViewModel.resetSettings()` → `SettingsDataStore.resetAll()` (lista explícita de keys de settings, deja favorites/sessions/ignored intactos).)
+- P09-T04 (`ConfirmActionDialog` gating confirmación ANTES de ejecutar: borrar fuente, reset settings, clear cache, clear downloads, sign out; "auto-clean downloads" NO se confirma por diseño. `rg repo remove/clear/reset` en settings confirma diálogos presentes.)
+- P09-T05 (Privacidad: fila "Cuenta Play" → navega `account` (sin embeber login), modo anonymous con status, fila informativa QUERY_ALL_PACKAGES (explicación por qué se pide), toggles notificaciones, session provider (venía de Advanced). Backup: export/import fuentes (P06-T05) accesibles vía SAF + nota de versión. About: `versionName` real, `LicenseDialog` (licencias), nota "no afiliado a Google".)
+- P09-T06 (SettingsScreen.kt ≤250 L y delgado; lógica en `SettingsViewModel` — reset/clear cache/clear downloads/sign out nuevos; `core:datastore` expone `datastore.preferences` vía `api`; `feature/settings` gana dependencia `:core:downloader` para el clear de descargas.)
+- Notas: reutiliza `InfoBanner`/`EmptyState` de core/ui (sin duplicados locales); a11y: reorder con `Icons.Filled.ArrowUpward/ArrowDownward` + `contentDescription`, chips/swatches 48dp; 26 strings nuevas en 4 locales. Verificación: `wc -l` SettingsScreen.kt = 250; `rg -i advanced` settings = 0; `:feature:settings:testReleaseUnitTest` corre SettingsSearchTest (6 green); `:app:hiltJavaCompileRelease` y `:app:assembleRelease` verdes.
 
-## P10 Identidad
+## P10 Identidad — omitido
 
-- [ ] P10-T01 Aplicar nombre visible **Arkiv** (strings, labels)
-- [ ] P10-T02 Iconos, splash, `ic_stat`
-- [ ] P10-T03 README y docs de usuario
-- [ ] P10-T04 User-Agent / canales / nombres WorkManager únicos
-- [ ] P10-T05 **NO** cambiar `applicationId` si hay datos; documentar en INFORME. Solo si repo virgen: package rename
-- [ ] P10-T06 Renombrar clases `NovaStore*` de UI (opcional, mismo commit) sin mover `applicationId`
+Cancelado: coste alto, riesgo de incongruencias (applicationId, workers, UA, clases) sin necesidad de producto. Identidad actual (NovaStore, `com.novastore.fork`) es el estado final.
 
 ## P11 Pruebas, a11y, seguridad
 
