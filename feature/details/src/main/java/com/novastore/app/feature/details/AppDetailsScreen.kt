@@ -100,6 +100,9 @@ import com.novastore.app.core.ui.components.novaAccentBrush
 import com.novastore.app.core.ui.components.novaHeroBrush
 import com.novastore.app.core.ui.theme.NovaShapes
 import com.novastore.app.core.ui.theme.OnEmerald
+import com.novastore.app.core.ui.theme.BrandIndigo
+import com.novastore.app.core.ui.theme.Favorite
+import com.novastore.app.core.ui.theme.StarAmber
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -185,7 +188,7 @@ fun AppDetailsScreen(
                                 contentDescription = stringResource(
                                     if (favorite) UiR.string.details_favorite_remove else UiR.string.details_favorite_add,
                                 ),
-                                tint = if (favorite) androidx.compose.ui.graphics.Color(0xFFE5486B) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                tint = if (favorite) Favorite else MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
@@ -639,7 +642,7 @@ private fun BannerHeader(details: RemoteAppDetails, onOpen: (() -> Unit)? = null
                 Icon(
                     Icons.AutoMirrored.Filled.OpenInNew,
                     contentDescription = stringResource(UiR.string.details_open),
-                    tint = Color(0xFF6965F1),
+                    tint = BrandIndigo,
                     modifier = Modifier.size(22.dp),
                 )
             }
@@ -683,7 +686,7 @@ private fun BannerHeader(details: RemoteAppDetails, onOpen: (() -> Unit)? = null
                 NovaRatingBar(
                     value = app.rating,
                     starSize = 16.dp,
-                    tint = Color(0xFFFFE082),
+                    tint = StarAmber,
                 )
             }
         }
@@ -1485,7 +1488,7 @@ private fun PreviewHeader(padding: PaddingValues, app: com.novastore.app.core.mo
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(app.name, style = MaterialTheme.typography.titleLarge, color = Color.White, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 app.developer?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.9f), maxLines = 1) }
-                NovaRatingBar(value = app.rating, starSize = 16.dp, tint = Color(0xFFFFE082))
+                NovaRatingBar(value = app.rating, starSize = 16.dp, tint = StarAmber)
             }
         }
         Spacer(Modifier.height(16.dp))

@@ -191,6 +191,16 @@ val BrandIndigo = Color(0xFF6965F1)
 /** Brand violet — decorative gradient end, paired with [BrandIndigo]. */
 val BrandViolet = Color(0xFFA556F7)
 
+/**
+ * Rating gold — filled star fills and review accents. A lighter gold than
+ * [Amber] so star rows stay readable on both the compact cards and the
+ * saturated hero gradient in Details.
+ */
+val StarAmber = Color(0xFFFFE082)
+
+/** Filled-favorite heart accent (use a neutral tint for the outline state). */
+val Favorite = Color(0xFFE5486B)
+
 /** Brand gradient of the "Nova Store" wordmark: indigo → violet. */
 val NovaTitleBrush: Brush = Brush.linearGradient(colors = listOf(BrandIndigo, BrandViolet))
 
