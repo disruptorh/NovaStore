@@ -36,6 +36,7 @@
     <string name="home_catalog_empty_title">The catalog is empty</string>
     <string name="home_catalog_empty_desc">Swipe down to refresh repositories, or check the enabled sources in Settings.</string>
     <string name="home_catalog_empty_action">Refresh now</string>
+    <string name="home_catalog_empty_add_source">Add source</string>
     <string name="home_updates_banner_one">1 update available</string>
     <string name="home_updates_banner_many">%d updates available</string>
     <string name="home_updates_banner_sub">Keep your apps fresh — review them now</string>
@@ -192,6 +193,7 @@
     <string name="installed_chip_play">From Play</string>
     <string name="installed_chip_fdroid">From F-Droid</string>
     <string name="installed_chip_other">Other sources</string>
+    <string name="installed_uninstall_title">Uninstall %1$s?</string>
 
     <!-- Search -->
     <string name="search_hint">Search apps &amp; games</string>

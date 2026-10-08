@@ -36,6 +36,7 @@
     <string name="home_catalog_empty_title">El catálogo está vacío</string>
     <string name="home_catalog_empty_desc">Desliza hacia abajo para actualizar los repositorios o revisa las fuentes activas en Ajustes.</string>
     <string name="home_catalog_empty_action">Actualizar ahora</string>
+    <string name="home_catalog_empty_add_source">Añadir fuente</string>
     <string name="home_updates_banner_one">1 actualización disponible</string>
     <string name="home_updates_banner_many">%d actualizaciones disponibles</string>
     <string name="home_updates_banner_sub">Mantén tus apps al día — revísalas ahora</string>
@@ -192,6 +193,7 @@
     <string name="installed_chip_play">De Play</string>
     <string name="installed_chip_fdroid">De F-Droid</string>
     <string name="installed_chip_other">Otras fuentes</string>
+    <string name="installed_uninstall_title">¿Desinstalar %1$s?</string>
 
     <!-- Search -->
     <string name="search_hint">Buscar apps y juegos</string>

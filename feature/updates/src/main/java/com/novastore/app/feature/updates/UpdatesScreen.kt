@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -63,7 +64,7 @@ import com.novastore.app.core.ui.components.InstalledAppIcon
 import com.novastore.app.core.model.UpdateConfidence
 import com.novastore.app.core.ui.components.EmptyState
 import com.novastore.app.core.ui.components.ErrorState
-import com.novastore.app.core.ui.components.LoadingState
+import com.novastore.app.core.ui.components.ShimmerBox
 import com.novastore.app.core.ui.components.formatFileSize
 import com.novastore.app.core.ui.components.novaAccentBrush
 import com.novastore.app.core.ui.theme.OnEmerald
@@ -168,9 +169,8 @@ fun UpdatesScreen(
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
             when {
-                state.loading -> LoadingState(Modifier.fillMaxWidth(), stringResource(UiR.string.updates_loading))
-                state.scanning && state.updates.isEmpty() ->
-                    LoadingState(Modifier.fillMaxWidth(), stringResource(UiR.string.updates_scanning))
+                state.loading -> UpdatesSkeleton(showProgress = false)
+                state.scanning && state.updates.isEmpty() -> UpdatesSkeleton(showProgress = true)
                 state.updates.isEmpty() && state.lastError == null && state.ignoredPackages.isEmpty() -> Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -437,12 +437,17 @@ private fun UpdateAllCard(
                 shape = RoundedCornerShape(14.dp),
                 onClick = onUpdateAll,
             ) {
-                Text(
-                    text = stringResource(UiR.string.updates_update_all),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                )
+                Box(
+                    modifier = Modifier.heightIn(min = 48.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = stringResource(UiR.string.updates_update_all),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
+                }
             }
         }
     }
@@ -457,7 +462,7 @@ private fun NoticeBanner(text: String, onDismiss: () -> Unit) {
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.heightIn(min = 48.dp).padding(14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -595,7 +600,7 @@ private fun UpdateRow(
                             menuExpanded = true
                             onMenuOpened()
                         },
-                        modifier = Modifier.size(42.dp),
+                        modifier = Modifier.size(48.dp),
                     ) {
                         Icon(
                             Icons.Filled.MoreVert,
@@ -729,4 +734,44 @@ private fun sourceLabel(source: String, names: Map<String, String>): String = wh
     "github" -> "GitHub"
     "gitlab" -> "GitLab"
     else -> names[source] ?: source.replaceFirstChar { it.uppercase() }
+}
+
+/** Skeleton list shown while the first update scan is in flight (P08-T09). */
+@Composable
+private fun UpdatesSkeleton(showProgress: Boolean) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        if (showProgress) {
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            )
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            repeat(6) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    ShimmerBox(
+                        modifier = Modifier.size(48.dp),
+                        cornerRadius = 12.dp,
+                    )
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        ShimmerBox(modifier = Modifier.fillMaxWidth(0.7f).height(14.dp), cornerRadius = 7.dp)
+                        ShimmerBox(modifier = Modifier.fillMaxWidth(0.4f).height(12.dp), cornerRadius = 6.dp)
+                    }
+                    ShimmerBox(modifier = Modifier.size(72.dp).height(32.dp), cornerRadius = 8.dp)
+                }
+            }
+        }
+    }
 }

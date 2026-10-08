@@ -34,7 +34,7 @@ data class InstalledUiState(
 @HiltViewModel
 class InstalledViewModel @Inject constructor(
     private val scanInstalledApps: ScanInstalledAppsUseCase,
-    installedAppsRepository: InstalledAppsRepository,
+    private val installedAppsRepository: InstalledAppsRepository,
     updatesRepository: UpdatesRepository,
 ) : ViewModel() {
 
@@ -100,5 +100,18 @@ class InstalledViewModel @Inject constructor(
 
     fun setSort(value: InstalledSort) {
         sort.value = value
+    }
+
+    /**
+     * Opens the system uninstall confirmation dialog for [packageName].
+     * The list follows the result through the package change receiver.
+     */
+    fun uninstall(packageName: String) {
+        viewModelScope.launch {
+            when (val result = installedAppsRepository.uninstall(packageName)) {
+                is com.novastore.app.core.common.AppResult.Failure -> lastError.value = result.error.userMessage
+                is com.novastore.app.core.common.AppResult.Success -> Unit
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,9 +19,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SystemUpdateAlt
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -33,6 +36,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -52,7 +56,7 @@ import com.novastore.app.core.ui.R as UiR
 import com.novastore.app.core.ui.components.EmptyState
 import com.novastore.app.core.ui.components.ErrorState
 import com.novastore.app.core.ui.components.InstalledAppIcon
-import com.novastore.app.core.ui.components.LoadingState
+import com.novastore.app.core.ui.components.ShimmerBox
 import java.text.DateFormat
 import java.util.Date
 
@@ -65,6 +69,30 @@ fun InstalledScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var sortMenuOpen by remember { mutableStateOf(false) }
+    var uninstallTarget by remember { mutableStateOf<InstalledApp?>(null) }
+
+    uninstallTarget?.let { target ->
+        AlertDialog(
+            onDismissRequest = { uninstallTarget = null },
+            title = { Text(stringResource(UiR.string.installed_uninstall_title, target.appName)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    uninstallTarget = null
+                    viewModel.uninstall(target.packageName)
+                }) {
+                    Text(
+                        stringResource(UiR.string.details_uninstall),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { uninstallTarget = null }) {
+                    Text(stringResource(UiR.string.action_cancel))
+                }
+            },
+        )
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -188,7 +216,7 @@ fun InstalledScreen(
             )
 
             when {
-                state.loading -> LoadingState(Modifier.fillMaxWidth(), stringResource(UiR.string.updates_scanning))
+                state.loading -> InstalledSkeleton()
                 state.lastError != null -> ErrorState(
                     modifier = Modifier.fillMaxWidth(),
                     description = state.lastError ?: "",
@@ -217,6 +245,7 @@ fun InstalledScreen(
                             app = app,
                             hasUpdate = app.packageName in state.updatingPackages,
                             onClick = { onOpenAppDetails(app.packageName) },
+                            onUninstall = { uninstallTarget = app },
                         )
                     }
                 }
@@ -226,12 +255,20 @@ fun InstalledScreen(
 }
 
 @Composable
-private fun InstalledAppRow(app: InstalledApp, hasUpdate: Boolean, onClick: () -> Unit) {
+private fun InstalledAppRow(
+    app: InstalledApp,
+    hasUpdate: Boolean,
+    onClick: () -> Unit,
+    onUninstall: () -> Unit,
+) {
+    var menuOpen by remember { mutableStateOf(false) }
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
@@ -281,6 +318,31 @@ private fun InstalledAppRow(app: InstalledApp, hasUpdate: Boolean, onClick: () -
                     )
                 }
             }
+            Box {
+                IconButton(
+                    onClick = { menuOpen = true },
+                    modifier = Modifier.size(48.dp),
+                ) {
+                    Icon(
+                        Icons.Filled.MoreVert,
+                        contentDescription = stringResource(UiR.string.cd_more),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+                DropdownMenu(
+                    expanded = menuOpen,
+                    onDismissRequest = { menuOpen = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(UiR.string.details_uninstall)) },
+                        onClick = {
+                            menuOpen = false
+                            onUninstall()
+                        },
+                    )
+                }
+            }
         }
     }
 }
@@ -292,4 +354,32 @@ private fun installerLabel(app: InstalledApp): String = when (app.installerSourc
     "org.fdroid.fdroid" -> stringResource(UiR.string.installed_chip_fdroid)
     null -> if (app.isSystemApp) "system" else stringResource(UiR.string.installed_chip_other)
     else -> (app.installerSource?.substringAfterLast('.') ?: "installer")
+}
+
+/** Skeleton list shown during the first installed-apps load (P08-T09). */
+@Composable
+private fun InstalledSkeleton() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        repeat(8) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                ShimmerBox(modifier = Modifier.size(44.dp), cornerRadius = 10.dp)
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    ShimmerBox(modifier = Modifier.fillMaxWidth(0.6f).height(14.dp), cornerRadius = 7.dp)
+                    ShimmerBox(modifier = Modifier.fillMaxWidth(0.35f).height(12.dp), cornerRadius = 6.dp)
+                }
+                ShimmerBox(modifier = Modifier.size(24.dp), cornerRadius = 12.dp)
+            }
+        }
+    }
 }

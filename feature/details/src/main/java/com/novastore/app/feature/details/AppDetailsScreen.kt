@@ -28,7 +28,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -41,7 +40,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ThumbUpAlt
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -69,6 +67,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.font.FontWeight
@@ -90,14 +90,15 @@ import com.novastore.app.core.ui.R as UiR
 import com.novastore.app.core.ui.components.AppIcon
 import com.novastore.app.core.ui.components.ErrorState
 import com.novastore.app.core.ui.components.InstalledAppIcon
-import com.novastore.app.core.ui.components.LoadingState
 import com.novastore.app.core.ui.components.NovaGradientButton
 import com.novastore.app.core.ui.components.NovaRatingBar
+import com.novastore.app.core.ui.components.ShimmerBox
 import com.novastore.app.core.ui.components.SourceBadge
 import com.novastore.app.core.ui.components.formatDownloadCount
 import com.novastore.app.core.ui.components.formatFileSize
 import com.novastore.app.core.ui.components.novaAccentBrush
 import com.novastore.app.core.ui.components.novaHeroBrush
+import com.novastore.app.core.ui.theme.NovaShapes
 import com.novastore.app.core.ui.theme.OnEmerald
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -197,7 +198,7 @@ fun AppDetailsScreen(
     ) { padding ->
         when {
             state.loading && state.preview != null -> PreviewHeader(padding = padding, app = state.preview!!)
-            state.loading -> LoadingState(Modifier.padding(padding), stringResource(UiR.string.details_loading))
+            state.loading -> DetailsSkeleton(padding = padding)
             state.details != null -> DetailsContent(
                 padding = padding,
                 viewModel = viewModel,
@@ -521,6 +522,7 @@ private fun DetailsContent(
                 if (overflowing || expanded) {
                     TextButton(
                         onClick = { expanded = !expanded },
+                        modifier = Modifier.heightIn(min = 48.dp),
                         contentPadding = PaddingValues(horizontal = 4.dp),
                     ) {
                         Text(stringResource(if (expanded) UiR.string.details_less else UiR.string.details_more))
@@ -564,6 +566,7 @@ private fun DetailsContent(
                                 onClick = {
                                     viewModel.onSelectSource(if (source == preferred) null else source)
                                 },
+                                modifier = Modifier.heightIn(min = 48.dp),
                                 label = {
                                     Text(
                                         sourceLabel(source, state.sourceNames),
@@ -630,7 +633,7 @@ private fun BannerHeader(details: RemoteAppDetails, onOpen: (() -> Unit)? = null
             onClick = onOpen,
             shape = CircleShape,
             color = Color.White,
-            modifier = Modifier.align(Alignment.TopEnd).padding(12.dp).size(44.dp),
+            modifier = Modifier.align(Alignment.TopEnd).padding(12.dp).size(48.dp),
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
@@ -822,6 +825,7 @@ private fun RatingReviewsSection(
             if (reviews.size > 3) {
                 TextButton(
                     onClick = { allReviewsVisible = true },
+                    modifier = Modifier.heightIn(min = 48.dp),
                     contentPadding = PaddingValues(horizontal = 4.dp),
                 ) {
                     Text(
@@ -999,6 +1003,7 @@ private fun ReviewItem(review: AppReview) {
         if (overflowing || expanded) {
             TextButton(
                 onClick = { expanded = !expanded },
+                modifier = Modifier.heightIn(min = 48.dp),
                 contentPadding = PaddingValues(horizontal = 4.dp),
             ) {
                 Text(
@@ -1144,14 +1149,17 @@ private fun ScreenshotViewerDialog(
                 shape = CircleShape,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .size(48.dp),
             ) {
-                Icon(
-                    Icons.Filled.Close,
-                    contentDescription = stringResource(UiR.string.cd_back),
-                    tint = Color.White,
-                    modifier = Modifier.padding(10.dp),
-                )
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                    Icon(
+                        Icons.Filled.Close,
+                        contentDescription = stringResource(UiR.string.cd_back),
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
             }
         }
     }
@@ -1182,7 +1190,7 @@ private fun SecondaryActionButton(
         modifier = modifier,
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            modifier = Modifier.heightIn(min = 48.dp).padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -1271,7 +1279,7 @@ private fun VersionRow(version: AppVersion, selected: Boolean, installed: Boolea
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            modifier = Modifier.heightIn(min = 48.dp).padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -1482,5 +1490,50 @@ private fun PreviewHeader(padding: PaddingValues, app: com.novastore.app.core.mo
         }
         Spacer(Modifier.height(16.dp))
         LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp))
+    }
+}
+
+@Composable
+private fun DetailsSkeleton(padding: PaddingValues) {
+    val loadingLabel = stringResource(UiR.string.details_loading)
+    Column(
+        modifier = Modifier
+            .padding(padding)
+            .fillMaxSize()
+            .semantics { contentDescription = loadingLabel },
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 4.dp)
+                .clip(NovaShapes.Sheet)
+                .background(novaHeroBrush())
+                .padding(18.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            ShimmerBox(
+                modifier = Modifier.size(96.dp).clip(NovaShapes.Sheet),
+                cornerRadius = 28.dp,
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                ShimmerBox(modifier = Modifier.fillMaxWidth().height(20.dp), cornerRadius = 10.dp)
+                ShimmerBox(
+                    modifier = Modifier.fillMaxWidth(0.6f).height(14.dp),
+                    cornerRadius = 7.dp,
+                )
+            }
+        }
+        ShimmerBox(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .fillMaxWidth()
+                .height(52.dp),
+            cornerRadius = 12.dp,
+        )
     }
 }

@@ -64,6 +64,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.novastore.app.core.model.AuthMethod
 import com.novastore.app.core.ui.R as UiR
+import com.novastore.app.core.ui.components.InfoBanner
+import com.novastore.app.core.ui.components.InfoBannerKind
 import com.novastore.app.core.ui.components.NovaGradientButton
 import com.novastore.app.core.ui.components.SourceBadge
 import com.novastore.app.core.ui.components.novaAccentBrush
@@ -163,11 +165,17 @@ fun AccountScreen(
             // Errors can now only come from the *optional* Google sign-in
             // paths — the anonymous engine itself never fails.
             if (state.error != null) {
-                ErrorBanner(
+                InfoBanner(
                     text = state.error ?: "",
-                    mentionsAppPassword = state.error?.contains("password", ignoreCase = true) == true ||
+                    kind = InfoBannerKind.ERROR,
+                    hint = if (state.error?.contains("password", ignoreCase = true) == true ||
                         state.error?.contains("2fa", ignoreCase = true) == true ||
-                        state.error?.contains("2-step", ignoreCase = true) == true,
+                        state.error?.contains("2-step", ignoreCase = true) == true
+                    ) {
+                        stringResource(UiR.string.account_error_hint)
+                    } else {
+                        null
+                    },
                     onDismiss = viewModel::dismissError,
                 )
             }
@@ -663,48 +671,6 @@ private fun ActiveTierRow(label: String) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-    }
-}
-
-@Composable
-private fun ErrorBanner(
-    text: String,
-    mentionsAppPassword: Boolean,
-    onDismiss: () -> Unit,
-) {
-    Surface(
-        color = MaterialTheme.colorScheme.errorContainer,
-        shape = RoundedCornerShape(16.dp),
-        onClick = onDismiss,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Icon(
-                Icons.Filled.Lock,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onErrorContainer,
-                modifier = Modifier.size(22.dp),
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                )
-                if (mentionsAppPassword) {
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        text = stringResource(UiR.string.account_error_hint),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.85f),
-                    )
-                }
-            }
-        }
     }
 }
 

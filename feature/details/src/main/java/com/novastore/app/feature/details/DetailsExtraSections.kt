@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -203,7 +204,11 @@ internal fun PermissionsSection(details: RemoteAppDetails, installedPackage: Str
             }
         }
         if (described.size > PERMISSIONS_PREVIEW) {
-            TextButton(onClick = { expanded = !expanded }, contentPadding = PaddingValues(horizontal = 4.dp)) {
+            TextButton(
+                onClick = { expanded = !expanded },
+                modifier = Modifier.heightIn(min = 48.dp),
+                contentPadding = PaddingValues(horizontal = 4.dp),
+            ) {
                 Text(stringResource(if (expanded) UiR.string.details_less else UiR.string.details_show_all))
             }
         }
@@ -215,6 +220,7 @@ private fun ContactRow(icon: ImageVector, label: String, value: String, onClick:
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 48.dp)
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
             .padding(vertical = 6.dp),

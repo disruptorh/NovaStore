@@ -36,6 +36,7 @@
     <string name="home_catalog_empty_title">Каталог пуст</string>
     <string name="home_catalog_empty_desc">Потяните вниз, чтобы обновить репозитории, или проверьте включённые источники в настройках.</string>
     <string name="home_catalog_empty_action">Обновить сейчас</string>
+    <string name="home_catalog_empty_add_source">Добавить источник</string>
     <string name="home_updates_banner_one">Доступно 1 обновление</string>
     <string name="home_updates_banner_many">Доступно обновлений: %d</string>
     <string name="home_updates_banner_sub">Держите приложения свежими — просмотрите их сейчас</string>
@@ -192,6 +193,7 @@
     <string name="installed_chip_play">Из Play</string>
     <string name="installed_chip_fdroid">Из F-Droid</string>
     <string name="installed_chip_other">Другие источники</string>
+    <string name="installed_uninstall_title">Удалить %1$s?</string>
 
     <!-- Search -->
     <string name="search_hint">Поиск приложений и игр</string>

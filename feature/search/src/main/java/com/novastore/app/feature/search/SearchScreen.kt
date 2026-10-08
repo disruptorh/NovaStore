@@ -64,7 +64,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.novastore.app.core.model.SOURCE_FDROID
@@ -76,6 +75,7 @@ import com.novastore.app.core.ui.components.AppCardRow
 import com.novastore.app.core.ui.components.AppGridCell
 import com.novastore.app.core.ui.components.EmptyState
 import com.novastore.app.core.ui.components.ErrorState
+import com.novastore.app.core.ui.components.ShimmerBox
 
 /** Sources offered in the filter chip row ("All" is represented by null). */
 private val SEARCH_SOURCE_FILTERS: List<String?> = listOf(
@@ -295,6 +295,7 @@ fun SearchScreen(
                     retryLabel = stringResource(UiR.string.action_retry),
                     onRetry = { viewModel.setQuery(query) },
                 )
+                state.results.isEmpty() && state.searching -> SearchResultsSkeleton()
                 state.results.isEmpty() && !state.searching -> EmptyState(
                     icon = Icons.Filled.CloudOff,
                     title = stringResource(UiR.string.search_no_results, query),
@@ -419,7 +420,7 @@ private fun LayoutToggle(layout: String, grid: Boolean, onCycle: () -> Unit) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
                         text = autoBadge,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                        style = MaterialTheme.typography.labelSmall,
                         maxLines = 1,
                     )
                 }
@@ -605,4 +606,39 @@ private fun sourceFilterLabel(source: String?): String = when (source) {
     SOURCE_GITHUB -> "GitHub"
     SOURCE_GITLAB -> "GitLab"
     else -> source
+}
+
+/** First-load placeholder: shimmer result cards instead of a blank area. */
+@Composable
+private fun SearchResultsSkeleton() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        repeat(6) {
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    ShimmerBox(modifier = Modifier.size(60.dp), cornerRadius = 16.dp)
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        ShimmerBox(modifier = Modifier.fillMaxWidth(0.6f).height(14.dp), cornerRadius = 7.dp)
+                        ShimmerBox(modifier = Modifier.fillMaxWidth(0.9f).height(12.dp), cornerRadius = 6.dp)
+                        ShimmerBox(modifier = Modifier.fillMaxWidth(0.45f).height(12.dp), cornerRadius = 6.dp)
+                    }
+                }
+            }
+        }
+    }
 }
