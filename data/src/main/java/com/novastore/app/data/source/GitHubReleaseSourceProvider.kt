@@ -4,12 +4,15 @@ import com.novastore.app.core.common.AppResult
 import com.novastore.app.core.common.DispatcherProvider
 import com.novastore.app.core.model.AppVersion
 import com.novastore.app.core.model.NovaError
+import com.novastore.app.core.model.ProviderPackage
 import com.novastore.app.core.model.ProviderType
 import com.novastore.app.core.model.RemoteApp
 import com.novastore.app.core.model.RemoteAppDetails
 import com.novastore.app.core.model.RepositoryConfig
 import com.novastore.app.core.model.SourceUrls
+import com.novastore.app.data.websource.GitHubClient
 import com.novastore.app.domain.source.AppSourceProvider
+import com.novastore.app.domain.source.SourceCatalog
 import com.novastore.app.domain.source.SourcePreview
 import java.io.IOException
 import java.net.URLEncoder
@@ -25,10 +28,11 @@ import org.json.JSONArray
 class GitHubReleaseSourceProvider @Inject constructor(
     private val okHttpClient: OkHttpClient,
     private val dispatcherProvider: DispatcherProvider,
+    private val gitHubClient: GitHubClient,
 ) : AppSourceProvider {
 
     override val providerId: String = "github-releases"
-    override val displayName: String = "GitHub Releases"
+    override val displayName: String = "GitHub"
     override val type: ProviderType = ProviderType.GITHUB
 
     override suspend fun isEnabled(): Boolean = true
@@ -94,6 +98,61 @@ class GitHubReleaseSourceProvider @Inject constructor(
     override suspend fun getVersions(packageName: String): List<AppVersion> = emptyList()
 
     override suspend fun refresh(): AppResult<Unit> = AppResult.Success(Unit)
+
+    /**
+     * P06/P07: materializes the whole repository from GitHub's public API —
+     * repo metadata feeds the app row, releases become the version list. The
+     * heavy lifting is shared with the live GitHub catalog (GitHubClient), so
+     * UA, caching and error handling stay in ONE place.
+     */
+    override suspend fun fetch(config: RepositoryConfig): AppResult<SourceCatalog> {
+        val ref = config.metadataUrl.ifBlank { config.baseUrl }.trim()
+        val fullName = SourceUrls.asGitHubFullName(ref)
+            ?: return AppResult.Failure(
+                NovaError.Repository(
+                    userMessage = "Not a GitHub repository: enter owner/repo or https://github.com/owner/repo.",
+                    repositoryId = config.repositoryId,
+                ),
+            )
+        val options = ReleaseCatalog.parseOptions(config.extraJson)
+        val versions = gitHubClient.catalogVersions(
+            fullName = fullName,
+            source = config.repositoryId,
+            includePrereleases = options.includePrereleases,
+            apkFilterRegex = options.apkFilterRegex,
+        )
+        if (versions.isEmpty()) {
+            return AppResult.Failure(
+                NovaError.Repository(
+                    userMessage = "No installable APK files were found in the releases of $fullName.",
+                    repositoryId = config.repositoryId,
+                ),
+            )
+        }
+        val canonical = SourceUrls.normalizeSourceUrl(config.baseUrl.ifBlank { "https://github.com/$fullName" })
+            ?: "https://github.com/$fullName"
+        val packageName = ProviderPackage.of(ProviderType.GITHUB, canonical)
+        val app = gitHubClient.details(fullName)?.app?.copy(packageName = packageName, source = config.repositoryId)
+            ?: RemoteApp(
+                packageName = packageName,
+                name = fullName.substringAfter('/'),
+                summary = null,
+                developer = fullName.substringBefore('/'),
+                iconUrl = null,
+                license = null,
+                categories = listOf("GitHub"),
+                source = config.repositoryId,
+                downloads = null,
+                updatedMillis = versions.maxOfOrNull { it.addedAt ?: 0L },
+            )
+        return AppResult.Success(
+            SourceCatalog(
+                app = app,
+                versions = versions.map { it.copy(packageName = packageName) },
+                warning = if (versions.none { it.sha256 != null }) ReleaseCatalog.NO_CHECKSUM_WARNING else null,
+            ),
+        )
+    }
 
     private companion object {
         const val NOVA_UA = "NovaStore/5.0 (Android app catalog client)"

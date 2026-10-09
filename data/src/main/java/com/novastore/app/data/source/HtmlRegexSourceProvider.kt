@@ -4,12 +4,14 @@ import com.novastore.app.core.common.AppResult
 import com.novastore.app.core.common.DispatcherProvider
 import com.novastore.app.core.model.AppVersion
 import com.novastore.app.core.model.NovaError
+import com.novastore.app.core.model.ProviderPackage
 import com.novastore.app.core.model.ProviderType
 import com.novastore.app.core.model.RemoteApp
 import com.novastore.app.core.model.RemoteAppDetails
 import com.novastore.app.core.model.RepositoryConfig
 import com.novastore.app.core.model.SourceUrls
 import com.novastore.app.domain.source.AppSourceProvider
+import com.novastore.app.domain.source.SourceCatalog
 import com.novastore.app.domain.source.SourcePreview
 import java.io.IOException
 import java.util.concurrent.Callable
@@ -23,17 +25,16 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.json.JSONObject
 
 /**
  * A from-HTML source: the user gives a base https:// page and an
  * [apkUrlRegex] whose capture group 1 is the download URL. validate() fetches
  * the page and proves the regex extracts URLs — without touching Room.
  *
- * Guard rails, all enforced in validate(): the base URL must be https://,
- * the pattern is length-capped against pathological regexes, and extraction
- * runs under a hard 2 s timeout (a pathological pattern fails the source
- * instead of hanging the add flow).
+ * Guard rails, all enforced in validate()/fetch(): the base URL must be
+ * https://, the pattern is length-capped against pathological regexes, and
+ * extraction runs under a hard 2 s timeout (a pathological pattern fails the
+ * source instead of hanging the add flow).
  */
 @Singleton
 class HtmlRegexSourceProvider @Inject constructor(
@@ -42,7 +43,7 @@ class HtmlRegexSourceProvider @Inject constructor(
 ) : AppSourceProvider {
 
     override val providerId: String = "html-regex"
-    override val displayName: String = "HTML Regex"
+    override val displayName: String = "HTML"
     override val type: ProviderType = ProviderType.HTML_REGEX
 
     override suspend fun isEnabled(): Boolean = true
@@ -50,7 +51,7 @@ class HtmlRegexSourceProvider @Inject constructor(
     override suspend fun validate(config: RepositoryConfig): AppResult<SourcePreview> {
         val base = SourceUrls.normalizeSourceUrl(config.baseUrl.ifBlank { config.metadataUrl })
             ?: return AppResult.Failure(NovaError.Repository("The HTML source needs an https:// base URL (http, file and javascript: are not supported)."))
-        val pattern = apkUrlRegex(config)
+        val pattern = ReleaseCatalog.parseOptions(config.extraJson).apkUrlRegex
             ?: return AppResult.Failure(NovaError.Repository("Provide an apkUrlRegex (JSON {\"apkUrlRegex\": \"…\"} in the source config) whose group 1 is the download URL."))
         if (pattern.length > MAX_PATTERN_LENGTH) {
             return AppResult.Failure(NovaError.Repository("apkUrlRegex is too long ($pattern.length > $MAX_PATTERN_LENGTH chars)."))
@@ -70,10 +71,8 @@ class HtmlRegexSourceProvider @Inject constructor(
         )
     }
 
-    private fun apkUrlRegex(config: RepositoryConfig): String? {
-        val extra = config.extraJson ?: return null
-        return runCatching { JSONObject(extra).optString("apkUrlRegex").takeIf { it.isNotBlank() } }.getOrNull()
-    }
+    private fun apkUrlRegex(config: RepositoryConfig): String? =
+        ReleaseCatalog.parseOptions(config.extraJson).apkUrlRegex
 
     private suspend fun fetch(url: String): String? = withContext(dispatcherProvider.io) {
         runCatching {
@@ -104,6 +103,85 @@ class HtmlRegexSourceProvider @Inject constructor(
         } finally {
             executor.shutdownNow()
         }
+    }
+
+    /**
+     * P06/P07: materializes the page — each matched URL becomes one version
+     * (the file name is the version name; codes are page-order based since a
+     * plain page has no real version metadata). No checksums exist by
+     * construction, so the integrity warning is always attached.
+     */
+    override suspend fun fetch(config: RepositoryConfig): AppResult<SourceCatalog> {
+        val base = SourceUrls.normalizeSourceUrl(config.baseUrl.ifBlank { config.metadataUrl })
+            ?: return AppResult.Failure(
+                NovaError.Repository(
+                    userMessage = "The HTML source needs an https:// base URL.",
+                    repositoryId = config.repositoryId,
+                ),
+            )
+        val pattern = ReleaseCatalog.parseOptions(config.extraJson).apkUrlRegex
+            ?: return AppResult.Failure(
+                NovaError.Repository(
+                    userMessage = "Provide an apkUrlRegex (JSON {\"apkUrlRegex\": \"…\"}) whose group 1 is the download URL.",
+                    repositoryId = config.repositoryId,
+                ),
+            )
+        if (pattern.length > MAX_PATTERN_LENGTH) {
+            return AppResult.Failure(
+                NovaError.Repository(
+                    userMessage = "apkUrlRegex is too long (${pattern.length} > $MAX_PATTERN_LENGTH chars).",
+                    repositoryId = config.repositoryId,
+                ),
+            )
+        }
+        val html = fetch(base) ?: return AppResult.Failure(NovaError.Network(cause = null))
+        val urls = extractUrls(html, pattern)
+            ?: return AppResult.Failure(
+                NovaError.Repository(
+                    userMessage = "apkUrlRegex took too long to match. Simplify the pattern.",
+                    repositoryId = config.repositoryId,
+                ),
+            )
+        if (urls.isEmpty()) {
+            return AppResult.Failure(
+                NovaError.Repository(
+                    userMessage = "apkUrlRegex found no APK URLs on the page.",
+                    repositoryId = config.repositoryId,
+                ),
+            )
+        }
+        val packageName = ProviderPackage.of(ProviderType.HTML_REGEX, base)
+        val versions = urls.distinct().mapIndexed { index, downloadUrl ->
+            AppVersion(
+                packageName = packageName,
+                versionCode = (999 - index).toLong(),
+                versionName = downloadUrl.substringAfterLast('/').substringBefore('?')
+                    .takeIf { it.isNotBlank() && !it.endsWith('/') },
+                source = config.repositoryId,
+                size = null,
+                downloadUrl = downloadUrl,
+                sha256 = null,
+                minSdk = null,
+                targetSdk = null,
+                addedAt = null,
+                artifactType = ReleaseCatalog.artifactType(downloadUrl),
+                signer = null,
+                nativeCode = emptyList(),
+            )
+        }
+        val app = RemoteApp(
+            packageName = packageName,
+            name = config.name.trim().ifBlank { base.removePrefix("https://") },
+            summary = null,
+            developer = null,
+            iconUrl = null,
+            license = null,
+            categories = listOf("HTML"),
+            source = config.repositoryId,
+            downloads = versions.size.toLong(),
+            updatedMillis = null,
+        )
+        return AppResult.Success(SourceCatalog(app = app, versions = versions, warning = HTML_INTEGRITY_WARNING))
     }
 
     override suspend fun search(query: String): List<RemoteApp> = emptyList()

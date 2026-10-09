@@ -222,8 +222,8 @@ fun SettingsScreen(
             state.sourcePreview, state.sourcePreviewError, state.sourcePreviewLoading,
             onDismiss = { showAddRepository = false },
             onTest = viewModel::testSource,
-            onConfirm = { name, url, type, apkUrlRegex ->
-                viewModel.addCustomRepository(name, url, type, apkUrlRegex)
+            onConfirm = { name, url, type, extraJson ->
+                viewModel.addCustomRepository(name, url, type, extraJson)
                 showAddRepository = false
             },
 )
@@ -233,8 +233,8 @@ fun SettingsScreen(
             state.sourcePreview, state.sourcePreviewError, state.sourcePreviewLoading,
             onDismiss = { editRepository = null },
             onTest = viewModel::testSource,
-            onConfirm = { name, url, type, apkUrlRegex ->
-                viewModel.saveRepository(repository.repositoryId, name, url, type, apkUrlRegex)
+            onConfirm = { name, url, type, extraJson ->
+                viewModel.saveRepository(repository.repositoryId, name, url, type, extraJson)
                 editRepository = null
             },
         )

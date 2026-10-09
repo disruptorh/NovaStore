@@ -6,6 +6,7 @@ import com.novastore.app.core.model.NovaError
 import com.novastore.app.core.model.ProviderType
 import com.novastore.app.core.model.RepositoryConfig
 import com.novastore.app.core.model.SourceTrust
+import com.novastore.app.data.websource.GitHubClient
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLSocketFactory
 import kotlinx.coroutines.CoroutineDispatcher
@@ -66,7 +67,7 @@ class SourceProvidersValidateTest {
 
     @Test
     fun gitHubValidateRejectsForeignHost() = runBlocking {
-        val provider = GitHubReleaseSourceProvider(client, dispatcher)
+        val provider = GitHubReleaseSourceProvider(client, dispatcher, GitHubClient(client, dispatcher))
         val result = provider.validate(config(baseUrl = "https://codeberg.org/owner/repo"))
         assertTrue(result is AppResult.Failure)
         assertEquals(0, server.requestCount)
@@ -74,7 +75,7 @@ class SourceProvidersValidateTest {
 
     @Test
     fun gitHubValidateRejectsBlankRef() = runBlocking {
-        val provider = GitHubReleaseSourceProvider(client, dispatcher)
+        val provider = GitHubReleaseSourceProvider(client, dispatcher, GitHubClient(client, dispatcher))
         val result = provider.validate(config(baseUrl = ""))
         assertTrue(result is AppResult.Failure)
     }

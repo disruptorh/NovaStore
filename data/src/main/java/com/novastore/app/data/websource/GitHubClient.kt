@@ -171,7 +171,7 @@ class GitHubClient @Inject constructor(
         if (cached != null && System.currentTimeMillis() - cached.first < RELEASES_TTL) {
             return@withContext cached.second
         }
-        val versions = runCatching { fetchReleases(fullName) }.getOrDefault(emptyList())
+        val versions = runCatching { fetchReleases(fullName, includePrereleases = true, apkFilterRegex = null, source = SOURCE_GITHUB) }.getOrDefault(emptyList())
         releasesCache[fullName] = System.currentTimeMillis() to versions
         if (releasesCache.size > RELEASES_CACHE_MAX) {
             releasesCache.entries.sortedBy { it.value.first }.take(12).forEach { releasesCache.remove(it.key) }
@@ -179,23 +179,44 @@ class GitHubClient @Inject constructor(
         versions
     }
 
-    private fun fetchReleases(fullName: String): List<AppVersion> {
+    /**
+     * All installable versions for a repo in one shot, labelled with [source]
+     * (a repository id) instead of the live catalog's SOURCE_GITHUB — the
+     * single-repository source materialization path.
+     */
+    suspend fun catalogVersions(
+        fullName: String,
+        source: String,
+        includePrereleases: Boolean,
+        apkFilterRegex: String?,
+    ): List<AppVersion> = withContext(dispatcherProvider.io) {
+        runCatching { fetchReleases(fullName, includePrereleases, apkFilterRegex, source) }.getOrDefault(emptyList())
+    }
+
+    private fun fetchReleases(
+        fullName: String,
+        includePrereleases: Boolean,
+        apkFilterRegex: String?,
+        source: String,
+    ): List<AppVersion> {
         val releases = getJsonArray("$API/repos/${urlEncode(fullName)}/releases?per_page=30") ?: return emptyList()
         val versions = mutableListOf<AppVersion>()
         val pkg = syntheticPackage(fullName)
         for (i in 0 until releases.length()) {
             val release = releases.optJSONObject(i) ?: continue
+            if (!includePrereleases && release.optBoolean("prerelease")) continue
             val assets = release.optJSONArray("assets") ?: continue
             for (a in 0 until assets.length()) {
                 val asset = assets.optJSONObject(a) ?: continue
                 val name = asset.optString("name", "")
                 val lower = name.lowercase()
                 if (!lower.endsWith(".apk") && !lower.endsWith(".apkm")) continue
+                if (!com.novastore.app.data.source.ReleaseCatalog.matchesNameFilter(name, apkFilterRegex)) continue
                 versions += AppVersion(
                     packageName = pkg,
                     versionCode = asset.optLong("id", 0),
                     versionName = release.optString("tag_name").removePrefix("v").ifBlank { null },
-                    source = SOURCE_GITHUB,
+                    source = source,
                     size = asset.optLong("size", 0).takeIf { it > 0 },
                     downloadUrl = asset.optString("browser_download_url"),
                     sha256 = asset.optString("digest").removePrefix("sha256:").takeIf { it.isNotBlank() },

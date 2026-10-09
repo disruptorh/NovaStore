@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
@@ -50,6 +52,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.novastore.app.core.model.ProviderType
 import com.novastore.app.core.model.RepositoryConfig
+import com.novastore.app.core.model.SourceUrls
 import com.novastore.app.core.ui.R as UiR
 import com.novastore.app.core.ui.components.SourceBadge
 import com.novastore.app.domain.source.SourcePreview
@@ -76,6 +79,15 @@ internal fun SourcesSection(
     val context = LocalContext.current
 
     SettingsSection(title = stringResource(UiR.string.settings_sources)) {
+        if (show("add_repository")) {
+            SourceNavRow(
+                icon = Icons.Filled.Add,
+                label = stringResource(UiR.string.settings_add_repository),
+                description = stringResource(UiR.string.settings_add_repository_desc),
+                onClick = onAdd,
+            )
+            RowDivider()
+        }
         if (show("anonymous_play")) {
             SwitchRow(description = stringResource(UiR.string.sources_play_anonymous_desc),
                 icon = Icons.Filled.CloudDownload,
@@ -364,6 +376,7 @@ internal fun RepositoryRow(
 /**
  * Add or edit a source. Add: full form (name, provider type, URL, extra).
  * Edit of a built-in: only the local name — the URL and type are locked.
+ * The source type is detected from the URL until the user picks a chip.
  */
 @Composable
 internal fun RepositoryEditorDialog(
@@ -372,24 +385,30 @@ internal fun RepositoryEditorDialog(
     previewError: String?,
     previewLoading: Boolean,
     onDismiss: () -> Unit,
-    onTest: (name: String, url: String, type: ProviderType, apkUrlRegex: String) -> Unit,
-    onConfirm: (name: String, url: String, type: ProviderType, apkUrlRegex: String) -> Unit,
+    onTest: (name: String, url: String, type: ProviderType, extraJson: String?) -> Unit,
+    onConfirm: (name: String, url: String, type: ProviderType, extraJson: String?) -> Unit,
 ) {
     val editing = initial != null
     val urlLocked = initial?.isBuiltIn == true
     var name by remember { mutableStateOf(initial?.name.orEmpty()) }
     var type by remember { mutableStateOf(initial?.providerType ?: ProviderType.FDROID_INDEX) }
     var url by remember { mutableStateOf(initial?.baseUrl.orEmpty()) }
-    var apkUrlRegex by remember {
-        mutableStateOf(initial?.let { config ->
-            val json = config.extraJson
-            if (config.providerType == ProviderType.HTML_REGEX && json != null && json.isNotBlank()) {
-                runCatching { org.json.JSONObject(json).optString("apkUrlRegex") }.getOrDefault("")
-            } else {
-                ""
-            }
-        } ?: "")
+    var typeTouched by rememberSaveable { mutableStateOf(editing) }
+    val storedJson = remember(initial) {
+        initial?.extraJson?.takeIf { it.isNotBlank() }?.let {
+            runCatching { org.json.JSONObject(it) }.getOrNull()
+        }
     }
+    var apkUrlRegex by remember {
+        mutableStateOf(storedJson?.optString("apkUrlRegex").orEmpty())
+    }
+    var apkFilterRegex by remember {
+        mutableStateOf(storedJson?.optString("apkFilterRegex").orEmpty())
+    }
+    var includePrereleases by remember {
+        mutableStateOf(storedJson?.optBoolean("includePrereleases") ?: false)
+    }
+    val extras = buildExtras(type, apkUrlRegex, apkFilterRegex, includePrereleases)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -397,7 +416,12 @@ internal fun RepositoryEditorDialog(
             Text(stringResource(if (editing) UiR.string.settings_edit_repository else UiR.string.settings_add_repository))
         },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+            ) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -420,13 +444,21 @@ internal fun RepositoryEditorDialog(
                             )
                         },
                         selected = type,
-                        onSelect = { type = it },
+                        onSelect = { selected ->
+                            type = selected
+                            typeTouched = true
+                        },
                     )
                 }
                 OutlinedTextField(
                     value = url,
                     onValueChange = {
-                        if (!urlLocked) url = it
+                        if (!urlLocked) {
+                            url = it
+                            if (!typeTouched) {
+                                SourceUrls.detectProviderType(it)?.let { detected -> type = detected }
+                            }
+                        }
                     },
                     label = { Text(stringResource(UiR.string.settings_repo_url)) },
                     placeholder = {
@@ -444,8 +476,8 @@ internal fun RepositoryEditorDialog(
                     shape = RoundedCornerShape(14.dp),
                     enabled = !urlLocked,
                 )
-                if (type == ProviderType.HTML_REGEX) {
-                    OutlinedTextField(
+                when {
+                    type == ProviderType.HTML_REGEX -> OutlinedTextField(
                         value = apkUrlRegex,
                         onValueChange = { apkUrlRegex = it },
                         label = { Text(stringResource(UiR.string.settings_repo_apk_url_regex)) },
@@ -453,13 +485,31 @@ internal fun RepositoryEditorDialog(
                         singleLine = true,
                         shape = RoundedCornerShape(14.dp),
                     )
+                    type == ProviderType.GITHUB ||
+                        type == ProviderType.GITEA ||
+                        type == ProviderType.GITLAB -> {
+                        SwitchRow(
+                            label = stringResource(UiR.string.settings_repo_include_prereleases),
+                            description = stringResource(UiR.string.settings_repo_include_prereleases_hint),
+                            checked = includePrereleases,
+                            onChecked = { includePrereleases = it },
+                        )
+                        OutlinedTextField(
+                            value = apkFilterRegex,
+                            onValueChange = { apkFilterRegex = it },
+                            label = { Text(stringResource(UiR.string.settings_repo_apk_filter_regex)) },
+                            supportingText = { Text(stringResource(UiR.string.settings_repo_apk_filter_regex_hint)) },
+                            singleLine = true,
+                            shape = RoundedCornerShape(14.dp),
+                        )
+                    }
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     TextButton(
-                        onClick = { onTest(name, url, type, apkUrlRegex) },
+                        onClick = { onTest(name, url, type, extras) },
                         enabled = url.isNotBlank() && !previewLoading,
                     ) {
                         if (previewLoading) {
@@ -531,7 +581,7 @@ internal fun RepositoryEditorDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { onConfirm(name, url, type, apkUrlRegex) },
+                onClick = { onConfirm(name, url, type, extras) },
                 enabled = url.isNotBlank() &&
                     name.isNotBlank() &&
                     (type != ProviderType.HTML_REGEX || apkUrlRegex.isNotBlank()),
@@ -543,4 +593,27 @@ internal fun RepositoryEditorDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(UiR.string.action_cancel)) }
         },
     )
+}
+
+/** Per-provider options, stored as JSON in RepositoryConfig.extraJson. */
+private fun buildExtras(
+    type: ProviderType,
+    apkUrlRegex: String,
+    apkFilterRegex: String,
+    includePrereleases: Boolean,
+): String? {
+    if (type == ProviderType.HTML_REGEX) {
+        return if (apkUrlRegex.isNotBlank()) {
+            org.json.JSONObject().put("apkUrlRegex", apkUrlRegex).toString()
+        } else {
+            null
+        }
+    }
+    if (type != ProviderType.GITHUB && type != ProviderType.GITEA && type != ProviderType.GITLAB) {
+        return null
+    }
+    val json = org.json.JSONObject()
+    if (includePrereleases) json.put("includePrereleases", true)
+    if (apkFilterRegex.isNotBlank()) json.put("apkFilterRegex", apkFilterRegex)
+    return if (json.length() == 0) null else json.toString()
 }

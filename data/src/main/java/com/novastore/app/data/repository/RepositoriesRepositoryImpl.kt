@@ -21,6 +21,8 @@ import com.novastore.app.data.mapper.toModel
 import com.novastore.app.domain.repository.RepositoriesRepository
 import com.novastore.app.domain.repository.ScanProgress
 import com.novastore.app.domain.repository.ScanProgressTracker
+import com.novastore.app.domain.source.SourceCatalog
+import com.novastore.app.domain.source.SourceRegistry
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.async
@@ -52,6 +54,7 @@ class RepositoriesRepositoryImpl @Inject constructor(
     private val catalogDao: CatalogDao,
     private val indexClient: FdroidIndexClient,
     private val scanProgress: ScanProgressTracker,
+    private val sourceRegistry: SourceRegistry,
 ) : RepositoriesRepository {
 
     /** One lock per repository: different repositories refresh in parallel. */
@@ -159,9 +162,8 @@ class RepositoriesRepositoryImpl @Inject constructor(
             return addFdroid(name, url)
         }
         // Provider-backed source: an https reference on the provider's own
-        // validate() contract. Only the row is written here; the preview pass
-        // (P06-T02) proves the source works before the user confirms and the
-        // provider materialization lands in P06/P07.
+        // validate() contract. The row is written (P06-T02 preview proved the
+        // source works), then refresh() materializes the catalog (P06/P07).
         val canonical = SourceUrls.normalizeSourceUrl(url.ifBlank { "" })?.takeIf {
             when (providerType) {
                 ProviderType.GITEA -> it.removePrefix("https://").contains('/')
@@ -202,9 +204,9 @@ class RepositoriesRepositoryImpl @Inject constructor(
         } else {
             repositoryDao.setEnabled(id, true)
         }
-        // No F-Droid index exists behind a provider source; nothing to fetch
-        // until the provider materialization is wired in (P06/P07).
-        return AppResult.success(Unit)
+        // The row is persisted and re-enabled; fetch the provider catalog now
+        // so the apps show up right after the add is confirmed.
+        return refresh(id)
     }
 
     override suspend fun update(
@@ -366,6 +368,15 @@ class RepositoriesRepositoryImpl @Inject constructor(
             return AppResult.success(Unit)
         }
 
+        // Provider-backed sources (GitHub / GitLab / Gitea / HTML) have no
+        // F-Droid index behind their base URL — the whole catalog is built from
+        // the provider's fetch() instead.
+        val providerType = runCatching { ProviderType.valueOf(repository.providerType) }
+            .getOrDefault(ProviderType.FDROID_INDEX)
+        if (providerType != ProviderType.FDROID_INDEX) {
+            return refreshProviderLocked(repository, providerType, now)
+        }
+
         val indexFile = File(context.cacheDir, "index_$id.json")
         try {
             val validators = if (hasCatalog) {
@@ -429,6 +440,93 @@ class RepositoriesRepositoryImpl @Inject constructor(
         } finally {
             indexFile.delete()
         }
+    }
+
+    /**
+     * Materializes a provider-backed repository (no F-Droid index): the
+     * provider's fetch() returns the whole catalog in one call — an app row
+     * plus its versions — which is persisted exactly like a parsed index
+     * would be. The refresh state columns stay in sync so the settings row
+     * shows success/errors like any F-Droid repository.
+     */
+    private suspend fun refreshProviderLocked(repository: RepositoryEntity, providerType: ProviderType, now: Long): AppResult<Unit> {
+        val id = repository.repositoryId
+        val provider = sourceRegistry.providerForType(providerType)
+        if (provider == null) {
+            val error = NovaError.Repository(
+                userMessage = "No source provider handles ${providerType.name} repositories.",
+                repositoryId = id,
+            )
+            repositoryDao.setRefreshResult(id, now, error.userMessage)
+            return AppResult.failure(error)
+        }
+        val fetched = runCatching { provider.fetch(repository.toModel()) }.getOrElse { t ->
+            if (t is kotlinx.coroutines.CancellationException) throw t
+            AppResult.failure(
+                NovaError.Repository(
+                    userMessage = "Updating ${repository.name} failed: ${t::class.simpleName}: ${t.message}",
+                    repositoryId = id,
+                ),
+            )
+        }
+        return when (fetched) {
+            is AppResult.Failure -> {
+                repositoryDao.setRefreshResult(id, now, fetched.error.userMessage)
+                AppResult.failure(fetched.error)
+            }
+            is AppResult.Success -> {
+                val catalog = fetched.value
+                if (catalog.versions.isEmpty()) {
+                    val error = NovaError.Repository(
+                        userMessage = "The source contains no installable APK files.",
+                        repositoryId = id,
+                    )
+                    repositoryDao.setRefreshResult(id, now, error.userMessage)
+                    return AppResult.failure(error)
+                }
+                storeSourceCatalog(id, catalog)
+                repositoryDao.setRefreshSuccess(id, now, repository.metadataUrl, null, null)
+                AppResult.success(Unit)
+            }
+        }
+    }
+
+    private suspend fun storeSourceCatalog(source: String, catalog: SourceCatalog) {
+        val app = catalog.app
+        val appEntity = RemoteAppEntity(
+            packageName = app.packageName,
+            name = app.name,
+            summary = app.summary,
+            developer = app.developer,
+            iconUrl = app.iconUrl,
+            license = app.license,
+            description = null,
+            changelog = null,
+            website = null,
+            sourceCodeUrl = null,
+            categories = app.categories.joinToString(SEPARATOR),
+            source = source,
+            addedAt = app.updatedMillis,
+            lastUpdatedAt = app.updatedMillis,
+        )
+        val versions = catalog.versions.map { version ->
+            AppVersionEntity(
+                packageName = version.packageName,
+                versionCode = version.versionCode,
+                versionName = version.versionName,
+                source = source,
+                size = version.size,
+                downloadUrl = version.downloadUrl,
+                sha256 = version.sha256,
+                minSdk = version.minSdk,
+                targetSdk = version.targetSdk,
+                addedAt = version.addedAt,
+                artifactType = version.artifactType.name,
+                signer = version.signer,
+                nativeCode = version.nativeCode.joinToString(SEPARATOR),
+            )
+        }
+        catalogDao.replaceSource(source, listOf(appEntity), versions)
     }
 
     private suspend fun storeCatalog(source: String, parsed: ParsedIndex) {

@@ -67,6 +67,22 @@ object SourceUrls {
      * dedicated API host; gitlab.com to the v4 API; any other https host is
      * treated as a Gitea-compatible instance (v1 API). Null for non-HTTPS.
      */
+    /**
+     * Maps a URL to a single-repository provider type when the host is a
+     * well-known one, or null otherwise. Only explicit hosts are ever guessed
+     * (http(s) only); an F-Droid repo is never detected from a URL.
+     */
+    fun detectProviderType(ref: String): ProviderType? {
+        val url = normalizeSourceUrl(ref) ?: return null
+        val host = url.removePrefix("https://").substringBefore('/').substringBefore(':')
+        return when (host) {
+            "github.com" -> ProviderType.GITHUB
+            "gitlab.com" -> ProviderType.GITLAB
+            "codeberg.org" -> ProviderType.GITEA
+            else -> null
+        }
+    }
+
     fun apiBaseOf(ref: String): String? {
         val url = normalizeSourceUrl(ref) ?: return null
         val hostPort = url.removePrefix("https://").substringBefore('/')

@@ -189,8 +189,8 @@ class AppDetailsViewModel @Inject constructor(
                 is AppResult.Failure -> state.update { it.copy(installed = installed, error = result.error.userMessage, errorRes = null) }
             }
             state.update { it.copy(loading = false) }
-            // Synthetic GitHub/GitLab release apps have no Play review feed.
-            if (!pkg.startsWith("github.") && !pkg.startsWith("gitlab.")) {
+            // Synthetic GitHub/GitLab and single-repository (novasrc.*) apps have no Play review feed.
+            if (!pkg.startsWith("github.") && !pkg.startsWith("gitlab.") && !com.novastore.app.core.model.ProviderPackage.isProviderPackage(pkg)) {
                 loadReviews(pkg)
             }
         }

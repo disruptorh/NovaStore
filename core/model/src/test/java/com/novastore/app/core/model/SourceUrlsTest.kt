@@ -88,4 +88,21 @@ class SourceUrlsTest {
     fun apiBaseRejectsNonHttps() {
         assertNull(SourceUrls.apiBaseOf("http://codeberg.org/owner/repo"))
     }
+
+    @Test
+    fun detectProviderTypeMapsKnownHosts() {
+        assertEquals(ProviderType.GITHUB, SourceUrls.detectProviderType("https://github.com/owner/repo"))
+        assertEquals(ProviderType.GITLAB, SourceUrls.detectProviderType("https://gitlab.com/group/project"))
+        assertEquals(ProviderType.GITEA, SourceUrls.detectProviderType("https://codeberg.org/owner/repo"))
+        assertNull(SourceUrls.detectProviderType("github.com/owner/repo"))
+    }
+
+    @Test
+    fun detectProviderTypeNeverGuessesUnknownHosts() {
+        assertNull(SourceUrls.detectProviderType("https://f-droid.org/repo"))
+        assertNull(SourceUrls.detectProviderType("https://example.com/apps"))
+        assertNull(SourceUrls.detectProviderType("http://github.com/owner/repo"))
+        assertNull(SourceUrls.detectProviderType("owner/repo"))
+        assertNull(SourceUrls.detectProviderType(""))
+    }
 }

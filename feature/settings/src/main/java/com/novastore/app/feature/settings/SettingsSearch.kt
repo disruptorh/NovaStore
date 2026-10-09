@@ -55,6 +55,13 @@ fun settingsItemMatches(item: SettingsItem, query: String): Boolean {
 fun settingsItems(): List<SettingsItem> = listOf(
     // Sources
     SettingsItem(
+        "add_repository",
+        stringResource(UiR.string.settings_add_repository),
+        stringResource(UiR.string.settings_add_repository_desc),
+        listOf("add", "new", "github", "gitlab", "gitea", "codeberg", "html", "f-droid", "source"),
+        SettingsSectionKey.SOURCES,
+    ),
+    SettingsItem(
         "anonymous_play",
         stringResource(UiR.string.sources_play_anonymous),
         stringResource(UiR.string.sources_play_anonymous_desc),

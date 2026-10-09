@@ -35,7 +35,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
+
 
 data class SettingsUiState(
     val settings: UpdateSettings = UpdateSettings(),
@@ -407,13 +407,13 @@ class SettingsViewModel @Inject constructor(
         name: String,
         url: String,
         providerType: ProviderType,
-        apkUrlRegex: String = "",
+        extraJson: String? = null,
     ) {
         viewModelScope.launch {
             sourcePreview.value = null
             sourcePreviewError.value = null
             sourcePreviewLoading.value = true
-            when (val result = previewSource(name, url, providerType, extraJsonFor(providerType, apkUrlRegex))) {
+            when (val result = previewSource(name, url, providerType, extraJson)) {
                 is AppResult.Failure -> sourcePreviewError.value = result.error.userMessage
                 is AppResult.Success -> sourcePreview.value = result.value
             }
@@ -425,12 +425,12 @@ class SettingsViewModel @Inject constructor(
         name: String,
         url: String,
         providerType: ProviderType = ProviderType.FDROID_INDEX,
-        apkUrlRegex: String = "",
+        extraJson: String? = null,
     ) {
         viewModelScope.launch {
             busy.value = true
             error.value = null
-            when (val result = repositoriesRepository.add(name, url, providerType, extraJsonFor(providerType, apkUrlRegex))) {
+            when (val result = repositoriesRepository.add(name, url, providerType, extraJson)) {
                 is AppResult.Failure -> error.value = "Could not load the repository: ${result.error.userMessage}"
                 is AppResult.Success -> notice.value = "Repository added."
             }
@@ -443,25 +443,18 @@ class SettingsViewModel @Inject constructor(
         name: String,
         url: String,
         providerType: ProviderType,
-        apkUrlRegex: String = "",
+        extraJson: String? = null,
     ) {
         viewModelScope.launch {
             busy.value = true
             error.value = null
-            when (val result = repositoriesRepository.update(repositoryId, name, url, providerType, extraJsonFor(providerType, apkUrlRegex))) {
+            when (val result = repositoriesRepository.update(repositoryId, name, url, providerType, extraJson)) {
                 is AppResult.Failure -> error.value = result.error.userMessage
                 is AppResult.Success -> notice.value = "Repository saved."
             }
             busy.value = false
         }
     }
-
-    private fun extraJsonFor(providerType: ProviderType, apkUrlRegex: String): String? =
-        if (providerType == ProviderType.HTML_REGEX && apkUrlRegex.isNotBlank()) {
-            JSONObject().put("apkUrlRegex", apkUrlRegex).toString()
-        } else {
-            null
-        }
 
     fun refreshRepositories() {
         viewModelScope.launch {

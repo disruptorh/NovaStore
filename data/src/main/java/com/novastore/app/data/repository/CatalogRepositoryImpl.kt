@@ -8,6 +8,7 @@ import com.novastore.app.core.datastore.SettingsDataStore
 import com.novastore.app.core.model.AppLanguage
 import com.novastore.app.core.model.AppReview
 import com.novastore.app.core.model.AppVersion
+import com.novastore.app.core.model.ProviderPackage
 import com.novastore.app.core.model.RemoteApp
 import com.novastore.app.core.model.RemoteAppDetails
 import com.novastore.app.data.mapper.remoteDetails
@@ -261,6 +262,12 @@ class CatalogRepositoryImpl @Inject constructor(
                     details
                 }
             }
+            // Single-repository sources (novasrc.*) are fully served by the
+            // local catalog row: no Play backend exists for a synthetic key,
+            // so skip the Play probes that would only time out.
+            if (ProviderPackage.isProviderPackage(packageName)) {
+                return@withContext fdroid
+            }
             // Native Play details (account or anonymous session) carry the
             // exact version for THIS device; the web catalog fills in when
             // Play's protocol is unreachable, and enriches the listing.
@@ -308,7 +315,10 @@ class CatalogRepositoryImpl @Inject constructor(
 
     override suspend fun getReviews(packageName: String): List<AppReview> =
         withContext(dispatcherProvider.io) {
-            if (gitHubClient.isSyntheticPackage(packageName) || gitLabClient.isSyntheticPackage(packageName)) {
+            if (ProviderPackage.isProviderPackage(packageName) ||
+                gitHubClient.isSyntheticPackage(packageName) ||
+                gitLabClient.isSyntheticPackage(packageName)
+            ) {
                 return@withContext emptyList()
             }
             val language = settingsDataStore.appLanguage.first()

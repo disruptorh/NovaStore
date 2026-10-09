@@ -23,7 +23,7 @@ class FdroidIndexSourceProvider @Inject constructor(
 ) : AppSourceProvider {
 
     override val providerId: String = "fdroid-index"
-    override val displayName: String = "F-Droid Index"
+    override val displayName: String = "F-Droid"
     override val type: ProviderType = ProviderType.FDROID_INDEX
 
     override suspend fun isEnabled(): Boolean = true
