@@ -86,7 +86,7 @@ class GiteaCompatibleSourceProvider @Inject constructor(
         return if (isGitLab) {
             "$apiBase/projects/${URLEncoder.encode(ownerRepo, "UTF-8")}/releases?per_page=30"
         } else {
-            "$apiBase/repos/${URLEncoder.encode(ownerRepo, "UTF-8")}/releases?limit=30"
+            "$apiBase/repos/${SourceUrls.repoPath(ownerRepo)}/releases?limit=30"
         }
     }
 

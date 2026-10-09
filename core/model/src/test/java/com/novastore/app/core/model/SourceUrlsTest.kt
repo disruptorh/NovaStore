@@ -105,4 +105,17 @@ class SourceUrlsTest {
         assertNull(SourceUrls.detectProviderType("owner/repo"))
         assertNull(SourceUrls.detectProviderType(""))
     }
+
+    @Test
+    fun repoPathKeepsSlashSeparatorsLiteral() {
+        // GitHub/Gitea 404 on a fully percent-encoded ref (owner%2Frepo).
+        assertEquals("disruptorh/Encrypt-apk", SourceUrls.repoPath("disruptorh/Encrypt-apk"))
+        assertEquals("group/sub/app", SourceUrls.repoPath("group/sub/app"))
+        assertEquals("owner/repo", SourceUrls.repoPath("/owner/repo/"))
+    }
+
+    @Test
+    fun repoPathEncodesOnlyEachSegment() {
+        assertEquals("owner+name/repo", SourceUrls.repoPath("owner name/repo"))
+    }
 }

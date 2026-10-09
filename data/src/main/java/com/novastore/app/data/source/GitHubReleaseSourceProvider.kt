@@ -15,7 +15,6 @@ import com.novastore.app.domain.source.AppSourceProvider
 import com.novastore.app.domain.source.SourceCatalog
 import com.novastore.app.domain.source.SourcePreview
 import java.io.IOException
-import java.net.URLEncoder
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
@@ -49,7 +48,7 @@ class GitHubReleaseSourceProvider @Inject constructor(
         val fullName = SourceUrls.asGitHubFullName(ref)
             ?: return AppResult.Failure(NovaError.Repository("Not a GitHub repository: enter owner/repo or https://github.com/owner/repo."))
         val apiBase = SourceUrls.apiBaseOf("https://github.com/$fullName") ?: return AppResult.Failure(NovaError.Repository("Unusable GitHub repository URL."))
-        val probeUrl = "$apiBase/repos/${URLEncoder.encode(fullName, "UTF-8")}/releases?per_page=5"
+        val probeUrl = "$apiBase/repos/${SourceUrls.repoPath(fullName)}/releases?per_page=5"
         return probeReleases(probeUrl)
     }
 

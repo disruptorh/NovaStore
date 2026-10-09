@@ -94,4 +94,14 @@ object SourceUrls {
             else -> "https://$host$port/api/v1"
         }
     }
+
+    /**
+     * Percent-encodes each path segment of an "owner/repo" ref while keeping
+     * the "/" separators literal. GitHub and Gitea route a percent-encoded
+     * slash ([%2F] inside one segment) as a literal character, so a fully
+     * encoded ref 404s ("repository not found") even when the repo exists.
+     */
+    fun repoPath(ref: String): String =
+        ref.trim('/').split('/')
+            .joinToString("/") { java.net.URLEncoder.encode(it, "UTF-8") }
 }

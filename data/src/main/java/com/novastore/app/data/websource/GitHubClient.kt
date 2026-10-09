@@ -6,6 +6,7 @@ import com.novastore.app.core.model.ArtifactType
 import com.novastore.app.core.model.RemoteApp
 import com.novastore.app.core.model.RemoteAppDetails
 import com.novastore.app.core.model.SOURCE_GITHUB
+import com.novastore.app.core.model.SourceUrls
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
@@ -126,7 +127,7 @@ class GitHubClient @Inject constructor(
     }
 
     private fun fetchRepoMeta(fullName: String): RepoMeta? {
-        val repo = getJsonObject("$API/repos/${urlEncode(fullName)}") ?: return null
+        val repo = getJsonObject("$API/repos/${SourceUrls.repoPath(fullName)}") ?: return null
         return RepoMeta(
             fullName = repo.optString("full_name", fullName),
             description = repo.optString("description").takeIf { it.isNotBlank() },
@@ -199,7 +200,7 @@ class GitHubClient @Inject constructor(
         apkFilterRegex: String?,
         source: String,
     ): List<AppVersion> {
-        val releases = getJsonArray("$API/repos/${urlEncode(fullName)}/releases?per_page=30") ?: return emptyList()
+        val releases = getJsonArray("$API/repos/${SourceUrls.repoPath(fullName)}/releases?per_page=30") ?: return emptyList()
         val versions = mutableListOf<AppVersion>()
         val pkg = syntheticPackage(fullName)
         for (i in 0 until releases.length()) {
