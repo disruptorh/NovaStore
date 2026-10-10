@@ -15,5 +15,6 @@ interface ArtifactVerifier {
         file: File,
         expectedSha256: String?,
         installedCertDigest: String?,
+        identityFromArtifact: Boolean = false,
     ): VerificationResult
 }

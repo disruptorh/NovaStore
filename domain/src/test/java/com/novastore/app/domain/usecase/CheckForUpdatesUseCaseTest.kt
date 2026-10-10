@@ -87,12 +87,28 @@ class CheckForUpdatesUseCaseTest {
             override fun observe(): Flow<List<com.novastore.app.core.model.RepositoryConfig>> = flowOf(emptyList())
             override fun observeAppCounts(): Flow<Map<String, Int>> = flowOf(emptyMap())
             override suspend fun get(repositoryId: String): com.novastore.app.core.model.RepositoryConfig? = null
-            override suspend fun add(name: String, url: String): AppResult<Unit> = AppResult.failure(NovaError.Unknown())
+            override suspend fun add(
+                name: String,
+                url: String,
+                providerType: com.novastore.app.core.model.ProviderType,
+                extraJson: String?,
+            ): AppResult<Unit> = AppResult.failure(NovaError.Unknown())
+            override suspend fun update(
+                repositoryId: String,
+                name: String,
+                url: String,
+                providerType: com.novastore.app.core.model.ProviderType,
+                extraJson: String?,
+            ): AppResult<Unit> = AppResult.failure(NovaError.Unknown())
             override suspend fun setEnabled(repositoryId: String, enabled: Boolean): AppResult<Unit> = AppResult.success(Unit)
             override suspend fun remove(repositoryId: String) = Unit
+            override suspend fun reorder(idsInOrder: List<String>) = Unit
             override suspend fun refresh(repositoryId: String): AppResult<Unit> = AppResult.success(Unit)
             override suspend fun refreshAll(force: Boolean): AppResult<Unit> = refreshResult
             override suspend fun priorities(): Map<String, Int> = emptyMap()
+            override suspend fun exportSources(): AppResult<String> = AppResult.success("[]")
+            override suspend fun importSources(json: String): AppResult<com.novastore.app.core.model.ImportReport> =
+                AppResult.failure(NovaError.Unknown())
         }
 
         private val engine = object : UpdateCheckService {

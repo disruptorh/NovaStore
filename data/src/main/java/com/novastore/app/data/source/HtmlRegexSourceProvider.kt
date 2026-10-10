@@ -167,6 +167,7 @@ class HtmlRegexSourceProvider @Inject constructor(
                 artifactType = ReleaseCatalog.artifactType(downloadUrl),
                 signer = null,
                 nativeCode = emptyList(),
+                identityFromArtifact = true,
             )
         }
         val app = RemoteApp(

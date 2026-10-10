@@ -21,6 +21,14 @@ data class AppVersion(
     val nativeCode: List<String> = emptyList(),
     /** Paid on Google Play (not deliverable without a purchase). */
     val isPaid: Boolean = false,
+    /**
+     * True when [packageName]/[versionCode] are synthetic catalog keys (e.g. a
+     * repository slug for GitHub/GitLab/Gitea/HTML sources) rather than the
+     * application identity declared in the artifact manifest. Verification then
+     * adopts the identity parsed from the downloaded package instead of
+     * requiring an exact match.
+     */
+    val identityFromArtifact: Boolean = false,
 )
 
 /** How the downloadable artifact is structured. */

@@ -77,6 +77,8 @@ class ProviderFetchTest {
         assertEquals("owner", catalog.app.developer)
         assertEquals("2.0", catalog.versions[0].versionName)
         assertEquals(2, catalog.versions.size)
+        // provider identities are synthetic catalog keys; the artifact manifest wins
+        assertTrue(catalog.versions.all { it.identityFromArtifact })
         // sha256 comes from the Gitea digest object
         assertEquals("deadbeef", catalog.versions[0].sha256)
         assertNull(catalog.versions[1].sha256)
@@ -159,6 +161,7 @@ class ProviderFetchTest {
         assertEquals(3, catalog.versions.size)
         assertEquals("app-1.0.apk", catalog.versions[0].versionName)
         assertEquals("https://cdn.example.com/app-1.0.apk", catalog.versions[0].downloadUrl)
+        assertTrue(catalog.versions.all { it.identityFromArtifact })
         assertTrue(catalog.warning != null)
     }
 
@@ -207,6 +210,7 @@ class ProviderFetchTest {
         assertEquals(1, versions.size)
         assertEquals("2.0", versions[0].versionName)
         assertEquals("https://gitlab.com/-/package_files/1", versions[0].downloadUrl)
+        assertTrue(versions.all { it.identityFromArtifact })
         assertNull(versions[0].sha256)
         assertNull(versions[0].size)
     }

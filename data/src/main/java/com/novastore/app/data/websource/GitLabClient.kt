@@ -190,6 +190,7 @@ class GitLabClient @Inject constructor(
                     artifactType = if (lower.endsWith(".apkm")) ArtifactType.APK_SET else ArtifactType.APK,
                     signer = null,
                     nativeCode = emptyList(),
+                    identityFromArtifact = true,
                 )
             }
         }

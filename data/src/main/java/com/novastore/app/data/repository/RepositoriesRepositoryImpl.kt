@@ -524,6 +524,7 @@ class RepositoriesRepositoryImpl @Inject constructor(
                 artifactType = version.artifactType.name,
                 signer = version.signer,
                 nativeCode = version.nativeCode.joinToString(SEPARATOR),
+                identityFromArtifact = version.identityFromArtifact,
             )
         }
         catalogDao.replaceSource(source, listOf(appEntity), versions)

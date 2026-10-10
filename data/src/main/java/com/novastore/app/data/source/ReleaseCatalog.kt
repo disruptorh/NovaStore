@@ -129,6 +129,7 @@ internal object ReleaseCatalog {
                     artifactType = artifactType(name),
                     signer = null,
                     nativeCode = emptyList(),
+                    identityFromArtifact = true,
                 )
             }
             index++
@@ -174,6 +175,7 @@ internal object ReleaseCatalog {
                     artifactType = artifactType(name),
                     signer = null,
                     nativeCode = emptyList(),
+                    identityFromArtifact = true,
                 )
             }
             index++

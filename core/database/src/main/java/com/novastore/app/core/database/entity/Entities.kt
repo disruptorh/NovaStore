@@ -66,6 +66,13 @@ data class AppVersionEntity(
     val signer: String?,
     /** Pipe separated ABI list; empty when the APK has no native code. */
     val nativeCode: String,
+    /**
+     * True when [packageName]/[versionCode] are synthetic catalog keys (a
+     * repository slug for provider sources) rather than the application
+     * identity declared in the artifact manifest. Persisted so verification
+     * adopts the manifest identity after a catalog reload.
+     */
+    val identityFromArtifact: Boolean = false,
 )
 
 @Entity(tableName = "updates", indices = [Index("state")])

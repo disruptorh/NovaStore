@@ -27,6 +27,7 @@ class DefaultArtifactVerifier @Inject constructor(
         file: File,
         expectedSha256: String?,
         installedCertDigest: String?,
+        identityFromArtifact: Boolean,
     ): VerificationResult = withContext(dispatcherProvider.io) {
         // 1. File exists
         if (!file.exists() || file.length() == 0L) {
@@ -48,13 +49,15 @@ class DefaultArtifactVerifier @Inject constructor(
             }
         }
 
-        // 4. Package identity and version
+        // 4. Package identity and version. Synthetic catalog identities
+        //    (provider sources) cannot be compared — the real identity is
+        //    adopted from the manifest below.
         val parsed = packageVerifier.parse(file)
             ?: return@withContext VerificationResult.Invalid(NovaError.InvalidPackage)
-        if (parsed.packageName != packageName) {
+        if (!identityFromArtifact && parsed.packageName != packageName) {
             return@withContext VerificationResult.Invalid(NovaError.InvalidPackage)
         }
-        if (parsed.versionCode != versionCode) {
+        if (!identityFromArtifact && parsed.versionCode != versionCode) {
             return@withContext VerificationResult.Invalid(
                 NovaError.Metadata(
                     userMessage = "The downloaded artifact declares a different version than expected.",

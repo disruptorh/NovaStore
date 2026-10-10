@@ -75,6 +75,7 @@ fun AppVersion.toEntity(): AppVersionEntity =
         artifactType = artifactType.name,
         signer = signer,
         nativeCode = nativeCode.joinToString(CATEGORY_SEPARATOR),
+        identityFromArtifact = identityFromArtifact,
     )
 
 fun AppVersionEntity.toModel(): AppVersion =
@@ -92,6 +93,7 @@ fun AppVersionEntity.toModel(): AppVersion =
         artifactType = runCatching { ArtifactType.valueOf(artifactType) }.getOrDefault(ArtifactType.APK),
         signer = signer,
         nativeCode = nativeCode.split(CATEGORY_SEPARATOR).filter { it.isNotBlank() },
+        identityFromArtifact = identityFromArtifact,
     )
 
 fun UpdateCandidate.toEntity(now: Long, state: UpdateState = UpdateState.DISCOVERED): UpdateEntity =

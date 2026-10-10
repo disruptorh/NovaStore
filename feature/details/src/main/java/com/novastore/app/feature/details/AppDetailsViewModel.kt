@@ -271,7 +271,7 @@ class AppDetailsViewModel @Inject constructor(
                         is InstallResult.Cancelled -> DetailsNotice.InstallCancelled
                         is InstallResult.Failure -> DetailsNotice.InstallFailed
                     }
-                    val refreshed = installedAppsRepository.refresh(version.packageName)
+                    val refreshed = installedAppsRepository.refresh(verified.plan.packageName)
                     state.update { resolve(it.copy(installed = refreshed, busy = false, notice = notice)) }
                 }
             }

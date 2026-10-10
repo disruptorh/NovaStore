@@ -58,6 +58,7 @@ class VerifyArtifactUseCase @Inject constructor(
             file = file,
             expectedSha256 = version.sha256,
             installedCertDigest = candidate.installed.signingCertDigest,
+            identityFromArtifact = version.identityFromArtifact,
         )
 
         return when (result) {
@@ -111,7 +112,7 @@ class VerifyArtifactUseCase @Inject constructor(
         }
 
         val parsed = packageVerifier.parse(contents.baseApk)
-        if (parsed == null || parsed.packageName != version.packageName) {
+        if (parsed == null || (!version.identityFromArtifact && parsed.packageName != version.packageName)) {
             contents.extractedDir.deleteRecursively()
             updatesRepository.transition(version.packageName, UpdateState.FAILED)
             return AppResult.failure(NovaError.InvalidPackage)
@@ -119,7 +120,7 @@ class VerifyArtifactUseCase @Inject constructor(
 
         val realVersionCode = parsed.versionCode
         val manifestCode = contents.versionCode
-        if (realVersionCode != version.versionCode && manifestCode != version.versionCode) {
+        if (!version.identityFromArtifact && realVersionCode != version.versionCode && manifestCode != version.versionCode) {
             contents.extractedDir.deleteRecursively()
             updatesRepository.transition(version.packageName, UpdateState.FAILED)
             return AppResult.failure(
