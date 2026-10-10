@@ -17,8 +17,8 @@ android {
         applicationId = "com.novastore.fork"
         minSdk = 26
         targetSdk = 35
-        versionCode = 16
-        versionName = "7.3.1"
+        versionCode = 17
+        versionName = "7.3.2"
     }
 
     signingConfigs {
