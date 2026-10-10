@@ -12,7 +12,6 @@ import com.novastore.app.core.model.UpdateCandidate
 import com.novastore.app.core.model.UpdateHistoryRecord
 import com.novastore.app.core.model.UpdateHistoryResult
 import com.novastore.app.core.model.UpdateState
-import com.novastore.app.core.security.HashVerifier
 import com.novastore.app.domain.repository.SettingsRepository
 import com.novastore.app.domain.repository.UpdateHistoryRepository
 import com.novastore.app.domain.repository.UpdatesRepository
@@ -65,12 +64,12 @@ class UpdateAllUseCase @Inject constructor(
         }
 
         val results = mutableListOf<ItemResult>()
-        // DISCOVERY candidates are invitations to check, never to install, and
-        // an update without a repository-provided checksum is never installed
-        // silently either — "Update all" only touches confirmed (EXACT)
-        // releases whose artifact was signed off by the source (P11-T01).
-        // Manual installs outside this pipeline may still verify locally and
-        // install an artifact with a computed checksum.
+        // "Update all" touches every confirmed (EXACT) release, whatever the
+        // source. DISCOVERY/PAID/FOREIGN_SIGNATURE rows stay out (they carry
+        // their own user actions). A release without a source-offered SHA-256
+        // is still auto-installed: every artifact passes full verification
+        // (identity, versionCode, signature vs the installed app) before the
+        // install, exactly like manual updates.
         val actionable = autoUpdatable(current)
 
         // Pipeline: up to PARALLEL_DOWNLOADS apps are prepared + downloaded
@@ -178,15 +177,15 @@ class UpdateAllUseCase @Inject constructor(
 
         /**
          * The subset of candidates the automatic pipeline may touch: confirmed
-         * (EXACT) releases whose artifact was signed off by the source with a
-         * well-formed SHA-256. Pure — direct unit-testing without the full
-         * dependency tree.
+         * (EXACT) releases only, from any source. Confidence is the gate;
+         * deliverability of a candidate without a checksum is decided during
+         * download + full verification, never by skipping verification. Pure
+         * — direct unit-testing without the full dependency tree.
          */
         internal fun autoUpdatable(
             current: List<com.novastore.app.core.model.UpdateCandidate>,
         ): List<com.novastore.app.core.model.UpdateCandidate> = current.filter { candidate ->
-            candidate.confidence == com.novastore.app.core.model.UpdateConfidence.EXACT &&
-                candidate.available.sha256?.let(HashVerifier::isValidSha256Hex) == true
+            candidate.confidence == com.novastore.app.core.model.UpdateConfidence.EXACT
         }
     }
 

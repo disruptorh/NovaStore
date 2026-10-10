@@ -9,9 +9,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * P11-T01: the automatic pipeline must never install an update whose checksum
- * was computed locally instead of being offered by the repository. Candidates
- * without a well-formed source checksum are skipped by [UpdateAllUseCase.autoUpdatable].
+ * The automatic pipeline touches every confirmed (EXACT) release, whatever the
+ * source. Confidence is the gate: verification (identity, versionCode,
+ * signature, checksum-when-offered) still runs on every artifact before install,
+ * so a missing source checksum never bypasses it.
  */
 class UpdateAllUseCaseTest {
 
@@ -49,13 +50,19 @@ class UpdateAllUseCaseTest {
     )
 
     @Test
-    fun `skips an exact candidate without a source checksum`() {
-        assertTrue(UpdateAllUseCase.autoUpdatable(listOf(candidate(checksum = null))).isEmpty())
+    fun `keeps an exact candidate without a source checksum`() {
+        assertEquals(
+            listOf("app.pkg"),
+            UpdateAllUseCase.autoUpdatable(listOf(candidate(checksum = null))).map { it.installed.packageName },
+        )
     }
 
     @Test
-    fun `skips an exact candidate with a malformed checksum`() {
-        assertTrue(UpdateAllUseCase.autoUpdatable(listOf(candidate(checksum = "deadbeef"))).isEmpty())
+    fun `keeps an exact candidate with a malformed checksum`() {
+        assertEquals(
+            listOf("app.pkg"),
+            UpdateAllUseCase.autoUpdatable(listOf(candidate(checksum = "deadbeef"))).map { it.installed.packageName },
+        )
     }
 
     @Test
@@ -71,6 +78,24 @@ class UpdateAllUseCaseTest {
         assertTrue(
             UpdateAllUseCase.autoUpdatable(
                 listOf(candidate(confidence = UpdateConfidence.DISCOVERY)),
+            ).isEmpty(),
+        )
+    }
+
+    @Test
+    fun `skips paid candidates`() {
+        assertTrue(
+            UpdateAllUseCase.autoUpdatable(
+                listOf(candidate(confidence = UpdateConfidence.PAID)),
+            ).isEmpty(),
+        )
+    }
+
+    @Test
+    fun `skips foreign signature candidates`() {
+        assertTrue(
+            UpdateAllUseCase.autoUpdatable(
+                listOf(candidate(confidence = UpdateConfidence.FOREIGN_SIGNATURE)),
             ).isEmpty(),
         )
     }
