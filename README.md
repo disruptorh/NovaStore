@@ -36,6 +36,14 @@ Install and update all your apps from one place, with or without a Google accoun
   add yourself.
 - **Independent identity.** Ships as `com.novastore.fork`, signed with its own key, so this fork and
   the upstream app can be installed side by side.
+- **HTTPS only.** Cleartext traffic is disabled globally (`usesCleartextTraffic="false"` plus a
+  network security config), so an `http://` repository or link can never be reached.
+- **Optional root installer.** A root backend (`pm install-create/-add/-commit`) can be enabled in
+  Settings → Installation; it is only an install backend and never bypasses verification.
+- **Lean release builds.** R8 + resource shrinking, per-ABI APK splits (armeabi-v7a, arm64-v8a,
+  x86_64) and a universal APK.
+- **Redesigned, searchable settings.** Eight sections (Appearance, Sources, Updates, Downloads,
+  Storage, Privacy, Backup, About) with a factory reset and confirmation on destructive actions.
 
 <p align="center">
   <img src="docs/screenshots/home.png" width="200" alt="Home"/>
@@ -73,7 +81,7 @@ If one source is slow or down, the others keep working.
 - Rich app pages: screenshots, reviews, changelog, permissions, dependencies and developer contacts. Add apps to favorites.
 - **QR scanner**: scan a Play, F-Droid or any store link and Nova opens the app page.
 - Store links (`market://`, `play.google.com`, `f-droid.org`, shared links) open in Nova.
-- Home layouts (rows, grid, list), 15 accent colors, dark and light themes, and a collapsing or pinned search bar.
+- Home layouts (rows, grid, list), six accent palettes (plus Android 12+ dynamic color), light / dark / AMOLED themes, and a collapsing or pinned search bar.
 - Repository loading progress on the home screen and in a notification.
 - Languages: English, Русский, Español, Français.
 
@@ -83,7 +91,8 @@ Installs use the standard Android installer by default. Root and Device Owner ba
 
 ## Install
 
-1. Download `NovaStore-vX.Y.Z.apk` from [Releases](https://github.com/disruptorh/NovaStore/releases/latest).
+1. Download `NovaStore-vX.Y.Z.apk` (universal) or the smaller per-ABI build
+   (`NovaStore-<abi>-vX.Y.Z.apk`) from [Releases](https://github.com/disruptorh/NovaStore/releases/latest).
 2. Open it and allow "Install unknown apps" for your browser or file manager.
 3. Launch Nova Store. Google Play works immediately with no account needed.
 
@@ -95,10 +104,12 @@ Installs use the standard Android installer by default. Root and Device Owner ba
 git clone https://github.com/disruptorh/NovaStore.git
 cd NovaStore
 ./gradlew assembleRelease
-# → app/build/outputs/apk/release/app-release.apk
+# → app/build/outputs/apk/release/NovaStore-vX.Y.Z.apk            (universal)
+# → app/build/outputs/apk/release/NovaStore-<abi>-vX.Y.Z.apk      (per ABI)
 ```
 
-You need JDK 17 and the Android SDK (API 35).
+You need JDK 17 and the Android SDK (API 35). The release build runs R8 and resource
+shrinking and emits per-ABI APK splits plus a universal APK.
 
 To sign with your own key, add these to `keystore.properties` (or `local.properties`):
 
@@ -114,10 +125,9 @@ Without a key, the build is signed with the local debug key.
 ### CI and releases
 [GitHub Actions](.github/workflows/build.yml) builds the release APK and runs the unit tests on every push.
 Instrumented tests are **not** required in CI (there is no emulator runner); run `./gradlew connectedAndroidTest` locally on a device or emulator instead.
-Each build's APK is available as a workflow artifact.
-Pushing a `v*` tag publishes a GitHub Release with the APK and `SHA256SUMS.txt`.
+Each build's APK is available as a workflow artifact. Releases are published by `release.sh` (below), not by CI.
 
-Cut a release with the helper script — it bumps `versionCode` (+1) and the patch version in `app/build.gradle.kts`, updates the tag example in this README, commits, tags and pushes; CI then publishes the release:
+Cut a release with the helper script — it bumps `versionCode` (+1) and the patch version in `app/build.gradle.kts`, updates the tag example in this README, builds the signed APK, then commits, tags, pushes and publishes the GitHub Release with the APK and `SHA256SUMS.txt`:
 
 ```bash
 ./release.sh
@@ -126,7 +136,7 @@ Cut a release with the helper script — it bumps `versionCode` (+1) and the pat
 It refuses to run with a dirty working tree or with no code changes since the last tag. You can also tag manually:
 
 ```bash
-git tag v7.2.3 && git push origin v7.2.3
+git tag v7.3.2 && git push origin v7.3.2
 ```
 
 To sign CI builds with your release key, add these repository secrets:
@@ -144,12 +154,13 @@ Kotlin · Jetpack Compose (Material 3) · Hilt · Room · DataStore · WorkManag
 
 The project uses a modular, clean architecture:
 - `app`
-- `core/*` (model, network, database, datastore, installer, updater, ui, playapi)
+- `core/*` (model, common, ui, network, database, datastore, security, downloader, installer, playapi)
 - `data`
 - `domain`
 - `feature/*` (home, search, details, updates, installed, downloads, settings, account)
 
 Further documentation:
+- [docs/build.md](docs/build.md)
 - [docs/update-engine.md](docs/update-engine.md)
 - [docs/source-providers.md](docs/source-providers.md)
 - [docs/security.md](docs/security.md)
